@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    if (new URLSearchParams(location.search).has('embed')) {
+      document.documentElement.classList.add('embed-mode');
+    }
+  </script>
+  <title>Workflow Optimization | Works</title>
+  <link rel="stylesheet" href="../style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+     .demo-box {
+      margin-top: 14px;
+      border: 1px solid var(--border-color, #cbd5e1);
+      border-radius: 6px;
+      background: #ffffff;
+      overflow: visible;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .demo-tabs {
+      display: flex;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--border-color, #cbd5e1);
+    }
+    .demo-tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+    }
+    .demo-tab-btn.active {
+      background: #ffffff;
+      color: var(--teal);
+      border-bottom: 2px solid var(--teal);
+    }
+    .ba-view { display: none; padding: 14px; }
+    .ba-view.active { display: block; }
+
+    .browser-mock {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .browser-tabbar {
+      display: flex;
+      background: #e2e8f0;
+      padding: 6px 6px 0 6px;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+    .browser-tab {
+      padding: 8px 14px;
+      background: #cbd5e1;
+      color: #475569;
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .browser-tab.active {
+      background: #fff;
+      color: #0f172a;
+    }
+    .browser-content {
+      padding: 24px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .browser-content-inner {
+      width: 100%;
+      max-width: 900px;
+    }
+    .browser-content .item-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 14px;
+    }
+    .browser-content .kv-row {
+      display: flex;
+      border-bottom: 1px solid #f1f5f9;
+      padding: 8px 0;
+      font-size: 12.5px;
+    }
+    .browser-content .kv-label {
+      width: 150px;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .browser-content .kv-value {
+      color: #0f172a;
+    }
+    .office-subtable-label {
+      margin-top: 20px;
+      font-size: 12.5px;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .office-subtable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: #fff;
+    }
+    .office-subtable th, .office-subtable td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .office-subtable th {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    /* ---- After: 検索・SQLパネルレイアウト ---- */
+    .wrap {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 20px;
+      width: 100%;
+    }
+    .panel {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel h2 {
+      font-size: 14px;
+      color: #0f172a;
+      margin: 0 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .code-search-box {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .code-search-box textarea {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: Consolas, monospace;
+      line-height: 1.7;
+      resize: vertical;
+      min-height: 130px;
+      color: #0f766e;
+      background: #f0fdfa;
+    }
+    .code-search-box button {
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .code-search-box button:hover { background: var(--teal-hover); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th, td { border: 1px solid #e2e8f0; padding: 5px 6px; text-align: left; white-space: nowrap; }
+    th { background: #f1f5f9; color: #475569; font-weight: 700; position: sticky; top: 0; }
+    .raw-table-scroll { overflow: auto; max-height: 420px; border: 1px solid #e2e8f0; border-radius: 6px; }
+    .placeholder-row td {
+      text-align: center;
+      color: #94a3b8;
+      padding: 24px 10px;
+      font-size: 12px;
+      white-space: normal;
+    }
+
+    /* ---- Excel風フィルタ ---- */
+    .th-flex { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+    .filter-btn {
+      background: none; border: none; cursor: pointer; padding: 1px 3px;
+      font-size: 10px; color: #64748b; border-radius: 3px;
+    }
+    .filter-btn:hover { background: #e2e8f0; }
+    .filter-btn.active { color: var(--teal); font-weight: 900; }
+    th { position: relative; }
+    .filter-dropdown {
+      position: fixed;
+      background: #fff;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      box-shadow: 0 6px 16px rgba(0,0,0,.18);
+      z-index: 50;
+      width: 190px;
+      max-height: min(260px, calc(100vh - 16px));
+      overflow-y: auto;
+      display: none;
+      font-weight: 400;
+      text-transform: none;
+    }
+    .filter-dropdown.show { display: block; }
+    .filter-dropdown .fd-row {
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #334155;
+      cursor: pointer;
+    }
+    .filter-dropdown .fd-row:hover { background: #f0fdfa; }
+    .filter-dropdown .fd-all {
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 700;
+    }
+    .filter-dropdown .fd-actions {
+      display: flex; gap: 6px; padding: 6px 10px;
+      border-top: 1px solid #e2e8f0;
+      position: sticky; bottom: 0; background: #fff;
+    }
+    .fd-actions button {
+      flex: 1; font-size: 10.5px; padding: 4px 6px; border-radius: 4px;
+      border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;
+    }
+    .fd-actions button.primary { background: var(--teal); color: #fff; border: none; }
+    .filter-summary {
+      font-size: 11.5px; color: #0f766e; margin-bottom: 6px; min-height: 16px;
+    }
+    .clear-filters-btn {
+      background: none; border: 1px solid #cbd5e1; color: #475569;
+      font-size: 10.5px; padding: 2px 8px; border-radius: 5px; cursor: pointer;
+      margin-left: 8px;
+    }
+    .clear-filters-btn:hover { background: #f1f5f9; }
+
+    /* ---- SQL結果テーブル・コンソール ---- */
+    .result-table-scroll {
+      overflow: auto;
+      max-height: 280px;
+      border: 1px solid #303d34;
+      border-radius: 8px;
+      margin-top: 10px;
+      background: #0d1117;
+      padding: 4px;
+    }
+    #resultTable {
+      font-size: 14px;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    #resultTable th, #resultTable td {
+      border: 1px solid #30363d;
+      padding: 10px 14px;
+      white-space: nowrap;
+    }
+    #resultTable thead th {
+      background: #0f766e;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      letter-spacing: 0.3px;
+    }
+    #resultTable tbody tr { background: #161b22; color: #e6edf3; }
+    #resultTable tbody tr:nth-child(even) { background: #1c2230; }
+    #resultTable tbody tr:hover { background: #22304a; }
+    #resultTable tbody td { font-family: Consolas, 'Courier New', monospace; }
+    #resultTable tbody td:first-child { color: #5eead4; font-weight: 700; }
+    .result-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .result-count {
+      font-size: 12px;
+      color: #94a3b8;
+      font-family: Consolas, monospace;
+    }
+    #exportBtn {
+      background: #166534;
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: none; /* 初期状態では完全に非表示 */
+    }
+    #exportBtn:hover { background: #15803d; }
+
+    .sql-panel {
+      background: #0a0e14;
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .sql-bar {
+      background: #161b22;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid #1f2937;
+    }
+    .tdot { width: 9px; height: 9px; border-radius: 50%; }
+    .tdot.r { background: #ef4444; } .tdot.y { background: #f59e0b; } .tdot.g { background: #22c55e; }
+    .sql-title { color: #8b949e; font-size: 11px; margin-left: 4px; font-family: Consolas, monospace; }
+    .sql-body { padding: 14px; }
+    textarea#sqlInput {
+      width: 100%;
+      background: #0d1117;
+      color: #4ade80;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      font-family: Consolas, 'Courier New', monospace;
+      font-size: 12.5px;
+      padding: 10px;
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+    }
+    #runBtn {
+      background: var(--teal); color: #fff; border: none;
+      padding: 9px 18px; border-radius: 6px; font-size: 13px;
+      font-weight: 700; cursor: pointer; margin-top: 6px;
+    }
+    #runBtn:hover { background: var(--teal-hover); }
+    #runBtn:disabled { background: #475569; cursor: wait; }
+    #resetBtn {
+      background: #334155; color: #e2e8f0; border: 1px solid #475569;
+      padding: 8px 14px; border-radius: 6px; font-size: 12px;
+      font-weight: 700; cursor: pointer; margin: 6px 0 0 6px;
+    }
+    #resetBtn:hover { background: #475569; }
+    .log { font-family: Consolas, monospace; font-size: 11.5px; color: #64748b; margin-top: 8px; }
+    .log .ok { color: #4ade80; }
+    .log .err { color: #f87171; }
+
+     /* ===== 制作メモ ===== */
+    .memo-toggle-wrap { margin-top: 14px; margin-bottom: 4px; }
+
+    .memo-toggle-btn {
+      background: none; border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 6px 14px;
+      font-size: 0.8rem; font-weight: 600; color: var(--text-sub);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .memo-toggle-btn:hover { background: #f1f5f9; color: var(--teal); }
+    .memo-toggle-btn.open { background: #f0fdf4; color: var(--teal); border-color: var(--teal); }
+    .memo-panel {
+      margin-top: 10px;
+      background: #fafafa;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .memo-title {
+      font-size: 0.9rem; font-weight: 800; color: var(--text-heading);
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--teal);
+    }
+
+    .memo-section-head {
+      font-size: 0.78rem; font-weight: 700; color: var(--teal);
+      margin-top: 14px; margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+
+    .memo-body { font-size: 0.82rem; color: var(--text-main); line-height: 1.7; margin-bottom: 4px; }
+
+    .memo-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .memo-item-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--teal); color: #fff;
+      font-size: 0.72rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .memo-item-title { font-size: 0.83rem; font-weight: 700; color: var(--text-heading); margin-bottom: 3px; }
+
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+    }
+    html.embed-mode header, html.embed-mode .section-title { display: none; }
+    html.embed-mode .container { max-width: none; margin: 0; padding: 0; }
+  </style>
+</head>
+<body class="work-detail-page">
+
+  <header class="detail-header">
+    <div class="nav-container">
+      <a href="../index.html#works" class="back-link">← Works</a>
+    </div>
+  </header>
+
+  <main class="detail-main" style="max-width: 1240px; margin: 20px auto; padding: 0 20px;">
+    <article class="detail-card" style="display: block; background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+      
+      <!-- デモコンテンツ部分 -->
+      <section id="work3">
+        <div style="text-align: left; margin-bottom: 20px;">
+          <div class="section-kicker" style="color: #0f766e; font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Workflow Optimization</div>
+          <h1 style="font-size: 22px; color: #0f172a; margin: 0;">3. Automated Data Extraction Tool</h1>
+        </div>
+
+        <div class="section-label" style="font-weight: bold; color: #475569; margin-top: 12px;">【Situation】</div>
+        <p class="text-body" style="font-size: 14px; line-height: 1.6; color: #334155;">
+          同僚が作成したブラウザー拡張機能では、複数アイテムの情報を一括で一覧表示し、フィルターで必要なデータに絞り込んでダウンロードできました。しかし、セキュリティ上の理由で拡張機能が利用できなくなり、アイテムごとにタブを開いて個別に確認する必要が生じました。そのため、複数アイテムの情報をまとめて取り扱うのに手間がかかっていました。
+        </p>
+
+        <div class="section-label" style="font-weight: bold; color: #475569; margin-top: 12px;">【Task】</div>
+        <p class="text-body" style="font-size: 14px; line-height: 1.6; color: #334155;">
+          拡張機能の仕組みを参考にしながらも、許可されているローカルWeb環境内で動く仕組みを作成することにしました。
+        </p>
+
+        <div class="section-label" style="font-weight: bold; color: #475569; margin-top: 12px;">【Action】</div>
+        <p class="text-body" style="font-size: 14px; line-height: 1.6; color: #334155;">
+          開発ツールから必要なデータをExcel形式でダウンロードし、PowerShellで複数のファイルを統合して一覧で確認できるようにしました。
+        </p>
+
+        <div class="section-label" style="font-weight: bold; color: #475569; margin-top: 16px;">【Demonstration Using a Simulated Process】</div>
+        
+        <div class="demo-box">
+          <div class="demo-tabs">
+            <button class="demo-tab-btn active" id="baBeforeBtn" onclick="switchBA('before')">Before</button>
+            <button class="demo-tab-btn" id="baAfterBtn" onclick="switchBA('after')">After</button>
+          </div>
+
+          <!-- ============ BEFORE ============ -->
+          <div class="ba-view active" id="baBefore">
+            <div class="browser-mock">
+              <div class="browser-tabbar" id="browserTabbar"></div>
+              <div class="browser-content" id="browserContent"></div>
+            </div>
+          </div>
+
+          <!-- ============ AFTER ============ -->
+          <div class="ba-view" id="baAfter">
+            <div class="wrap">
+              <div class="panel">
+                <h2>
+                  <span>🔍 管理コードを入力して「表示」を押す</span>
+                  <button class="clear-filters-btn" onclick="clearAllFilters()">フィルタ解除</button>
+                </h2>
+                <div class="code-search-box">
+                  <textarea id="codeSearchInput" rows="6">PC13-SIL
+PC13-BLK
+PC13-WHT
+PC15-SIL
+PC15-BLK
+PC15-WHT</textarea>
+                  <button onclick="searchByInput()">表示</button>
+                </div>
+                <div class="filter-summary" id="filterSummary"></div>
+                <div class="raw-table-scroll">
+                  <table id="rawTable"></table>
+                </div>
+              </div>
+
+              <div class="sql-panel">
+                <div class="sql-bar">
+                  <span class="tdot r"></span><span class="tdot y"></span><span class="tdot g"></span>
+                  <span class="sql-title">sql-console — SQLite (WASM)</span>
+                </div>
+                <div class="sql-body">
+                  <textarea id="sqlInput">SELECT
+  office_code  AS 営業所コード,
+  variant_code AS 管理コード,
+  record_id    AS 登録ID
+FROM asset_mapping
+WHERE variant_code IN ('PC13-SIL','PC13-WHT','PC15-BLK');</textarea>
+                  <button id="runBtn" onclick="runQuery()" disabled>読み込み中...</button>
+                  <button id="resetBtn" onclick="resetQuery()" type="button">リセット</button>
+                  <div class="log" id="logArea"></div>
+                  <div class="result-table-scroll">
+                    <table id="resultTable"></table>
+                  </div>
+                  <div class="result-footer">
+                    <div class="result-count" id="resultCount"></div>
+                    <button id="exportBtn" onclick="exportToExcel()">📊 Excelでダウンロード</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+       <div class="section-label" style="font-weight: bold; color: #475569; margin-top: 20px;">【Result】</div>
+        <div class="metrics-row" style="display: flex; gap: 16px; margin-top: 8px;">
+          <div class="metric-box" style="flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; text-align: center;">
+            <div class="metric-label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">表示方法</div>
+            <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #15803d; line-height: 1.3;">個別タブ → 一括表示</div>
+          </div>
+          <div class="metric-box" style="flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; text-align: center;">
+            <div class="metric-label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">出力形式</div>
+            <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #15803d; line-height: 1.3;">Excel</div>
+          </div>
+        </div>
+
+        <div class="memo-toggle-wrap" style="margin-top: 16px;">
+          <button class="memo-toggle-btn" onclick="toggleMemo('work3-memo')" style="background: none; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; color: #475569;">📝 制作メモを見る</button>
+          <div id="work3-memo" class="memo-panel" style="display:none; margin-top: 12px; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div class="memo-title">SQL抽出デモを制作した記録</div>
+          <div class="memo-section-head">背景</div>
+          <p class="memo-body">授業で学んだSQLを業務改善の経験と結びつけて活用したいと考え、以前取り組んだ情報の一括取得・整理を題材にデモを制作しました。デモは実際の業務手順やツールを再現したものではなく、業務改善の考え方を紹介するため、架空データを使ってSQLで再構成しています。</p>
+          <div class="memo-section-head">工夫した点・苦労した点</div>
+          <div class="memo-item">
+            <div class="memo-item-num">1</div>
+            <div>
+              <div class="memo-item-title">タブの中にタブを設けた構成</div>
+              <p class="memo-body">外側のタブでBefore／Afterを切り替え、Before画面にはアイテムのバリエーションごとのタブを設けました。手作業で1件ずつ確認する流れと、複数データをまとめて表示する流れを比較できるようにしています。</p>
+            </div>
+          </div>
+          <div class="memo-item">
+            <div class="memo-item-num">2</div>
+            <div>
+              <div class="memo-item-title">SQLの実行結果を表示</div>
+              <p class="memo-body">ブラウザー上でSQLiteを実行し、クエリの結果を確認してExcel形式でダウンロードできるようにしました。</p>
+            </div>
+          </div>
+          <div class="memo-section-head">AIの活用について</div>
+          <p class="memo-body">SQL抽出デモの制作では、AIにJavaScriptのコード作成や修正を相談しました。SQLを実行して結果を表示する機能や、Excel形式でダウンロードする機能を実装し、動作を確認しながら調整しました。</p>
+          <div class="memo-section-head">今後の課題</div>
+          <p class="memo-body">SQLでデータを抽出するだけでなく、抽出結果を画面に表示したり、ファイルとして出力したりするまでの処理の流れを理解することが今後の課題です。</p>
+        </div>
+
+      </section>
+    </article>
+  </main>
+
+  <script>
+const RAW_COLUMNS = [
+  'office_code','office_name','variant_code','item_name','color','size',
+  'quantity','record_id','status','create_time'
+];
+const COLUMN_LABELS = {
+  office_code:'営業所コード', office_name:'営業所', variant_code:'管理コード',
+  item_name:'備品名', color:'カラー', size:'画面サイズ',
+  quantity:'保有数', record_id:'登録ID',
+  status:'状態', create_time:'登録日'
+};
+const OFFICE_CODES = {
+  東京営業所: 'TYO',
+  大阪営業所: 'OSA',
+  福岡営業所: 'FUK',
+  名古屋営業所: 'NGO',
+  札幌営業所: 'SPK',
+  仙台営業所: 'SDJ'
+};
+const RAW_DATA = [
+  // PC13-SIL (3拠点)
+  { office_name:'東京営業所',   variant_code:'PC13-SIL', item_name:'ノートPC', color:'シルバー', size:'13インチ', quantity:5, record_id:'rec-id-401', status:'使用中', create_time:'2026-09-01T10:00:00Z' },
+  { office_name:'大阪営業所',   variant_code:'PC13-SIL', item_name:'ノートPC', color:'シルバー', size:'13インチ', quantity:3, record_id:'rec-id-402', status:'使用中', create_time:'2026-09-01T11:00:00Z' },
+  { office_name:'福岡営業所',   variant_code:'PC13-SIL', item_name:'ノートPC', color:'シルバー', size:'13インチ', quantity:2, record_id:'rec-id-403', status:'使用中', create_time:'2026-09-01T12:00:00Z' },
+  // PC13-BLK (2拠点)
+  { office_name:'東京営業所',   variant_code:'PC13-BLK', item_name:'ノートPC', color:'ブラック', size:'13インチ', quantity:2, record_id:'rec-id-404', status:'使用中', create_time:'2026-09-02T09:00:00Z' },
+  { office_name:'名古屋営業所', variant_code:'PC13-BLK', item_name:'ノートPC', color:'ブラック', size:'13インチ', quantity:4, record_id:'rec-id-405', status:'使用中', create_time:'2026-09-02T10:00:00Z' },
+  // PC13-WHT (4拠点)
+  { office_name:'東京営業所',   variant_code:'PC13-WHT', item_name:'ノートPC', color:'ホワイト', size:'13インチ', quantity:1, record_id:'rec-id-412', status:'保管中', create_time:'2026-09-05T09:00:00Z' },
+  { office_name:'名古屋営業所', variant_code:'PC13-WHT', item_name:'ノートPC', color:'ホワイト', size:'13インチ', quantity:5, record_id:'rec-id-413', status:'使用中', create_time:'2026-09-05T10:00:00Z' },
+  { office_name:'札幌営業所',   variant_code:'PC13-WHT', item_name:'ノートPC', color:'ホワイト', size:'13インチ', quantity:2, record_id:'rec-id-414', status:'使用中', create_time:'2026-09-05T11:00:00Z' },
+  { office_name:'仙台営業所',   variant_code:'PC13-WHT', item_name:'ノートPC', color:'ホワイト', size:'13インチ', quantity:1, record_id:'rec-id-415', status:'使用中', create_time:'2026-09-05T12:00:00Z' },
+  // PC15-SIL (5拠点)
+  { office_name:'大阪営業所',   variant_code:'PC15-SIL', item_name:'ノートPC', color:'シルバー', size:'15インチ', quantity:6, record_id:'rec-id-406', status:'使用中', create_time:'2026-09-03T09:00:00Z' },
+  { office_name:'名古屋営業所', variant_code:'PC15-SIL', item_name:'ノートPC', color:'シルバー', size:'15インチ', quantity:1, record_id:'rec-id-407', status:'保管中', create_time:'2026-09-03T10:00:00Z' },
+  { office_name:'福岡営業所',   variant_code:'PC15-SIL', item_name:'ノートPC', color:'シルバー', size:'15インチ', quantity:3, record_id:'rec-id-408', status:'使用中', create_time:'2026-09-03T11:00:00Z' },
+  { office_name:'札幌営業所',   variant_code:'PC15-SIL', item_name:'ノートPC', color:'シルバー', size:'15インチ', quantity:2, record_id:'rec-id-409', status:'使用中', create_time:'2026-09-03T12:00:00Z' },
+  { office_name:'仙台営業所',   variant_code:'PC15-SIL', item_name:'ノートPC', color:'シルバー', size:'15インチ', quantity:4, record_id:'rec-id-410', status:'使用中', create_time:'2026-09-03T13:00:00Z' },
+  // PC15-BLK (1拠点)
+  { office_name:'福岡営業所',   variant_code:'PC15-BLK', item_name:'ノートPC', color:'ブラック', size:'15インチ', quantity:3, record_id:'rec-id-411', status:'使用中', create_time:'2026-09-04T09:00:00Z' },
+  // PC15-WHT (2拠点)
+  { office_name:'大阪営業所',   variant_code:'PC15-WHT', item_name:'ノートPC', color:'ホワイト', size:'15インチ', quantity:4, record_id:'rec-id-416', status:'使用中', create_time:'2026-09-06T09:00:00Z' },
+  { office_name:'福岡営業所',   variant_code:'PC15-WHT', item_name:'ノートPC', color:'ホワイト', size:'15インチ', quantity:2, record_id:'rec-id-417', status:'使用中', create_time:'2026-09-06T10:00:00Z' },
+];
+const VARIANT_CODES = ['PC13-SIL','PC13-BLK','PC13-WHT','PC15-SIL','PC15-BLK','PC15-WHT'];
+
+function getRowsForVariant(code) {
+  return RAW_DATA.filter(r => r.variant_code === code);
+}
+
+// ============ Before/After 切り替え ============
+function switchBA(target) {
+  document.getElementById('baBeforeBtn').classList.toggle('active', target === 'before');
+  document.getElementById('baAfterBtn').classList.toggle('active', target === 'after');
+  document.getElementById('baBefore').classList.toggle('active', target === 'before');
+  document.getElementById('baAfter').classList.toggle('active', target === 'after');
+}
+
+// ============ Before: ブラウザタブ風UI ============
+let currentTabIndex = 0;
+function renderBrowserTabs() {
+  const tabbar = document.getElementById('browserTabbar');
+  tabbar.innerHTML = VARIANT_CODES.map((code, i) => {
+    const sample = getRowsForVariant(code)[0];
+    return `<div class="browser-tab ${i === currentTabIndex ? 'active' : ''}" onclick="selectBrowserTab(${i})">📄 ${sample.size} / ${sample.color}</div>`;
+  }).join('');
+  
+  const content = document.getElementById('browserContent');
+  const code = VARIANT_CODES[currentTabIndex];
+  const rows = getRowsForVariant(code);
+  const sample = rows[0];
+
+  let tableRowsHtml = '';
+  rows.forEach(r => {
+    tableRowsHtml += '<tr><td>' + OFFICE_CODES[r.office_name] + '</td><td>' + r.office_name + '</td><td>' + r.quantity + '</td><td>' + r.status + '</td><td>' + r.record_id + '</td></tr>';
+  });
+
+  content.innerHTML = `
+    <div class="item-title">${sample.item_name} ${sample.size} / ${sample.color} (${code})</div>
+    <div class="kv-row"><div class="kv-label">管理コード</div><div class="kv-value">${code}</div></div>
+    <div class="kv-row"><div class="kv-label">カラー</div><div class="kv-value">${sample.color}</div></div>
+    <div class="kv-row"><div class="kv-label">画面サイズ</div><div class="kv-value">${sample.size}</div></div>
+    <div class="office-subtable-label">📍 保有拠点一覧 (${rows.length}拠点)</div>
+    <table class="office-subtable">
+      <thead>
+        <tr>
+          <th>営業所コード</th>
+          <th>営業所</th>
+          <th>保有数</th>
+          <th>状態</th>
+          <th>登録ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableRowsHtml}
+      </tbody>
+    </table>
+  `;
+}
+function selectBrowserTab(i) {
+  currentTabIndex = i;
+  renderBrowserTabs();
+}
+
+// ---- Excel風フィルタ状態 ----
+const activeFilters = {};
+RAW_COLUMNS.forEach(c => { activeFilters[c] = null; });
+
+function getColumnValue(row, col) {
+  if (col === 'office_code') return OFFICE_CODES[row.office_name];
+  if (col === 'create_time') return row.create_time.slice(0, 10);
+  return row[col];
+}
+function getUniqueValues(col) {
+  return Array.from(new Set(RAW_DATA.map(row => getColumnValue(row, col))));
+}
+function getFilteredRows() {
+  return RAW_DATA.filter(row => {
+    return RAW_COLUMNS.every(col => {
+      const sel = activeFilters[col];
+      if (sel === null) return true;
+      return sel.has(getColumnValue(row, col));
+    });
+  });
+}
+function closeAllDropdowns(exceptCol) {
+  document.querySelectorAll('.filter-dropdown').forEach(dd => {
+    if (dd.dataset.col !== exceptCol) dd.classList.remove('show');
+  });
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.filter-btn') && !e.target.closest('.filter-dropdown')) {
+    closeAllDropdowns(null);
+  }
+});
+function toggleFilterDropdown(col, btnEl) {
+  const dd = document.getElementById('fd-' + col);
+  const isShown = dd.classList.contains('show');
+  closeAllDropdowns(col);
+  if (!isShown) {
+    openFilterDropdown(col);
+  } else {
+    dd.classList.remove('show');
+  }
+}
+function openFilterDropdown(col) {
+  buildFilterDropdown(col);
+  const dropdown = document.getElementById('fd-' + col);
+  dropdown.classList.add('show');
+  const button = document.querySelector(`.filter-btn[data-col="${col}"]`);
+  const buttonRect = button.getBoundingClientRect();
+  const dropdownRect = dropdown.getBoundingClientRect();
+  const margin = 8;
+  const left = Math.max(margin, Math.min(buttonRect.left, window.innerWidth - dropdownRect.width - margin));
+  const spaceBelow = window.innerHeight - buttonRect.bottom - margin;
+  const spaceAbove = buttonRect.top - margin;
+  const openAbove = spaceBelow < dropdownRect.height && spaceAbove > spaceBelow;
+  const top = openAbove
+    ? Math.max(margin, buttonRect.top - dropdownRect.height)
+    : Math.min(buttonRect.bottom, window.innerHeight - dropdownRect.height - margin);
+  dropdown.style.left = `${left}px`;
+  dropdown.style.top = `${top}px`;
+}
+function buildFilterDropdown(col) {
+  const dd = document.getElementById('fd-' + col);
+  const values = getUniqueValues(col);
+  const sel = activeFilters[col];
+  const allChecked = sel === null;
+  let html = `<div class="fd-row fd-all" onclick="event.stopPropagation(); toggleAllForColumn('${col}')">
+    <input type="checkbox" ${allChecked ? 'checked' : ''} readonly> すべて選択
+  </div>`;
+  values.forEach(v => {
+    const checked = allChecked || sel.has(v);
+    html += `<div class="fd-row" onclick="event.stopPropagation(); toggleValueForColumn('${col}', '${encodeURIComponent(v)}')">
+      <input type="checkbox" ${checked ? 'checked' : ''} readonly> ${v}
+    </div>`;
+  });
+  html += `<div class="fd-actions">
+    <button onclick="event.stopPropagation(); applyFilterAndClose('${col}')" class="primary">適用</button>
+    <button onclick="event.stopPropagation(); resetColumnFilter('${col}')">クリア</button>
+  </div>`;
+  dd.innerHTML = html;
+}
+function toggleAllForColumn(col) {
+  activeFilters[col] = activeFilters[col] === null ? new Set() : null;
+  renderRawTable();
+  updateFilterUI();
+  openFilterDropdown(col);
+}
+function toggleValueForColumn(col, encodedVal) {
+  const val = decodeURIComponent(encodedVal);
+  const values = getUniqueValues(col);
+  if (activeFilters[col] === null) {
+    activeFilters[col] = new Set(values);
+  }
+  if (activeFilters[col].has(val)) {
+    activeFilters[col].delete(val);
+  } else {
+    activeFilters[col].add(val);
+  }
+  if (activeFilters[col].size === values.length) {
+    activeFilters[col] = null;
+  }
+  renderRawTable();
+  updateFilterUI();
+  openFilterDropdown(col);
+}
+function applyFilterAndClose(col) {
+  closeAllDropdowns(null);
+  renderRawTable();
+  updateFilterUI();
+}
+function resetColumnFilter(col) {
+  activeFilters[col] = null;
+  renderRawTable();
+  updateFilterUI();
+  openFilterDropdown(col);
+}
+function clearAllFilters() {
+  RAW_COLUMNS.forEach(c => { activeFilters[c] = null; });
+  searchStarted = false;
+  document.getElementById('codeSearchInput').value = '';
+  renderRawTable();
+  updateFilterUI();
+}
+function updateFilterUI() {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    const col = btn.dataset.col;
+    btn.classList.toggle('active', activeFilters[col] !== null);
+  });
+  const activeCols = RAW_COLUMNS.filter(c => activeFilters[c] !== null);
+  const summary = document.getElementById('filterSummary');
+  if (!searchStarted || activeCols.length === 0) {
+    summary.textContent = '';
+  } else {
+    const filteredCount = getFilteredRows().length;
+    summary.textContent = `絞り込み中: ${activeCols.map(c => COLUMN_LABELS[c]).join(', ')} (${filteredCount}/${RAW_DATA.length}件表示)`;
+  }
+}
+
+// ============ 管理コード複数行検索 & SQL自動連動（修正版） ============
+let searchStarted = false;
+
+function searchByInput() {
+  const raw = document.getElementById('codeSearchInput').value;
+  const lines = raw.split('\n').map(s => s.trim()).filter(s => s !== '');
+  searchStarted = true;
+  
+  RAW_COLUMNS.forEach(c => { activeFilters[c] = null; });
+  const sqlInput = document.getElementById('sqlInput');
+
+  if (lines.length === 0) {
+    sqlInput.value = 
+`SELECT
+  office_code  AS 営業所コード,
+  variant_code AS 管理コード,
+  record_id    AS 登録ID
+FROM asset_mapping
+WHERE 1 = 0;`;
+    renderRawTable();
+    updateFilterUI();
+    return;
+  }
+
+  // 入力されたコードを完全にそのままSQLのIN条件に反映する
+  const inClause = lines.map(code => `'${code}'`).join(', ');
+
+  sqlInput.value = 
+`SELECT
+  office_code  AS 営業所コード,
+  variant_code AS 管理コード,
+  record_id    AS 登録ID
+FROM asset_mapping
+WHERE variant_code IN (${inClause});`;
+
+  // 左側のシミュレーションテーブル側の絞り込み用
+  const matchedSet = new Set(lines);
+  activeFilters['variant_code'] = matchedSet;
+  
+  renderRawTable();
+  updateFilterUI();
+}
+
+function renderRawTable() {
+  const table = document.getElementById('rawTable');
+  let headHtml = '<thead><tr>' + RAW_COLUMNS.map(c => `
+    <th>
+      <div class="th-flex">
+        <span>${COLUMN_LABELS[c]}</span>
+        <button class="filter-btn" data-col="${c}" onclick="toggleFilterDropdown('${c}', this)">▼</button>
+      </div>
+      <div class="filter-dropdown" id="fd-${c}" data-col="${c}"></div>
+    </th>`).join('') + '</tr></thead>';
+
+  const rows = getFilteredRows();
+  let bodyHtml = '<tbody>';
+  if (rows.length === 0) {
+    bodyHtml += `<tr class="placeholder-row"><td colspan="${RAW_COLUMNS.length}">条件に一致するデータがありません</td></tr>`;
+  } else {
+    rows.forEach(row => {
+      bodyHtml += '<tr>' + RAW_COLUMNS.map(c => `<td>${getColumnValue(row, c)}</td>`).join('') + '</tr>';
+    });
+  }
+  bodyHtml += '</tbody>';
+  table.innerHTML = headHtml + bodyHtml;
+}
+
+function showRawTable() {
+  renderRawTable();
+}
+
+// ============ SQL & リセット・ダウンロード制御 ============
+let db = null;
+let lastColumns = [];
+let lastRows = [];
+
+function renderResultTable(columns, rows) {
+  const table = document.getElementById('resultTable');
+  const countEl = document.getElementById('resultCount');
+  const exportBtn = document.getElementById('exportBtn');
+  lastColumns = columns;
+  lastRows = rows;
+
+  if (rows.length === 0) {
+    table.innerHTML = '';
+    countEl.textContent = '0件のデータ';
+    exportBtn.style.display = 'none';
+    return;
+  }
+
+  let headHtml = '<thead><tr>' + columns.map(col => `<th>${col}</th>`).join('') + '</tr></thead>';
+  let bodyHtml = '<tbody>';
+  rows.forEach(row => {
+    bodyHtml += '<tr>' + row.map(val => `<td>${val !== null ? val : ''}</td>`).join('') + '</tr>';
+  });
+  bodyHtml += '</tbody>';
+  table.innerHTML = headHtml + bodyHtml;
+  countEl.textContent = `${rows.length}件のデータ`;
+  exportBtn.style.display = 'inline-block';
+}
+
+function resetQuery() {
+  document.getElementById('sqlInput').value = `SELECT
+  office_code  AS 営業所コード,
+  variant_code AS 管理コード,
+  record_id    AS 登録ID
+FROM asset_mapping
+WHERE variant_code IN ('PC13-SIL','PC13-WHT','PC15-BLK');`;
+  document.getElementById('resultTable').innerHTML = '';
+  document.getElementById('resultCount').textContent = '';
+  document.getElementById('logArea').innerHTML = '';
+  
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) {
+    exportBtn.style.display = 'none';
+  }
+  lastColumns = [];
+  lastRows = [];
+}
+
+// 初期化実行
+window.addEventListener('DOMContentLoaded', () => {
+  renderBrowserTabs();   
+document.getElementById('rawTable').innerHTML = '';
+  
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) {
+    exportBtn.style.display = 'none';
+  }
+
+  initSqlJs({ locateFile: file => `https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/${file}` }).then(SQL => {
+    db = new SQL.Database();
+    db.run(`
+      CREATE TABLE asset_mapping (
+        office_code TEXT,
+        office_name TEXT,
+        variant_code TEXT,
+        item_name TEXT,
+        color TEXT,
+        size TEXT,
+        quantity INTEGER,
+        record_id TEXT,
+        status TEXT,
+        create_time TEXT
+      );
+    `);
+    const stmt = db.prepare(`INSERT INTO asset_mapping VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`);
+    RAW_DATA.forEach(r => {
+      stmt.run([
+        OFFICE_CODES[r.office_name],
+        r.office_name,
+        r.variant_code,
+        r.item_name,
+        r.color,
+        r.size,
+        r.quantity,
+        r.record_id,
+        r.status,
+        r.create_time
+      ]);
+    });
+    stmt.free();
+
+    const runBtn = document.getElementById('runBtn');
+    runBtn.disabled = false;
+    runBtn.textContent = 'クエリを実行';
+    document.getElementById('logArea').innerHTML = '<span class="ok">✓ データベースの準備が完了しました</span>';
+  }).catch(err => {
+    document.getElementById('logArea').innerHTML = '<span class="err">✗ データベースの初期化に失敗しました</span>';
+  });
+});
+
+function runQuery() {
+  if (!db) return;
+  const sql = document.getElementById('sqlInput').value;
+  const logArea = document.getElementById('logArea');
+  try {
+    const results = db.exec(sql);
+    if (results.length > 0) {
+      const columns = results[0].columns;
+      const values = results[0].values;
+      renderResultTable(columns, values);
+      logArea.innerHTML = '<span class="ok">✓ クエリが正常に実行されました</span>';
+    } else {
+      renderResultTable([], []);
+      logArea.innerHTML = '<span class="ok">✓ クエリは成功しましたが、結果が0件です</span>';
+    }
+  } catch (err) {
+    logArea.innerHTML = `<span class="err">✗ エラー: ${err.message}</span>`;
+    renderResultTable([], []);
+  }
+}
+
+function exportToExcel() {
+  if (lastRows.length === 0) return;
+  const data = [lastColumns, ...lastRows];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "SQL_Result");
+  XLSX.writeFile(wb, "query_result.xlsx");
+}
+
+/* ===== 制作メモ トグル ===== */
+function toggleMemo(id) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  const btn = panel.previousElementSibling;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (btn) {
+    btn.textContent = isOpen ? '📝 制作メモを見る' : '📝 制作メモを閉じる';
+    btn.classList.toggle('open', !isOpen);
+  }
+}
+  </script>
+</body>
+</html>

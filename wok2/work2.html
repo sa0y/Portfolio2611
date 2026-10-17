@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    if (new URLSearchParams(location.search).has('embed')) {
+      document.documentElement.classList.add('embed-mode');
+    }
+  </script>
+  <title>Notification UX | Works</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+  /* Work2 デモ */
+    .monitor-wrap {
+      margin-top: 14px;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      border-radius: 8px;
+      padding: 16px;
+      color: #e2e8f0;
+    }
+    .monitor-start-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    #monitorStartBtn {
+      background: #16a34a; color: white; border: none;
+      padding: 9px 18px; border-radius: 8px; font-size: 0.82rem;
+      font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(22,163,74,.4);
+    }
+    #monitorStartBtn:hover { background: #15803d; }
+    #monitorStartBtn:disabled { background: #334155; box-shadow: none; cursor: not-allowed; }
+
+    .term-panel {
+      background: #0a0e14; border: 1px solid #1f2937;
+      border-radius: 10px; padding: 0;
+      min-height: 280px; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .term-bar {
+      background: #161b22; padding: 8px 12px;
+      display: flex; align-items: center; gap: 6px;
+      border-bottom: 1px solid #1f2937;
+    }
+    .tdot { width: 9px; height: 9px; border-radius: 50%; }
+    .tdot.r { background: #ef4444; }
+    .tdot.y { background: #f59e0b; }
+    .tdot.g { background: #22c55e; }
+    .term-title { color: #8b949e; font-size: 0.72rem; margin-left: 4px; font-family: 'Consolas', 'Courier New', monospace; }
+    .term-body {
+      flex: 1; padding: 12px 14px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 0.75rem; color: #4ade80;
+      overflow-y: auto; line-height: 1.6; white-space: pre-wrap;
+    }
+    .term-body .tdim { color: #4b5563; }
+    .term-body .thdr { color: #58a6ff; }
+    .term-body .tok  { color: #4ade80; }
+    .term-body .tnew { color: #fbbf24; font-weight: 700; }
+    .term-body .tend { color: #f87171; font-weight: 700; }
+    .term-body .twait { color: #64748b; }
+    .tcursor {
+      display: inline-block; width: 6px; height: 12px;
+      background: #4ade80; vertical-align: -2px;
+      animation: tblink 1s step-start infinite;
+    }
+    @keyframes tblink { 50% { opacity: 0; } }
+
+    /* ===== インデモ トースト通知 ===== */
+    #demo-toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #1c1c1c;
+      color: #fff;
+      padding: 14px 18px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(251,191,36,0.4);
+      min-width: 260px;
+      max-width: 320px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(24px) scale(0.96);
+      transition: opacity 0.35s cubic-bezier(0.34,1.56,0.64,1),
+                  transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    #demo-toast.toast-show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .toast-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: #f59e0b;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    #demo-toast.toast-show .toast-icon {
+      animation: toast-bell 0.5s ease 0.1s both;
+    }
+    @keyframes toast-bell {
+      0%   { transform: rotate(0deg); }
+      20%  { transform: rotate(-20deg); }
+      40%  { transform: rotate(20deg); }
+      60%  { transform: rotate(-10deg); }
+      80%  { transform: rotate(10deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .toast-body { flex: 1; }
+    .toast-app  { font-size: 0.68rem; color: #aaa; margin-bottom: 2px; }
+    .toast-msg  { font-size: 0.85rem; font-weight: 700; color: #fbbf24; line-height: 1.3; }
+    .toast-time { font-size: 0.68rem; color: #888; align-self: flex-start; white-space: nowrap; }
+    
+   /* ===== 制作メモ ===== */
+    .memo-toggle-wrap { margin-top: 14px; margin-bottom: 4px; }
+
+    .memo-toggle-btn {
+      background: none; border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 6px 14px;
+      font-size: 0.8rem; font-weight: 600; color: var(--text-sub);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .memo-toggle-btn:hover { background: #f1f5f9; color: var(--teal); }
+    .memo-toggle-btn.open { background: #f0fdf4; color: var(--teal); border-color: var(--teal); }
+    .memo-panel {
+      margin-top: 10px;
+      background: #fafafa;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 18px 20px;
+
+    }
+
+    .memo-title {
+      font-size: 0.9rem; font-weight: 800; color: var(--text-heading);
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--teal);
+
+    }
+
+    .memo-section-head {
+      font-size: 0.78rem; font-weight: 700; color: var(--teal);
+      margin-top: 14px; margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+
+    .memo-body { font-size: 0.82rem; color: var(--text-main); line-height: 1.7; margin-bottom: 4px; }
+
+    .memo-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      margin-bottom: 10px;
+
+    }
+
+    .memo-item-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--teal); color: #fff;
+      font-size: 0.72rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .memo-item-title { font-size: 0.83rem; font-weight: 700; color: var(--text-heading); margin-bottom: 3px; }
+
+
+    @media (max-width: 600px) {
+      .profile-box { flex-direction: column; align-items: center; text-align: center; }
+      .form-row, .action-btn-grid { grid-template-columns: 1fr; }
+      .qual-row { flex-direction: column; gap: 4px; }
+      .metrics-row { flex-direction: column; }
+      #demo-toast { bottom: 16px; right: 16px; left: 16px; min-width: unset; max-width: unset; }
+    }
+    .detail-card {
+      display: block !important;
+    }
+    .detail-content {
+      width: 100%;
+      padding: 0;
+      min-width: 0;
+    }
+  </style>
+</head>
+<body class="work-detail-page">
+  <header class="detail-header">
+    <div class="nav-container">
+      <a href="../index.html#works" class="back-link">← Works</a>
+    </div>
+  </header>
+
+  <main class="detail-main" style="max-width: 1240px; margin: 20px auto; padding: 0 20px;">
+    <article class="detail-card" style="background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+      <div class="detail-content">
+        <div style="margin-bottom: 20px;">
+          <div class="section-kicker" style="color: #0f766e; font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Workflow Optimization</div>
+          <h1 style="font-size: 22px; color: #0f172a; margin: 0;">2. Notification UX </h1>
+        </div>
+
+        <div class="section-label">【Situation】</div>
+        <p class="text-body">
+          優先度の高い新規案件のメール通知が不安定で、ほかの業務に集中していると確認が遅れることがありました。
+        </p>
+        <div class="section-label">【Task】</div>
+        <p class="text-body">
+          別のタブで作業している間も、新規案件に気づける通知の仕組みを作ることを目標にしました。
+        </p>
+        <div class="section-label">【Action】</div>
+        <p class="text-body">
+          PythonとSelenium WebDriverでWebページを定期的に確認し、新規案件を検知するとデスクトップ通知を表示するツールを作成しました。
+        </p>
+
+        <div class="section-label">【Demonstration Using a Simulated Process】</div>
+        <div class="monitor-wrap">
+          <div class="monitor-start-row">
+            <button id="monitorStartBtn" onclick="startMonitorDemo()">▶ Start Demo</button>
+          </div>
+          <div class="term-panel">
+            <div class="term-bar">
+              <span class="tdot r"></span><span class="tdot y"></span><span class="tdot g"></span>
+              <span class="term-title">Monitoring Terminal</span>
+            </div>
+            <div class="term-body" id="monTermBody"><div class="twait">Please click "▶ Start Demo"...</div></div>
+          </div>
+        </div>
+
+        <!-- ===== 制作メモ work2 ===== -->
+        <div class="memo-toggle-wrap">
+          <button class="memo-toggle-btn" onclick="toggleMemo('work2-memo')">
+            📝 制作メモを見る
+          </button>
+          <div id="work2-memo" class="memo-panel" style="display:none;">
+            <div class="memo-title">JavaScriptで動作イメージを再現した記録</div>
+            <div class="memo-section-head">背景</div>
+            <p class="memo-body">業務でPython+Selenium WebDriverを使い、Webページの更新を定期監視して新しい案件が追加されたらデスクトップ通知で知らせるツールを作りました。<br>そのツールの動作イメージを伝えるデモとしてHTML+JavaScript+CSSで再現してみました。</p>
+            <div class="memo-section-head">工夫した点・苦労した点</div>
+            <div class="memo-item">
+              <div class="memo-item-num">1</div>
+              <div>
+                <div class="memo-item-title">実際のツールの動きを「見える形」にした</div>
+                <p class="memo-body">実際のツールはターミナルにログが流れるだけで、見た目では何が起きているかわかりにくいです。デモでは、一定間隔でページを確認し、新規案件を検知して通知するまでの流れを画面上で見せる構成にしました。</p>
+              </div>
+            </div>
+            <div class="memo-item">
+              <div class="memo-item-num">2</div>
+              <div>
+                <div class="memo-item-title">見た目の再現</div>
+                <p class="memo-body">ターミナル風の黒背景+緑文字のログ表示や、画面右下からスライドインするポップアップ通知など、元のツールの見た目をCSSとアニメーションで再現しました。実際のツールは「正しく動けばOK」ですが、デモは「見ている人に伝わるか」が大事です。表示のタイミングや待ち時間の調整など、実際のツール開発にはなかった作業に一番時間がかかりました。</p>
+              </div>
+            </div>
+            <div class="memo-section-head">AIの活用について</div>
+            <p class="memo-body">実際のツールの動きをどうブラウザ上で見せるか」という目的や必要なパーツを自分で言語化し、AIと相談しながら指示書を作成しました。<br>その後、VS CodeのAI環境を活用して土台となる基本コードを作ってもらい、そこからは「動かす → おかしいところを見つける → 直す → また動かす」の検証と修正を重ねて形にしました。AIを単なるコード生成ツールとしてだけでなく、要件整理から実装のサポートまで開発のパートナーとして活用しました。</p>
+            <div class="memo-section-head">今後の課題</div>
+            <p class="memo-body">今の自分にはコードをゼロから書く力はまだありません。今後はこのコードを模写しながら「この部分は何をしているのか」を一つずつ理解して、自力で書けるようになることを目標にしています。</p>
+          </div>
+        </div>
+
+      </div>
+    </article>
+  </main>
+
+  <div id="demo-toast">
+    <div class="toast-icon">🔔</div>
+    <div class="toast-body">
+      <div class="toast-app">Notification UX</div>
+      <div class="toast-msg" id="toast-msg-text">通知メッセージ</div>
+    </div>
+    <div class="toast-time" id="toast-time-text">00:00:00</div>
+  </div>
+
+  <script>    
+  /* ===== Work2 Monitor Demo ===== */
+  const MON_POLL_INTERVAL = 6; 
+  const MON_MAX_POLLS = 3;  
+  const MON_AUTO_ARRIVE_AT = 3;  
+  const MON_END_DELAY_MS = 4000; 
+
+  let monItemCount = 0; 
+  let monPollCount = 0; 
+  let monTimerId = null;
+
+  function monNowStr() {
+    return new Date().toLocaleTimeString('ja-JP', { hour12: false });  
+  }
+
+  function termLine(text, cls) {
+    const body = document.getElementById('monTermBody'); 
+    const cursor = body.querySelector('.tcursor');
+    if (cursor) cursor.remove(); 
+    const line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = text;   
+    body.appendChild(line);  
+    const c = document.createElement('span');
+    c.className = 'tcursor';
+    body.appendChild(c);  
+    body.scrollTop = body.scrollHeight;   
+  }
+
+  function monPollCheck() {
+    monPollCount += 1;    
+    if (monPollCount === MON_AUTO_ARRIVE_AT) {
+      monItemCount += 1;
+      termLine(`[${monNowStr()}] NEW 1 contact!`, 'tnew');  
+      showDemoToast('🔔 1件新着あり');  
+    } else {
+      termLine(`[${monNowStr()}] ${monItemCount} contacts`, 'tok');  
+    }
+    if (monPollCount >= MON_MAX_POLLS) {
+      clearInterval(monTimerId);  
+      setTimeout(monEndDemo, MON_END_DELAY_MS); 
+    } else {
+      termLine(`  reload...`, 'tdim');  
+    }
+  }
+
+  function monEndDemo() {
+    termLine(`[${monNowStr()}] Demo finished - Monitoring stopped`, 'tend');  
+    const btn = document.getElementById('monitorStartBtn');  
+    btn.textContent = '🔄 Run Again';
+    btn.disabled = false;  
+  }
+
+  function resetMonitorDemo() {
+    monItemCount = 0;  
+    monPollCount = 0; 
+  }
+
+  function startMonitorDemo() {
+    resetMonitorDemo(); 
+    const btn = document.getElementById('monitorStartBtn');
+    btn.textContent = 'Playing...'; 
+    btn.disabled = true; 
+
+    termLine('==================================================', 'thdr');
+    termLine('  Web Monitor Demo v1', 'thdr');
+    termLine('==================================================', 'thdr');
+    termLine('', 'tdim');
+    termLine('[1] Initializing monitoring target...', 'tdim');
+    termLine('[2] Ready', 'tok');
+    termLine(`[3] Starting monitoring (Interval: ${MON_POLL_INTERVAL}s, Demo ends after ${MON_MAX_POLLS} polls)`, 'tdim');
+    termLine('', 'tdim');
+    termLine('', 'tdim');
+
+    monTimerId = setInterval(() => {
+      monPollCheck();
+    }, MON_POLL_INTERVAL * 1000); 
+  }
+
+  /* ===== トースト通知 ===== */
+  function showDemoToast(msg) {
+    const toast = document.getElementById('demo-toast');
+    const msgEl = document.getElementById('toast-msg-text');
+    const timeEl = document.getElementById('toast-time-text');
+    msgEl.textContent = msg;
+    timeEl.textContent = monNowStr();
+
+    toast.classList.remove('toast-show');
+    void toast.offsetWidth; 
+    toast.classList.add('toast-show');
+
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => {
+      toast.classList.remove('toast-show'); 
+    }, 4000);
+  }
+
+  /* ===== 制作メモ トグル ===== */
+  function toggleMemo(id) {
+    const panel = document.getElementById(id);
+    const btn = panel.previousElementSibling; 
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'block';
+    btn.textContent = isOpen ? '📝 制作メモを見る' : '📝 制作メモを閉じる';
+    btn.classList.toggle('open', !isOpen);
+  }
+  </script>
+</body>
+</html>

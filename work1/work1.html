@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    if (new URLSearchParams(location.search).has('embed')) {
+      document.documentElement.classList.add('embed-mode');
+    }
+  </script>
+  <title>One-Click Auto-Fill Tool | Works</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* Work1 デモ */
+    .demo-box { margin-top: 14px; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; overflow: visible; }
+    .demo-tabs { display: flex; background: #f1f5f9; border-bottom: 1px solid var(--border-color); }
+    .demo-tab-btn { flex: 1; padding: 8px 12px; border: none; background: transparent; font-size: 0.82rem; font-weight: 700; color: var(--text-sub); cursor: pointer; }
+    .demo-tab-btn.active { background: #ffffff; color: var(--teal); border-bottom: 2px solid var(--teal); }
+    .demo-content { padding: 14px; display: none; }
+    .demo-content.active { display: block; }
+    .instruction-note { background: #fffbe6; border: 1px solid #ffe58f; padding: 8px 12px; border-radius: 4px; font-size: 0.82rem; color: #8c6b00; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .instruction-target { font-family: monospace; font-weight: bold; background: #fff1b8; padding: 1px 6px; border-radius: 3px; }
+    .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+    .field-group { position: relative; min-width: 0; }
+    .field-group label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-sub); margin-bottom: 3px; }
+    .combo-input { width: 100%; padding: 6px 8px; border: 2px solid #64748b; border-radius: 4px; font-size: 0.82rem; outline: none; }
+    .combo-input:focus { border-color: var(--teal); }
+    .combo-input.highlight { background-color: #f0fdf4; border-color: #22c55e; }
+    .combo-dropdown { position: absolute; top: 100%; left: 0; right: 0; max-height: 140px; overflow-y: auto; background: #ffffff; border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,.08); z-index: 20; display: none; }
+    .combo-dropdown.show { display: block; }
+    .combo-item { padding: 5px 8px; font-size: 0.82rem; cursor: pointer; }
+    .combo-item:hover { background: #f0fdf4; color: var(--teal); }
+    .action-btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+    .btn-preset { background: var(--teal); color: #ffffff; border: none; padding: 9px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+    .btn-preset:hover { background: var(--teal-hover); }
+    .btn-preset:disabled { opacity: 0.5; cursor: not-allowed; }
+    .work1-page .detail-card { display: block; }
+    .work1-page .detail-visual { display: none; }
+    .work1-page .detail-content { padding: 0; }
+    .work1-page #work1.card {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      margin: 0;
+    }
+    .work1-page .section-label {
+      margin: 16px 0 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #475569;
+    }
+    .work1-page .text-body {
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #334155;
+    }
+
+    /* ===== 制作メモ ===== */
+    .memo-toggle-wrap { margin-top: 14px; margin-bottom: 4px; }
+
+    .memo-toggle-btn {
+      background: none; border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 6px 14px;
+      font-size: 0.8rem; font-weight: 600; color: var(--text-sub);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .memo-toggle-btn:hover { background: #f1f5f9; color: var(--teal); }
+    .memo-toggle-btn.open { background: #f0fdf4; color: var(--teal); border-color: var(--teal); }
+    .memo-panel {
+      margin-top: 10px;
+      background: #fafafa;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .memo-title {
+      font-size: 0.9rem; font-weight: 800; color: var(--text-heading);
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--teal);
+    }
+
+    .memo-section-head {
+      font-size: 0.78rem; font-weight: 700; color: var(--teal);
+      margin-top: 14px; margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+
+    .memo-body { font-size: 0.82rem; color: var(--text-main); line-height: 1.7; margin-bottom: 4px; }
+
+    .memo-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .memo-item-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--teal); color: #fff;
+      font-size: 0.72rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .memo-item-title { font-size: 0.83rem; font-weight: 700; color: var(--text-heading); margin-bottom: 3px; }
+  </style>
+</head>
+<body class="work-detail-page work1-page">
+  <header class="detail-header">
+    <div class="nav-container">
+      <a href="../index.html#works" class="back-link">← Works</a>
+    </div>
+  </header>
+
+  <main class="detail-main" style="max-width: 1240px; margin: 20px auto; padding: 0 20px;">
+    <article class="detail-card" style="background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+      <div class="detail-content">
+        <div style="margin-bottom: 20px;">
+          <div class="section-kicker" style="color: #0f766e; font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Workflow Optimization</div>
+          <h1 style="font-size: 22px; color: #0f172a; margin: 0;">1. One-Click Auto-Fill Tool</h1>
+        </div>
+    <!-- WORK 1 -->
+    <div class="card" id="work1">
+      <div class="section-label">【Situation】</div>
+      <p class="text-body">
+        管轄外の依頼を正しい宛先へ転送する際、まずメモから該当する宛先を探し、その情報をもとに3段階のプルダウンを手作業で選んでいました。この一連の作業は効率が悪く、マニュアル作業による選択ミスも多発していました。
+      </p>
+      <div class="section-label">【Task】</div>
+      <p class="text-body">
+        メモから宛先を探して入力する一連の作業を効率化し、選択ミスを防ぐことを目標にしました。
+      </p>
+      <div class="section-label">【Action】</div>
+      <p class="text-body">
+        頻度の高い宛先情報をワンクリックで自動入力するブックマークレットを設計・開発しました。
+      </p>
+
+      <div class="section-label">【Demonstration Using a Simulated Process】</div>
+      <div class="demo-box">
+        <div class="demo-tabs">
+          <button class="demo-tab-btn active" onclick="switchTab('w1','before')">Before (Manual)</button>
+          <button class="demo-tab-btn"        onclick="switchTab('w1','after')">After (Automation)</button>
+        </div>
+        <div id="w1-before" class="demo-content active">
+          <div class="instruction-note">
+            <span>手元のメモ:</span>
+            <span class="instruction-target">理学部 / 情報科学科 / 人工知能（AI）専攻</span>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label>1. 学部</label>
+              <input type="text" id="manual-dept" class="combo-input" placeholder="検索・選択..."
+                onfocus="openOptions('dept')" oninput="filterOptions('dept')">
+              <div id="opts-dept" class="combo-dropdown"></div>
+            </div>
+            <div class="field-group">
+              <label>2. 学科</label>
+              <input type="text" id="manual-section" class="combo-input" placeholder="検索・選択..."
+                onfocus="openOptions('section')" oninput="filterOptions('section')">
+              <div id="opts-section" class="combo-dropdown"></div>
+            </div>
+            <div class="field-group">
+              <label>3. 専攻</label>
+              <input type="text" id="manual-team" class="combo-input" placeholder="検索・選択..."
+                onfocus="openOptions('team')" oninput="filterOptions('team')">
+              <div id="opts-team" class="combo-dropdown"></div>
+            </div>
+          </div>
+        </div>
+        <div id="w1-after" class="demo-content">
+          <div class="action-btn-grid">
+            <button class="btn-preset" onclick="executeAutoFill('理学部','情報科学科','人工知能（AI）専攻')">α (理学部 / 情報科学科 / 人工知能（AI）専攻)</button>
+            <button class="btn-preset" onclick="executeAutoFill('芸術学部','映画学科','アニメーション制作専攻')">β (芸術学部 / 映画学科 / アニメーション制作専攻)</button>
+            <button class="btn-preset" onclick="executeAutoFill('農学部','応用生物科学科','分子細胞生物学専攻')">γ (農学部 / 応用生物科学科 / 分子細胞生物学専攻)</button>
+            <button class="btn-preset" onclick="executeAutoFill('医療福祉学部','臨床検査学科','放射線技術科学専攻')">δ (医療福祉学部 / 臨床検査学科 / 放射線技術科学専攻)</button>
+          </div>
+          <div class="form-row">
+            <div class="field-group">
+              <label>1. 学部</label>
+              <input type="text" id="auto-dept" class="combo-input" readonly>
+            </div>
+            <div class="field-group">
+              <label>2. 学科</label>
+              <input type="text" id="auto-section" class="combo-input" readonly>
+            </div>
+            <div class="field-group">
+              <label>3. 専攻</label>
+              <input type="text" id="auto-team" class="combo-input" readonly>
+            </div>
+          </div>
+        </div>
+      </div>     
+      <div class="section-label">【Result】</div>
+      <div class="metrics-row">
+        <div class="metric-box">
+          <div class="metric-label">作業時間（宛先確認〜転送完了）</div>
+          <div class="metric-value">約45秒 → 約3秒</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">作業時間削減率</div>
+          <div class="metric-value">約93%削減</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">手作業による選択ミス</div>
+          <div class="metric-value">防止</div>
+        </div>
+    </div>
+        
+    <!-- ===== 制作メモ work1 ===== -->
+      <div class="memo-toggle-wrap">
+        <button class="memo-toggle-btn" onclick="toggleMemo('work1-memo')">
+          📝 制作メモを見る
+        </button>
+        <div id="work1-memo" class="memo-panel" style="display:none;">
+          <div class="memo-title">3階層プルダウン自動選択ツールを再現した記録</div>
+          <div class="memo-section-head">背景</div>
+          <p class="memo-body">実際に開発したブックマークレットの仕組みをポートフォリオで伝えるため、操作を再現したデモを制作しました。</p>
+          <div class="memo-section-head">工夫した点・苦労した点</div>
+          <div class="memo-item">
+            <div class="memo-item-num">1</div>
+            <div>
+              <div class="memo-item-title">プルダウンの選択肢</div>
+              <p class="memo-body">業務での開発経験をもとに、3階層プルダウンとワンクリック操作のデモを新たに制作しました。当初はA・B・Cのような仮データを使っていましたが、選択の煩雑さが伝わりにくいと感じました。そこで、選択肢の多さや名称の長さをイメージしやすいよう、「大学の学部 → 学科 → 専攻」に置き換えました。</p>
+            </div>
+          </div>
+          <div class="memo-item">
+            <div class="memo-item-num">2</div>
+            <div>
+              <div class="memo-item-title">Before/Afterの見せ方</div>
+              <p class="memo-body">手動で選ぶ場合（Before）とツールを使う場合（After）を比較しやすくするため、タブで表示を切り替える構成にしました。また、Beforeタブのデモで、学部・学科・専攻のプルダウンがタブの枠内に収まってしまい、選択肢が見切れて操作しにくい問題が発生しました。CSSを調整し、タブコンテナーのoverflow制御を見直すことで、プルダウンが枠外へ表示されるように修正しました。</p>
+            </div>
+          </div>
+          <div class="memo-section-head">AIの活用について</div>
+          <p class="memo-body">学部・学科・専攻の選択肢データの収集にはAIを活用し、ブラウザーで動作を確認しながら表示や動きを調整しました。</p>
+          <div class="memo-section-head">今後の課題</div>
+          <p class="memo-body">今回の制作を通じて、定型的な入力作業は手順を整理することで自動化につなげられると学びました。今後も業務の中から繰り返し作業を見つけ、効率化に取り組んでいきたいです。</p>
+        </div>
+    </div>
+     </div>
+  </main>
+  <script>/* ===== Work1 ===== */
+const listDepts = [
+  "医学部",
+  "医療技術学部",
+  "医療福祉学部",
+  "映像学部",
+  "英語学部",
+  "経済情報学部",
+  "経営学部",
+  "経済学部",
+  "芸術学部",
+  "教育学部",
+  "建築学部",
+  "健康科学部",
+  "健康栄養学部",
+  "健康スポーツ学部",
+  "工学部",
+  "国際学部",
+  "国際教養学部",
+  "国際資源学部",
+  "国際情報学部",
+  "国際地域学部",
+  "国際文化学部",
+  "サステナビリティ学環",
+  "産業理工学部",
+  "情報学部",
+  "情報科学部",
+  "情報工学部",
+  "情報システム学部",
+  "情報データ科学部",
+  "情報連携学部",
+  "神学部",
+  "水産学部",
+  "生活科学部",
+  "生命科学部",
+  "政策学部",
+  "政経学部",
+  "生物理工学部",
+  "総合情報学部",
+  "総合政策学部",
+  "創造表現学部",
+  "地域創生学部",
+  "地球環境科学部",
+  "知能情報学部",
+  "知的財産学部",
+  "デザイン学部",
+  "デジタルメディア学部",
+  "都市科学部",
+  "歯学部",
+  "福祉学部",
+  "文化構想学部",
+  "文学部",
+  "物理学部",
+  "法学部",
+  "法政経学部",
+  "不動産学部",
+  "未来科学部",
+  "薬学部",
+  "理学部",
+  "理工学部",
+  "リベラルアーツ学部",
+  "リハビリテーション学部",
+  "臨床心理学部",
+  "獣医学部",
+  "繊維学部",
+  "鍼灸学部",
+  "観光学部",
+  "観光まちづくり学部",
+  "キャリアデザイン学部",
+  "危機管理学部",
+  "現代社会学部",
+  "現代ビジネス学部",
+  "コミュニティ福祉学部",
+  "子ども教育学部",
+  "システム工学部",
+  "システムデザイン学部",
+  "社会学部",
+  "社会安全学部",
+  "商学部",
+  "スポーツ科学部",
+  "スポーツ健康科学部",
+  "造形学部",
+  "人間科学部",
+  "人間健康学部",
+  "人間関係学部",
+  "マネジメント学部",
+  "メディア学部",
+  "モチベーション行動科学部"
+].sort((a, b) => a.localeCompare(b, 'ja'));
+
+  const listSections = [
+  "アニメーション学科",
+  "医用工学科",
+  "医療技術学科",
+  "医療薬学科",
+  "医学科",
+  "医療福祉学科",
+  "英語学科",
+  "英文学科",
+  "演劇学科",
+  "応用化学科",
+  "応用生物科学科",
+  "会計学科",
+  "化学科",
+  "環境科学科",
+  "環境情報学科",
+  "観光学科",
+  "観光マネジメント学科",
+  "機械工学科",
+  "教育学科",
+  "経済学科",
+  "芸術学科",
+  "経営学科",
+  "経営システム工学科",
+  "建築学科",
+  "言語聴覚学科",
+  "航空宇宙工学科",
+  "国文学科",
+  "国際関係学科",
+  "国際教養学科",
+  "国際ビジネス学科",
+  "作業療法学科",
+  "作曲学科",
+  "社会学科",
+  "社会安全学科",
+  "社会情報学科",
+  "社会福祉学科",
+  "写真学科",
+  "情報科学科",
+  "情報工学科",
+  "心理学科",
+  "生活科学科",
+  "生命科学科",
+  "生命医科学科",
+  "生命環境学科",
+  "総合政策学科",
+  "造形学科",
+  "地球科学科",
+  "知能情報システム学科",
+  "知的財産学科",
+  "地理学科",
+  "診療放射線学科",
+  "数学科",
+  "スポーツ科学科",
+  "スポーツ健康科学科",
+  "生活環境学科",
+  "生活デザイン学科",
+  "地域創生学科",
+  "データサイエンス学科",
+  "デザイン工学科",
+  "電気電子工学科",
+  "動物看護学科",
+  "土木工学科",
+  "都市環境工学科",
+  "日本文学学科",
+  "人間科学学科",
+  "人間健康学科",
+  "人間社会学科",
+  "人間福祉学科",
+  "農学科",
+  "バイオサイエンス学科",
+  "美術学科",
+  "物理学科",
+  "福祉社会学科",
+  "福祉心理学科",
+  "文化財保存学科",
+  "文学科",
+  "文芸学科",
+  "法学科",
+  "法律学科",
+  "薬学科",
+  "薬科学科",
+  "幼児教育学科",
+  "理学療法学科",
+  "歴史学科",
+  "歴史文化学科",
+  "和菓子総合学科",
+  "臨床検査学科",
+  "臨床工学科",
+  "臨床心理学科",
+  "観光まちづくり学科",
+  "キャリアデザイン学科",
+  "看護学科",
+  "看護福祉学科",
+  "危機管理学科",
+  "健康科学科",
+  "健康スポーツ学科",
+  "現代社会学科",
+  "現代ビジネス学科",
+  "コミュニティデザイン学科",
+  "コミュニティ福祉学科",
+  "子ども教育学科",
+  "サステナビリティ学科",
+  "情報ネットワーク学科",
+  "生物学科",
+  "生物資源学科",
+  "生物生産学科",
+  "生物理工学科",
+  "総合経営学科",
+  "総合情報学科",
+  "地域政策学科",
+  "地域マネジメント学科",
+  "知能システム学科",
+  "ツーリズム学科",
+  "デザイン学科",
+  "都市デザイン学科",
+  "人間文化学科",
+  "農芸化学科",
+  "バイオ化学科",
+  "福祉環境学科",
+  "福祉人間学科",
+  "福祉心理学科",
+  "文化情報学科",
+  "マネジメント学科",
+  "メディア学科",
+  "メディア社会学科",
+  "モチベーション行動科学学科",
+  "理数学学科",
+  "歴史文化学科",
+  "歴史文学学科",
+  "和菓子学科",
+  "獣医学科",
+  "繊維学科",
+  "鍼灸学科",
+  "恐竜・地質学科",
+  "発酵工学科",
+  "醸造科学科",
+  "視能訓練学科",
+  "物質生命化学科",
+  "ロボティクス学科"
+].sort((a, b) => a.localeCompare(b, 'ja'));
+
+  const listMajors = [
+  "アニメーション制作専攻",
+  "インテリア・空間デザイン専攻",
+  "インダストリアルデザイン専攻",
+  "遺伝学専攻",
+  "英米文学専攻",
+  "演劇専攻",
+  "応用化学専攻",
+  "応用生物化学専攻",
+  "基礎医学専攻",
+  "機械宇宙システム専攻",
+  "機械工学専攻",
+  "金融・ファイナンス専攻",
+  "経営戦略専攻",
+  "経済学専攻",
+  "建築デザイン専攻",
+  "建築構造・防災専攻",
+  "健康教育学専攻",
+  "航空宇宙工学専攻",
+  "国文学専攻",
+  "国際関係論専攻",
+  "国際会計専攻",
+  "細胞生物学専攻",
+  "作曲・理論専攻",
+  "社会心理学専攻",
+  "社会学専攻",
+  "写真表現専攻",
+  "情報ネットワーク専攻",
+  "情報工学専攻",
+  "情報科学専攻",
+  "心理学専攻",
+  "生活科学専攻",
+  "生命科学専攻",
+  "生物学専攻",
+  "総合政策専攻",
+  "彫刻・立体造形専攻",
+  "地球物理学専攻",
+  "知能情報システム専攻",
+  "知的財産専攻",
+  "地理学専攻",
+  "数学専攻",
+  "スポーツトレーナー専攻",
+  "スポーツマネジメント専攻",
+  "西洋史学専攻",
+  "地域開発専攻",
+  "地域まちづくり専攻",
+  "データサイエンス専攻",
+  "電気システム専攻",
+  "電子デバイス専攻",
+  "都市計画専攻",
+  "日本画専攻",
+  "日本文学専攻",
+  "人間科学専攻",
+  "人間健康専攻",
+  "人間社会専攻",
+  "人間福祉専攻",
+  "農業経済学専攻",
+  "バイオテクノロジー専攻",
+  "物理学専攻",
+  "文化財保存学専攻",
+  "文学専攻",
+  "文芸・クリエイティブライティング専攻",
+  "放射線技術科学専攻",
+  "薬学専攻",
+  "幼児教育専攻",
+  "理学療法学専攻",
+  "歴史学専攻",
+  "歴史文化学専攻",
+  "和菓子総合専攻",
+  "臨床医学専攻",
+  "臨床検査学専攻",
+  "臨床工学専攻",
+  "臨床心理学専攻",
+  "観光ビジネス専攻",
+  "危機管理・防災政策専攻",
+  "言語聴覚療法専攻",
+  "現代社会学専攻",
+  "現代ビジネス学専攻",
+  "コミュニティデザイン専攻",
+  "子ども教育専攻",
+  "サステナビリティ専攻",
+  "生物資源学専攻",
+  "生物生産学専攻",
+  "生物理工学専攻",
+  "総合経営学専攻",
+  "総合情報学専攻",
+  "造形専攻",
+  "地域政策学専攻",
+  "地域マネジメント学専攻",
+  "知能システム専攻",
+  "ツーリズム専攻",
+  "デザイン科学専攻",
+  "都市デザイン専攻",
+  "人間文化専攻",
+  "農芸化学専攻",
+  "バイオ化学専攻",
+  "福祉環境専攻",
+  "福祉人間専攻",
+  "福祉心理専攻",
+  "文化情報専攻",
+  "マネジメント専攻",
+  "メディア・コミュニケーション専攻",
+  "モチベーション行動科学専攻",
+  "理数学専攻",
+  "歴史文学専攻",
+  "和菓子専攻",
+  "獣医学専攻",
+  "繊維学専攻",
+  "鍼灸学専攻",
+  "応用物理学専攻",
+  "公法学専攻",
+  "口腔外科専攻",
+  "矯正歯科専攻",
+  "江南史学専攻",
+  "児童・家庭福祉専攻",
+  "初等教育専攻",
+  "人工知能（AI）専攻",
+  "先端看護学専攻",
+  "素粒子物理学専攻",
+  "ソフトウエア科学専攻",
+  "代数学専攻",
+  "天文学専攻",
+  "中等教育・国語専攻",
+  "中等教育・数学専攻",
+  "地域看護・保健師専攻",
+  "テキスタイル・ファッションデザイン専攻",
+  "土木環境専攻",
+  "東洋史学専攻",
+  "特設支援教育専攻",
+  "特別支援教育専攻",
+  "無機・分析化学専攻",
+  "民事法学専攻",
+  "民俗学専攻",
+  "分子細胞生物学専攻",
+  "物性物理学専攻",
+  "有機化学専攻",
+  "版画専攻",
+  "ピアノ専攻",
+  "管弦打楽器専攻",
+  "鍵盤楽器・ピアノ専攻",
+  "声楽専攻",
+  "フィルム・映像監督専攻",
+  "映画監督・制作専攻",
+  "コミックイラスト・マンガ専攻",
+  "舞台表現・演劇専攻",
+  "視覚伝達デザイン専攻",
+  "プロダクトデザイン専攻",
+  "インテリア・空間デザイン専攻",
+  "環境保全・エネルギー専攻",
+  "ロボティクス専攻"
+].sort((a, b) => a.localeCompare(b, 'ja'));
+//日本語の自然な順番
+
+  window.addEventListener('DOMContentLoaded', () => {
+    buildOptions('dept', listDepts); //学部の選択肢作る
+    buildOptions('section', listSections); //学科の選択肢作る
+    buildOptions('team',  listMajors ); //専攻の選択肢作る
+  });
+
+  function buildOptions(type, items) {
+    const el = document.getElementById(`opts-${type}`);
+    if (!el) return; //引数で受け取った typeを組み合わせて、HTMLの中から該当するドロップダウンの枠を探す
+    el.innerHTML = items.map(v =>
+      `<div class="combo-item" onclick="onSelectValue('${type}','${v}')">${v}</div>`
+    ).join(''); //JavaScript側にあるデータ(配列)を、ユーザーがクリックして選べる選択肢のHTMLリストに変換して画面に並べてくれる
+  }
+
+  function openOptions(type) {
+    closeAllDropdowns();
+    document.getElementById(`opts-${type}`).classList.add('show'); //指定したドロップダウンを開く関数
+  }
+
+  function closeAllDropdowns() {
+    document.querySelectorAll('.combo-dropdown').forEach(el => el.classList.remove('show')); //すべてのドロップダウンを隠す関数
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.field-group')) closeAllDropdowns(); //外側をクリックしたら閉じる仕組み
+  });
+
+  function filterOptions(type) { //入力した文字に合わせて選択肢を絞り込む関数
+    const val  = document.getElementById(`manual-${type}`).value;
+    const base = type === 'dept' ? listDepts : type === 'section' ? listSections : listMajors;
+    buildOptions(type, base.filter(item => item.includes(val)));
+    document.getElementById(`opts-${type}`).classList.add('show');
+  }
+
+  function onSelectValue(type, value) { //選択肢をクリックしたときの処理
+    document.getElementById(`manual-${type}`).value = value;
+    closeAllDropdowns();
+  }
+
+  function switchTab(work, tab) {
+    const box = document.getElementById(`${work}-before`).closest('.demo-box'); //対象のコンテナを特定する
+    box.querySelectorAll('.demo-tab-btn').forEach(b => b.classList.remove('active')); //すべてのタブボタンとコンテンツの「アクティブ状態」を一度リセットする
+    box.querySelectorAll('.demo-content').forEach(c => c.classList.remove('active'));
+    box.querySelectorAll('.demo-tab-btn')[tab === 'before' ? 0 : 1].classList.add('active');  //クリックされた側の「タブボタン」を光らせる
+    document.getElementById(`${work}-${tab}`).classList.add('active');  //対応する「コンテンツ」を表示する
+  }
+
+  let w1Timers = [];
+  function executeAutoFill(dept, section, team) {
+    w1Timers.forEach(id => clearTimeout(id)); //前回のタイマーのキャンセル
+    w1Timers = [];
+    const iDept = document.getElementById('auto-dept'); //入力欄とボタンの初期化
+    const iSec  = document.getElementById('auto-section');
+    const iTeam = document.getElementById('auto-team');
+    const btns  = document.querySelectorAll('#w1-after .btn-preset');
+    iDept.value = ''; iSec.value = ''; iTeam.value = '';
+    [iDept, iSec, iTeam].forEach(el => el.classList.remove('highlight'));
+    btns.forEach(b => b.disabled = true); //入力欄とボタンの初期化ここまで
+    w1Timers.push(setTimeout(() => { iDept.value = dept;    iDept.classList.add('highlight'); }, 1000)); //タイミングをずらした自動入力のアニメーション
+    w1Timers.push(setTimeout(() => { iSec.value  = section; iSec.classList.add('highlight');  }, 2000));
+    w1Timers.push(setTimeout(() => {
+      iTeam.value = team; iTeam.classList.add('highlight'); //最後の入力とハイライト
+      btns.forEach(b => b.disabled = false); //ボタンのロック解除
+      setTimeout(() => [iDept, iSec, iTeam].forEach(el => el.classList.remove('highlight')), 1000);
+    }, 3000));  //3秒かけて全部の入力が終わる ➔ その余韻として1秒間だけピカッと光らせておき、4秒目にスッと消す
+  }
+  /* ===== 制作メモ トグル ===== */
+  function toggleMemo(id) {
+    const panel = document.getElementById(id);
+    const btn = panel.previousElementSibling; // ボタンはパネルの直前の兄弟要素
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'block';
+    btn.textContent = isOpen ? '📝 制作メモを見る' : '📝 制作メモを閉じる';
+    btn.classList.toggle('open', !isOpen);
+  }
+</script>
+</body>
+</html>
