@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -8,16 +8,31 @@
 </head>
 <body>
 
-<header>
+<!-- ======================= ヘッダー ======================= -->
+<header id="top">
+  <div class="hero-banner">
+    <div class="milky-way"></div>
+    <div class="star-field"></div>
+    <span class="shooting-star s1"></span>
+    <span class="shooting-star s2"></span>
+    <span class="shooting-star s3"></span>
+    <!-- Welcome メッセージ -->
+    <span class="hero-banner-title">PORTFOLIO</span>
+    <span class="hero-banner-subtitle">Welcome to my portfolio</span>
+  </div>
+
+  <!-- ナビゲーションバー -->
   <div class="nav-container">
     <div class="nav-links">
       <a href="#profile" class="nav-link">Profile</a>
       <a href="#qualifications" class="nav-link">Qualifications</a>
       <a href="#works" class="nav-link">Works</a>
+      <a href="#game" class="nav-link">SQL Game</a>
     </div>
   </div>
 </header>
 
+<!-- ======================= メインコンテンツ ======================= -->
 <div class="container">
   <section id="profile">
     <div class="section-title">Profile</div>
@@ -28,11 +43,10 @@
         </div>
         <div class="profile-info">
           <div class="profile-role">Customer Success & Operations — making things work better.</div>
-          <div class="profile-desc">
-            <p>デジタルサービスの運用やカスタマーサクセスに携わり、ユーザーの声を起点としたサービス品質と顧客体験（CX）の向上に取り組んできました。問い合わせ削減に向けた施策の立案、不具合の改善、品質管理、コミュニティ運営など、幅広い業務を経験しています。</p>
-            <p>業務で感じた小さな不便をもとに、社内開発のAIを活用しながら「こうなったらいいのに」というアイデアを形にするため試行錯誤しています。こうした取り組みを通じて、AIに頼るだけでなく仕組みの裏側を理解し、自分の手でコードを書けるようになりたいと考え、現在プログラミングを学んでいます。</p>
-          </div>
-        </div>
+           <div class="profile-desc">
+    　　　　<p>デジタルサービスの運用やカスタマーサクセスに携わり、ユーザーの声を起点としたサービス品質と顧客体験（CX）の向上に取り組んできました。問い合わせ削減に向けた施策の立案、不具合の改善、品質管理、コミュニティ運営など、幅広い業務を経験しています。</p>
+    　　　　<p>業務の中での「こうなったらいいのに」という小さなアイデアを、AIを活用してカタチにすることに挑戦しています。試行錯誤を重ねる中でアイデアがさらに広がる面白さを実感しつつ、現在はAIに頼るだけでなく仕組みを深く理解し、自分の手でコードを書けるようプログラミングの学習にも取り組んでいます。</p>
+　　　</div>
       </div>
     </div>
   </section>
@@ -42,19 +56,19 @@
     <div class="card">
       <div class="card-title">Current Learning (現在取り組んでいること)</div>
       <div class="qual-row">
-        <div class="qual-date" style="background:#e0f2fe; color:#0369a1;">学習中</div>
+        <div class="qual-date" style="background:rgba(74, 222, 128, 0.2); color:#4ade80; border:1px solid rgba(74, 222, 128, 0.4);">学習中</div>
         <div class="qual-detail">
-          <div class="qual-title">Java / プログラミング基礎の学習</div>
+          <div class="qual-title">プログラミング基礎 ＆ AWSの学習</div>
           <div class="qual-sub">プログラミング講座の受講・YouTubeでWeb系解説動画を視聴</div>
-          <div class="qual-desc">「こんなツールがあったら便利だな」を自分の手で形にするため、Javaをはじめとするプログラミング言語の基礎やWebの仕組みを学習しています。</div>
+          <div class="qual-desc">「こんなツールがあったら便利だな」を形にするためのプログラミングの基礎学習に加え、クラウドの仕組みを学ぶためAWSの基礎動画もあわせて視聴しています。</div>
         </div>
       </div>
       <div class="qual-row">
-        <div class="qual-date" style="background:#dcfce7; color:#15803d;">継続中</div>
+        <div class="qual-date" style="background:rgba(74, 222, 128, 0.2); color:#4ade80; border:1px solid rgba(74, 222, 128, 0.4);">継続中</div>
         <div class="qual-detail">
           <div class="qual-title">韓国語の実用コミュニケーション学習</div>
           <div class="qual-sub">週1回のレッスン・実践会話</div>
-          <div class="qual-desc">中級テキストにて日常表現や文法を継続学習中。<br><span style="color:#64748b; font-size:0.78rem;">※TOPIK II 2級取得済み(2022年取得・現在期限切れ)</span></div>
+          <div class="qual-desc">中級テキストにて日常表現や文法を継続学習中。<br><span style="color:var(--muted); font-size:0.78rem;">※TOPIK II 2級取得済み(2022年取得・現在期限切れ)</span></div>
         </div>
       </div>
     </div>
@@ -88,15 +102,12 @@
     </div>
   </section>
 
-  <!-- 追加：Works セクション（Qualifications の下） -->
+  <!-- Works セクション（自動化ツール系 1〜3） -->
   <section id="works">
-    <div class="modern-works" aria-label="Works list">
-      <div class="modern-works-header">
-        <div>
-          <div class="section-title" style="margin-bottom: 0;">Works</div>
-        </div>
-      </div>
-
+    <div class="section-title">Works</div>
+    <div class="modern-works" aria-label="Workflow automation tool demos">
+      <p class="works-description">Demos showcasing workflow automation tools I built.</p>
+      <br>
       <div class="works-grid">
         <!-- カード 1 -->
         <a class="work-card" href="work1/work1.html">
@@ -105,18 +116,18 @@
           </div>
           <div class="work-card-copy">
             <p>Workflow Optimization</p>
-            <h3>1. One-Click Auto-Fill Tool</h3>
+            <h3>One-Click Auto-Fill Tool</h3>
           </div>
         </a>
 
         <!-- カード 2 -->
-        <a class="work-card" href="wok2/work2.html">
+        <a class="work-card" href="work2/work2.html">
           <div class="work-thumb tone-2">
             <img src="works/work2.image.png" alt="Notification UX" class="work-img">
           </div>
           <div class="work-card-copy">
             <p>Workflow Optimization</p>
-            <h3>2. Notification UX</h3>
+            <h3>Notification UX</h3>
           </div>
         </a>
 
@@ -127,14 +138,92 @@
           </div>
           <div class="work-card-copy">
             <p>Workflow Optimization</p>
-            <h3>3. Automated Data Extraction Tool</h3>
+            <h3>Automated Data Extraction Tool</h3>
           </div>
         </a>
       </div>
     </div>
   </section>
 
-</div>
+  <!-- ★独立させたセクション：SQL Game（カード4） -->
+  <section id="game">
+    <div class="section-title">SQL Game</div>
+    <div class="modern-works" aria-label="SQL Learning Game">
+      <p class="works-description">An interactive game to learn and practice SQL queries.</p>
+      
+      <div class="single-work-grid">
+        <a class="work-card" href="SQL_GAME/index.html">
+          <div class="work-thumb tone-1">
+            <img src="works/GAME.image.png" alt="SQL Learning Game" class="work-img game-work-img">
+          </div>
+          <div class="work-card-copy">
+            <p>Interactive Learning</p>
+            <h3>SQL Learning Game</h3>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+</div> <!-- /.container -->
 
+<!-- ======================= フッター（夜空・地平線デザイン） ======================= -->
+<footer class="site-footer">
+    <div class="footer-inner">
+        <!-- 左側：Afterword（横幅いっぱいに使う） -->
+        <div class="footer-col footer-afterword">
+            <h3>Afterword</h3>
+            <p>This portfolio was designed to document my career journey and personal growth, while serving as a versatile resource adaptable to diverse career opportunities.
+<br>Although my programming journey is ongoing, bringing ideas into reality through iterative problem-solving has significantly deepened my commitment to web development. <br>Given that lecture required a commitment of half my weekends, I entered the program determined to make the learning experience genuinely rewarding. 
+<br>Additionally, I set a personal goal to ask at least one question during each lecture to ensure active participation.
+I had so much fun customizing class assignments and sneaking in playful features. <br>Working on this portfolio naturally turned into a daily habit—I got so into it that I ended up coding for hours after class without even realizing it.
+<br>I’m so grateful to have been a part of this incredible experience!</p>
+        </div>
+        
+        <!-- 右側：LINKS と INFO を横並びにするグループ -->
+        <div class="footer-links-group">
+            <div class="footer-col">
+                <h4>Links</h4>
+                <ul>
+                    <li><a href="#profile">Profile</a></li>
+                    <li><a href="#qualifications">Qualifications</a></li>
+                    <li><a href="#works">Works</a></li>
+                    <li><a href="#game">SQL Game</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Info</h4>
+                <ul>
+                    <li><a href="https://github.com/" target="_blank">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer-bottom">
+        S∀O&copy; 2026 Portfolio. All rights reserved.
+    </div>
+</footer>
+
+<!-- トップに戻るボタン（Page Top） -->
+<a href="#top" class="back-to-top" title="トップに戻る">
+    <span class="back-to-top-icon">↑</span>
+    <span class="back-to-top-text">Page Top</span>
+</a>
+
+<!-- 流れ星・星空のアニメーション用スクリプト -->
+<script>
+    const field = document.querySelector('.star-field');
+    if (field) {
+        for (let i = 0; i < 40; i++) {
+            const s = document.createElement('span');
+            s.className = 'star';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.animationDelay = (Math.random() * 3).toFixed(2) + 's';
+            s.style.animationDuration = (2 + Math.random() * 2).toFixed(2) + 's';
+            field.appendChild(s);
+        }
+    }
+</script>
 </body>
 </html>
