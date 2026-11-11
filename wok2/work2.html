@@ -17,7 +17,7 @@
       background: linear-gradient(135deg, #0f172a, #1e293b);
       border-radius: 8px;
       padding: 16px;
-      color: #e2e8f0;
+      color: #f8fafc; /* 文字色を明るく変更 */
     }
     .monitor-start-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
     #monitorStartBtn {
@@ -27,35 +27,36 @@
       box-shadow: 0 4px 14px rgba(22,163,74,.4);
     }
     #monitorStartBtn:hover { background: #15803d; }
-    #monitorStartBtn:disabled { background: #334155; box-shadow: none; cursor: not-allowed; }
+    #monitorStartBtn:disabled { background: #475569; box-shadow: none; cursor: not-allowed; color: #cbd5e1; }
 
     .term-panel {
-      background: #0a0e14; border: 1px solid #1f2937;
+      background: #0a0e14; border: 1px solid #334155;
       border-radius: 10px; padding: 0;
       min-height: 280px; display: flex; flex-direction: column; overflow: hidden;
     }
     .term-bar {
       background: #161b22; padding: 8px 12px;
       display: flex; align-items: center; gap: 6px;
-      border-bottom: 1px solid #1f2937;
+      border-bottom: 1px solid #334155;
     }
     .tdot { width: 9px; height: 9px; border-radius: 50%; }
     .tdot.r { background: #ef4444; }
     .tdot.y { background: #f59e0b; }
     .tdot.g { background: #22c55e; }
-    .term-title { color: #8b949e; font-size: 0.72rem; margin-left: 4px; font-family: 'Consolas', 'Courier New', monospace; }
+    .term-title { color: #cbd5e1; font-size: 0.75rem; margin-left: 4px; font-family: 'Consolas', 'Courier New', monospace; font-weight: 600; }
     .term-body {
       flex: 1; padding: 12px 14px;
       font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 0.75rem; color: #4ade80;
+      font-size: 0.8rem; color: #4ade80;
       overflow-y: auto; line-height: 1.6; white-space: pre-wrap;
     }
-    .term-body .tdim { color: #4b5563; }
-    .term-body .thdr { color: #58a6ff; }
-    .term-body .tok  { color: #4ade80; }
-    .term-body .tnew { color: #fbbf24; font-weight: 700; }
-    .term-body .tend { color: #f87171; font-weight: 700; }
-    .term-body .twait { color: #64748b; }
+    /* 薄すぎた文字色をくっきり見えるように全体的に明度アップ */
+    .term-body .tdim { color: #94a3b8; } 
+    .term-body .thdr { color: #60a5fa; } 
+    .term-body .tok  { color: #4ade80; } 
+    .term-body .tnew { color: #facc15; font-weight: 700; } 
+    .term-body .tend { color: #f87171; font-weight: 700; } 
+    .term-body .twait { color: #cbd5e1; } /* 「Please click...」が見えやすくなるよう修正 */
     .tcursor {
       display: inline-block; width: 6px; height: 12px;
       background: #4ade80; vertical-align: -2px;
@@ -108,63 +109,60 @@
       100% { transform: rotate(0deg); }
     }
     .toast-body { flex: 1; }
-    .toast-app  { font-size: 0.68rem; color: #aaa; margin-bottom: 2px; }
-    .toast-msg  { font-size: 0.85rem; font-weight: 700; color: #fbbf24; line-height: 1.3; }
-    .toast-time { font-size: 0.68rem; color: #888; align-self: flex-start; white-space: nowrap; }
+    .toast-app  { font-size: 0.72rem; color: #cbd5e1; margin-bottom: 2px; }
+    .toast-msg  { font-size: 0.9rem; font-weight: 700; color: #facc15; line-height: 1.3; }
+    .toast-time { font-size: 0.72rem; color: #cbd5e1; align-self: flex-start; white-space: nowrap; }
     
    /* ===== 制作メモ ===== */
     .memo-toggle-wrap { margin-top: 14px; margin-bottom: 4px; }
 
     .memo-toggle-btn {
-      background: none; border: 1px solid var(--border-color);
-      border-radius: 6px; padding: 6px 14px;
-      font-size: 0.8rem; font-weight: 600; color: var(--text-sub);
+      background: #ffffff; border: 1px solid #cbd5e1;
+      border-radius: 6px; padding: 8px 16px;
+      font-size: 0.85rem; font-weight: 700; color: #55709b;
       cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 4px rgba(129, 103, 215, 0.05);
       transition: background 0.15s, color 0.15s;
     }
 
-    .memo-toggle-btn:hover { background: #f1f5f9; color: var(--teal); }
-    .memo-toggle-btn.open { background: #f0fdf4; color: var(--teal); border-color: var(--teal); }
+    .memo-toggle-btn:hover { background: #f8fafc; color: #078084; border-color: #078084; }
+    .memo-toggle-btn.open { background: #e6f4f5; color: #078084; border-color: #078084; }
     .memo-panel {
       margin-top: 10px;
-      background: #fafafa;
-      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
       padding: 18px 20px;
-
+      box-shadow: 0 4px 12px rgba(82, 66, 127, 0.08);
     }
 
     .memo-title {
-      font-size: 0.9rem; font-weight: 800; color: var(--text-heading);
-      margin-bottom: 12px; padding-bottom: 8px;
-      border-bottom: 2px solid var(--teal);
-
-    }
+    font-size: 0.95rem; font-weight: 800; color: #071a45;
+    margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 2px solid #078084;
+   }
 
     .memo-section-head {
-      font-size: 0.78rem; font-weight: 700; color: var(--teal);
-      margin-top: 14px; margin-bottom: 6px;
-      text-transform: uppercase; letter-spacing: 0.04em;
-    }
+    font-size: 0.8rem; font-weight: 700; color: #078084;
+    margin-top: 14px; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+   }
 
-    .memo-body { font-size: 0.82rem; color: var(--text-main); line-height: 1.7; margin-bottom: 4px; }
+    .memo-body { font-size: 0.85rem; color: #334155; line-height: 1.7; margin-bottom: 4px; }
 
     .memo-item {
       display: flex; gap: 10px; align-items: flex-start;
       margin-bottom: 10px;
-
     }
 
     .memo-item-num {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--teal); color: #fff;
-      font-size: 0.72rem; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; margin-top: 2px;
-    }
-    .memo-item-title { font-size: 0.83rem; font-weight: 700; color: var(--text-heading); margin-bottom: 3px; }
-
-
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #078084; color: #fff;
+    font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+}
+    .memo-item-title { font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
     @media (max-width: 600px) {
       .profile-box { flex-direction: column; align-items: center; text-align: center; }
       .form-row, .action-btn-grid { grid-template-columns: 1fr; }
@@ -194,23 +192,23 @@
       <div class="detail-content">
         <div style="margin-bottom: 20px;">
           <div class="section-kicker" style="color: #0f766e; font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Workflow Optimization</div>
-          <h1 style="font-size: 22px; color: #0f172a; margin: 0;">2. Notification UX </h1>
+          <h1 style="font-size: 22px; color: #0f172a; margin: 0;">2. Notification UX</h1>
         </div>
 
-        <div class="section-label">【Situation】</div>
-        <p class="text-body">
+        <div class="section-label" style="color: #0f172a; font-weight: 700; margin-top: 16px;">【Situation】</div>
+        <p class="text-body" style="color: #334155; font-size: 0.92rem; line-height: 1.7;">
           優先度の高い新規案件のメール通知が不安定で、ほかの業務に集中していると確認が遅れることがありました。
         </p>
-        <div class="section-label">【Task】</div>
-        <p class="text-body">
+        <div class="section-label" style="color: #0f172a; font-weight: 700; margin-top: 16px;">【Task】</div>
+        <p class="text-body" style="color: #334155; font-size: 0.92rem; line-height: 1.7;">
           別のタブで作業している間も、新規案件に気づける通知の仕組みを作ることを目標にしました。
         </p>
-        <div class="section-label">【Action】</div>
-        <p class="text-body">
+        <div class="section-label" style="color: #0f172a; font-weight: 700; margin-top: 16px;">【Action】</div>
+        <p class="text-body" style="color: #334155; font-size: 0.92rem; line-height: 1.7;">
           PythonとSelenium WebDriverでWebページを定期的に確認し、新規案件を検知するとデスクトップ通知を表示するツールを作成しました。
         </p>
 
-        <div class="section-label">【Demonstration Using a Simulated Process】</div>
+        <div class="section-label" style="color: #0f172a; font-weight: 700; margin-top: 20px;">【Demonstration Using a Simulated Process】</div>
         <div class="monitor-wrap">
           <div class="monitor-start-row">
             <button id="monitorStartBtn" onclick="startMonitorDemo()">▶ Start Demo</button>
@@ -226,7 +224,7 @@
 
         <!-- ===== 制作メモ work2 ===== -->
         <div class="memo-toggle-wrap">
-          <button class="memo-toggle-btn" onclick="toggleMemo('work2-memo')">
+          <button id="memoBtn" class="memo-toggle-btn" onclick="toggleMemo('work2-memo')">
             📝 制作メモを見る
           </button>
           <div id="work2-memo" class="memo-panel" style="display:none;">
@@ -368,7 +366,7 @@
   /* ===== 制作メモ トグル ===== */
   function toggleMemo(id) {
     const panel = document.getElementById(id);
-    const btn = panel.previousElementSibling; 
+    const btn = document.getElementById('memoBtn');
     const isOpen = panel.style.display !== 'none';
     panel.style.display = isOpen ? 'none' : 'block';
     btn.textContent = isOpen ? '📝 制作メモを見る' : '📝 制作メモを閉じる';
