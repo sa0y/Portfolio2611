@@ -1,19 +1,26 @@
 :root {
-  --bg: #efefed;
-  --bg-strong: #e8e8e6;
-  --panel: rgb(249, 251, 250);
-  --panel-strong: #ffffff;
-  --ink: #111111;
-  --muted: #5f6368;
-  --line: rgba(17, 24, 39, 0.1);
-  --shadow: 0 18px 45px rgba(17, 24, 39, 0.06);
-  --teal: #0f766e;
-  --teal-hover: #0d9488;
-  --border-color: rgba(17, 24, 39, 0.08);
-  --text-heading: #0f172a;
-  --text-sub: #475569;
-  --text-main: #334155;
-  --card-bg: #ffffff;
+  /* ---- 夜空・フッター用の変数 ---- */
+  --sky-top: #05060f;
+  --sky-bottom: #141b36;
+  --nebula-1: rgba(167, 139, 250, 0.25);
+  --nebula-2: rgba(96, 165, 250, 0.18);
+  --text-light: #f5f6fa;
+
+  --bg: #4a5568;           
+  --bg-strong: #333d4f;      
+  --panel: rgba(62, 72, 88, 0.85);   
+  --panel-strong: #414c62;
+  --ink: #f3f4f6;
+  --muted: #a0aec0;
+  --line: rgba(255, 255, 255, 0.15);   /* 境界線のライン */
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  --teal: #38bdf8;
+  --teal-hover: #7dd3fc;
+  --border-color: rgba(255, 255, 255, 0.2);
+  --text-heading: #f9fafb;
+  --text-sub: #e2e8f0;
+  --text-main: #cbd5e1;
+  --card-bg: rgba(62, 72, 88, 0.9);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,21 +36,21 @@ body {
 a { color: inherit; text-decoration: none; }
 
 header {
-  background: rgba(255,255,255,0.76);
-  border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
   z-index: 20;
-  backdrop-filter: blur(12px);
 }
 
 .nav-container {
-  max-width: 1120px;
-  margin: 0 auto;
+  background: rgba(51, 61, 79, 0.9);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
   padding: 14px 24px;
 }
 
 .nav-links {
+  max-width: 1120px;
+  margin: 0 auto;
   display: flex;
   gap: 18px;
   align-items: center;
@@ -52,28 +59,124 @@ header {
 .nav-link {
   font-size: 0.92rem;
   font-weight: 600;
-  color: #30363d;
-  padding: 8px 10px;
+  color: var(--text-sub);
+  padding: 8px 12px;
   border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
 }
 
 .nav-link:hover {
-  background: rgba(17, 17, 17, 0.03);
-  color: var(--ink);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
+/* ======================= バナー (夜空演出) ======================= */
+.hero-banner {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+}
+
+.milky-way {
+    position: absolute;
+    top: -60%;
+    left: -20%;
+    width: 160%;
+    height: 220%;
+    background: linear-gradient(100deg,
+        transparent 0%,
+        var(--nebula-2) 35%,
+        var(--nebula-1) 50%,
+        var(--nebula-2) 65%,
+        transparent 100%);
+    filter: blur(6px);
+    transform: rotate(-12deg);
+    animation: drift 25s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+@keyframes drift {
+    0%   { transform: rotate(-12deg) translateX(0); }
+    100% { transform: rotate(-12deg) translateX(50px); }
+}
+
+.star-field { position: absolute; inset: 0; pointer-events: none; }
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: .2;
+    animation-name: twinkle;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+@keyframes twinkle {
+    0%, 100% { opacity: .15; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.7); }
+}
+
+.shooting-star {
+    position: absolute;
+    width: 110px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 100%);
+    transform: rotate(18deg);
+    opacity: 0;
+    animation-name: shoot;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    pointer-events: none;
+}
+.shooting-star::after {
+    content: '';
+    position: absolute;
+    right: -1px; top: 50%;
+    width: 3px; height: 3px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px 2px rgba(255,255,255,0.9);
+    transform: translateY(-50%);
+}
+.shooting-star.s1 { top: 15%; animation-duration: 7s;  animation-delay: 0s; }
+.shooting-star.s2 { top: 45%; animation-duration: 9s;  animation-delay: 3.2s; }
+.shooting-star.s3 { top: 70%; animation-duration: 11s; animation-delay: 5.8s; }
+
+@keyframes shoot {
+    0%   { left: -15%; opacity: 0; }
+    4%   { opacity: 1; }
+    22%  { left: 110%; opacity: 0; }
+    100% { left: 110%; opacity: 0; }
+}
+
+.hero-banner-title, .hero-banner-subtitle {
+    position: absolute; left: 50%; z-index: 3; color: var(--text-light);
+    letter-spacing: 2px; font-weight: 700; white-space: nowrap;
+    text-shadow: 0 0 12px rgba(150, 170, 255, 0.5);
+}
+.hero-banner-title { top: 80px; transform: translate(-50%, -50%); font-size: clamp(2rem, 3.5vw, 2.6rem); line-height: 1.4; }
+.hero-banner-subtitle { top: 138px; transform: translate(-50%, -50%); font-size: clamp(0.9rem, 2vw, 1.1rem); line-height: 1.4; opacity: 0.85; }
+
+/* ======================= メインコンテンツ ======================= */
 .container {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 26px 24px 60px;
+  padding: 40px 24px 60px;
+}
+
+section {
+  margin-bottom: 40px;
 }
 
 .section-title {
-  font-size: clamp(2.2rem, 3vw, 3.2rem);
+  font-size: clamp(2rem, 3vw, 3.2rem);
   line-height: 1.08;
   letter-spacing: -0.07em;
   font-weight: 800;
   margin: 20px 0 18px;
+  color: var(--text-heading);
 }
 
 .card {
@@ -83,10 +186,12 @@ header {
   padding: 28px;
   box-shadow: var(--shadow);
   margin-bottom: 20px;
+  backdrop-filter: blur(8px);
 }
 
-.card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 12px; }
+.card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-heading); margin-bottom: 16px; }
 
+/* プロフィール */
 .profile-box {
   display: flex;
   align-items: flex-start;
@@ -97,18 +202,19 @@ header {
   width: 108px;
   height: 108px;
   border-radius: 50%;
-  background: #dfe6ee;
+  background: #52607a;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(17,24,39,0.06);
+  border: 1px solid var(--line);
   flex-shrink: 0;
   overflow: hidden;
 }
 
 .profile-avatar-fallback {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   letter-spacing: 0.18em;
-  color: #475569;
+  color: var(--text-sub);
+  font-weight: 700;
 }
 
 .profile-info { flex: 1; }
@@ -120,15 +226,16 @@ header {
 }
 .profile-desc p {
   margin-bottom: 10px;
-  color: #2e343d;
+  color: var(--text-sub);
   font-size: 0.98rem;
 }
 
+/* 資格・学習リスト */
 .qual-row {
   display: flex;
   gap: 18px;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
 }
 .qual-row:last-child { border-bottom: none; }
 .qual-date {
@@ -138,22 +245,25 @@ header {
   border-radius: 10px;
   font-size: 0.72rem;
   font-weight: 700;
-  background: #e2e8f0;
-  color: #0f172a;
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
   height: fit-content;
+  border: 1px solid rgba(56, 189, 248, 0.4);
 }
 .qual-detail { flex: 1; }
 .qual-title { font-size: 1.02rem; font-weight: 700; margin-bottom: 4px; color: var(--text-heading); }
 .qual-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-.qual-desc { font-size: 0.85rem; color: #334155; }
+.qual-desc { font-size: 0.85rem; color: var(--text-main); }
 
+/* Worksセクション */
 .modern-works {
-  background: rgba(255,255,255,0.8);
-  border: 1px solid rgba(17,24,39,0.08);
+  background: var(--panel);
+  border: 1px solid var(--line);
   border-radius: 30px;
   padding: 30px 22px 24px;
   box-shadow: var(--shadow);
   margin: 8px 0 32px;
+  backdrop-filter: blur(8px);
 }
 .modern-works-header { margin-bottom: 22px; }
 .section-kicker {
@@ -161,7 +271,7 @@ header {
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #5f6368;
+  color: var(--muted);
   margin-bottom: 8px;
 }
 .modern-works-header h2 {
@@ -169,6 +279,7 @@ header {
   line-height: 1.08;
   letter-spacing: -0.06em;
   font-weight: 800;
+  color: var(--text-heading);
 }
 
 .works-grid {
@@ -178,18 +289,18 @@ header {
 }
 .work-card {
   display: block;
-  background: #f5f5f3;
-  border: 1px solid rgba(17,24,39,0.08);
+  background: rgba(51, 61, 79, 0.6);
+  border: 1px solid var(--line);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 10px 22px rgba(15,23,42,0.04);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.2);
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 .work-card:hover,
 .work-card:focus-visible {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(15,23,42,0.08);
-  border-color: rgba(17,24,39,0.14);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  border-color: rgba(150,170,255,0.4);
   outline: none;
 }
 
@@ -197,7 +308,7 @@ header {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-bottom: 1px solid rgba(17,24,39,0.08);
+  border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,9 +320,12 @@ header {
   object-fit: cover;
   object-position: center;
 }
-.tone-1 { background: linear-gradient(135deg, #f5f5f4 0%, #e5e7eb 100%); }
-.tone-2 { background: linear-gradient(135deg, #dadfe8 0%, #c7d2fe 100%); }
-.tone-3 { background: linear-gradient(135deg, #e7eaee 0%, #f5f7fa 100%); }
+.game-work-img {
+  object-fit: contain;
+}
+.tone-1 { background: linear-gradient(135deg, #435068 0%, #52607a 100%); }
+.tone-2 { background: linear-gradient(135deg, #3d4a60 0%, #4a5872 100%); }
+.tone-3 { background: linear-gradient(135deg, #48566f 0%, #576684 100%); }
 
 .work-card-copy {
   padding: 18px 18px 20px;
@@ -220,54 +334,160 @@ header {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: #64748b;
+  color: var(--muted);
   margin-bottom: 8px;
 }
 .work-card-copy h3 {
   font-size: 1.16rem;
   line-height: 1.35;
   letter-spacing: -0.04em;
-  color: #0f172a;
+  color: var(--text-heading);
 }
 
-.work-detail-page { background: #f3f3f1; }
-.detail-header {
-  background: rgba(255,255,255,0.8);
-  border-bottom: 1px solid var(--line);
+/* ======================= フッター (夜空・地平線デザイン) ======================= */
+.site-footer {
+    position: relative;
+    margin-top: 60px;
+    background: linear-gradient(180deg, var(--sky-bottom) 0%, var(--sky-top) 100%);
+    color: #cfd4e6;
+    padding: 50px 20px 20px;
+    overflow: hidden;
 }
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  color: #0f172a;
+.site-footer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(150,170,255,0.6), transparent);
 }
-.detail-main {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 44px 24px 60px;
-}
-.detail-card {
-  background: rgba(255,255,255,0.8);
-  border: 1px solid rgba(17,24,39,0.08);
-  border-radius: 32px;
-  box-shadow: var(--shadow);
-  display: block;
-  overflow: hidden;
-}
-.detail-content { padding: 42px 42px; }
 
-.section-label { font-size: 0.85rem; font-weight: 700; color: var(--text-sub); margin-top: 14px; margin-bottom: 4px; }
-p.text-body { font-size: 0.85rem; margin-bottom: 5px; line-height: 1.7; color: #334155; }
+/* 全体のレイアウトを縦に並べる構造に変更 */
+.footer-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
 
-.metrics-row { display: flex; gap: 16px; margin-top: 14px; }
-.metric-box { flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; text-align: center; }
-.metric-label { font-size: 0.75rem; color: var(--text-sub); font-weight: 600; margin-bottom: 4px; }
-.metric-value { font-size: 1.1rem; font-weight: 800; color: #15803d; line-height: 1.3; }
+/* Afterwordエリア（上段） */
+.footer-afterword {
+    width: 100%;
+}
 
+.footer-afterword p {
+    font-size: 13px;
+    line-height: 1.6;
+    opacity: .8;
+    margin: 0;
+    max-width: none;
+}
+
+.footer-links-group {
+    display: flex;
+    gap: 60px;
+}
+
+.footer-col {
+    min-width: 0;
+}
+.footer-col h3 {
+    color: var(--text-light);
+    margin: 0 0 8px;
+    font-size: 18px;
+    letter-spacing: 1px;
+}
+.footer-col h4 {
+    color: var(--text-light);
+    margin: 0 0 10px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: .7;
+}
+.footer-col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.footer-col li { margin-bottom: 8px; }
+.footer-col a {
+    color: #cfd4e6;
+    text-decoration: none;
+    font-size: 13px;
+    transition: color .2s ease;
+}
+.footer-col a:hover {
+    color: #fff;
+    text-shadow: 0 0 8px rgba(150,170,255,0.8);
+}
+.footer-bottom {
+    max-width: 1120px;
+    margin: 32px auto 0;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 12px;
+    opacity: .6;
+    text-align: center;
+}
+
+/* ======================= トップに戻るボタン（Page Top） ======================= */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px 10px 12px;
+    background: rgba(51, 61, 79, 0.85);
+    color: var(--text-sub);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    z-index: 99;
+    backdrop-filter: blur(8px);
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.back-to-top-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    color: #fff;
+    transition: background 0.2s;
+}
+
+.back-to-top-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text-heading);
+}
+
+.back-to-top:hover {
+    background: rgba(67, 80, 104, 0.95);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    border-color: var(--teal);
+}
+
+.back-to-top:hover .back-to-top-icon {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+}
+
+/* レスポンシブ対応 */
 @media (max-width: 760px) {
   .works-grid { grid-template-columns: 1fr; }
   .profile-box { flex-direction: column; }
   .qual-row { flex-direction: column; gap: 4px; }
-  .metrics-row { flex-direction: column; }
+  .footer-inner { grid-template-columns: 1fr; gap: 24px; }
 }
