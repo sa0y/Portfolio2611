@@ -14,26 +14,39 @@
     /* Work1 デモ */
     .demo-box { margin-top: 14px; border: 1px solid var(--border-color); border-radius: 6px; background: #ffffff; overflow: visible; }
     .demo-tabs { display: flex; background: #f1f5f9; border-bottom: 1px solid var(--border-color); }
-    .demo-tab-btn { flex: 1; padding: 8px 12px; border: none; background: transparent; font-size: 0.82rem; font-weight: 700; color: var(--text-sub); cursor: pointer; }
-    .demo-tab-btn.active { background: #ffffff; color: var(--teal); border-bottom: 2px solid var(--teal); }
+    .demo-tab-btn { flex: 1; padding: 8px 12px; border: none; background: transparent; font-size: 0.82rem; font-weight: 700; color: #475569; cursor: pointer; }
+    
+    /* タブのアクティブ時：#078084系 */
+    .demo-tab-btn.active { background: #ffffff; color: #078084; border-bottom: 2px solid #078084; }
+    
     .demo-content { padding: 14px; display: none; }
     .demo-content.active { display: block; }
-    .instruction-note { background: #fffbe6; border: 1px solid #ffe58f; padding: 8px 12px; border-radius: 4px; font-size: 0.82rem; color: #8c6b00; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .instruction-target { font-family: monospace; font-weight: bold; background: #fff1b8; padding: 1px 6px; border-radius: 3px; }
+    
+    /* 指示・ハイライト（青系紫） */
+    .instruction-note { background: #f5f3ff; border: 1px solid #ddd6fe; padding: 8px 12px; border-radius: 4px; font-size: 0.82rem; color: #5b21b6; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .instruction-target { font-family: monospace; font-weight: bold; background: #ede9fe; color: #4c1d95; padding: 1px 6px; border-radius: 3px; }
+    
     .form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
     .field-group { position: relative; min-width: 0; }
-    .field-group label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-sub); margin-bottom: 3px; }
-    .combo-input { width: 100%; padding: 6px 8px; border: 2px solid #64748b; border-radius: 4px; font-size: 0.82rem; outline: none; }
-    .combo-input:focus { border-color: var(--teal); }
-    .combo-input.highlight { background-color: #f0fdf4; border-color: #22c55e; }
-    .combo-dropdown { position: absolute; top: 100%; left: 0; right: 0; max-height: 140px; overflow-y: auto; background: #ffffff; border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,.08); z-index: 20; display: none; }
+    .field-group label { display: block; font-size: 0.72rem; font-weight: 700; color: #334155; margin-bottom: 3px; }
+    .combo-input { width: 100%; padding: 6px 8px; border: 2px solid #64748b; border-radius: 4px; font-size: 0.82rem; outline: none; background: #ffffff; color: #0f172a; }
+    .combo-input:focus { border-color: #078084; }
+    
+    /* ハイライト時 */
+    .combo-input.highlight { background-color: #e6f4f5; border-color: #078084; color: #044346; font-weight: 600; }
+    
+    .combo-dropdown { position: absolute; top: 100%; left: 0; right: 0; max-height: 140px; overflow-y: auto; background: #ffffff; border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,.15); z-index: 20; display: none; }
     .combo-dropdown.show { display: block; }
-    .combo-item { padding: 5px 8px; font-size: 0.82rem; cursor: pointer; }
-    .combo-item:hover { background: #f0fdf4; color: var(--teal); }
+    .combo-item { padding: 6px 10px; font-size: 0.82rem; color: #1e293b; cursor: pointer; }
+    .combo-item:hover { background: #e6f4f5; color: #078084; font-weight: 600; }
+    
     .action-btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
-    .btn-preset { background: var(--teal); color: #ffffff; border: none; padding: 9px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
-    .btn-preset:hover { background: var(--teal-hover); }
+    
+    /* ボタン：#078084 */
+    .btn-preset { background: #078084; color: #ffffff; border: none; padding: 9px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+    .btn-preset:hover { background: #056367; }
     .btn-preset:disabled { opacity: 0.5; cursor: not-allowed; }
+    
     .work1-page .detail-card { display: block; }
     .work1-page .detail-visual { display: none; }
     .work1-page .detail-content { padding: 0; }
@@ -49,49 +62,51 @@
       margin: 16px 0 6px;
       font-size: 14px;
       font-weight: 700;
-      color: #475569;
+      color: #0f172a;
     }
     .work1-page .text-body {
       margin: 0 0 12px;
       font-size: 14px;
       line-height: 1.6;
-      color: #334155;
+      color: #1e293b;
     }
 
     /* ===== 制作メモ ===== */
     .memo-toggle-wrap { margin-top: 14px; margin-bottom: 4px; }
 
     .memo-toggle-btn {
-      background: none; border: 1px solid var(--border-color);
-      border-radius: 6px; padding: 6px 14px;
-      font-size: 0.8rem; font-weight: 600; color: var(--text-sub);
+      background: #ffffff; border: 1px solid #cbd5e1;
+      border-radius: 6px; padding: 8px 16px;
+      font-size: 0.85rem; font-weight: 700; color: #55709b;
       cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 4px rgba(129, 103, 215, 0.05);
       transition: background 0.15s, color 0.15s;
     }
 
-    .memo-toggle-btn:hover { background: #f1f5f9; color: var(--teal); }
-    .memo-toggle-btn.open { background: #f0fdf4; color: var(--teal); border-color: var(--teal); }
+    .memo-toggle-btn:hover { background: #f8fafc; color: #078084; border-color: #078084; }
+    .memo-toggle-btn.open { background: #e6f4f5; color: #078084; border-color: #078084; }
     .memo-panel {
       margin-top: 10px;
-      background: #fafafa;
-      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
       padding: 18px 20px;
+      box-shadow: 0 4px 12px rgba(82, 66, 127, 0.08);
     }
 
     .memo-title {
-      font-size: 0.9rem; font-weight: 800; color: var(--text-heading);
-      margin-bottom: 12px; padding-bottom: 8px;
-      border-bottom: 2px solid var(--teal);
-    }
+    font-size: 0.95rem; font-weight: 800; color: #071a45;
+    margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 2px solid #078084;
+   }
 
     .memo-section-head {
-      font-size: 0.78rem; font-weight: 700; color: var(--teal);
-      margin-top: 14px; margin-bottom: 6px;
-      text-transform: uppercase; letter-spacing: 0.04em;
-    }
+    font-size: 0.8rem; font-weight: 700; color: #078084;
+    margin-top: 14px; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+   }
 
-    .memo-body { font-size: 0.82rem; color: var(--text-main); line-height: 1.7; margin-bottom: 4px; }
+    .memo-body { font-size: 0.85rem; color: #334155; line-height: 1.7; margin-bottom: 4px; }
 
     .memo-item {
       display: flex; gap: 10px; align-items: flex-start;
@@ -99,13 +114,13 @@
     }
 
     .memo-item-num {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--teal); color: #fff;
-      font-size: 0.72rem; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; margin-top: 2px;
-    }
-    .memo-item-title { font-size: 0.83rem; font-weight: 700; color: var(--text-heading); margin-bottom: 3px; }
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #078084; color: #fff;
+    font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+}
+    .memo-item-title { font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
   </style>
 </head>
 <body class="work-detail-page work1-page">
@@ -116,10 +131,10 @@
   </header>
 
   <main class="detail-main" style="max-width: 1240px; margin: 20px auto; padding: 0 20px;">
-    <article class="detail-card" style="background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <article class="detail-card" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; padding: 28px; box-shadow: 0 16px 32px rgba(0,0,0,0.1); ">
       <div class="detail-content">
         <div style="margin-bottom: 20px;">
-          <div class="section-kicker" style="color: #0f766e; font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Workflow Optimization</div>
+          <div class="section-kicker" style="color: #078084; font-weight: 700; font-size: 13px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Workflow Optimization</div>
           <h1 style="font-size: 22px; color: #0f172a; margin: 0;">1. One-Click Auto-Fill Tool</h1>
         </div>
     <!-- WORK 1 -->
@@ -141,7 +156,7 @@
       <div class="demo-box">
         <div class="demo-tabs">
           <button class="demo-tab-btn active" onclick="switchTab('w1','before')">Before (Manual)</button>
-          <button class="demo-tab-btn"        onclick="switchTab('w1','after')">After (Automation)</button>
+          <button class="demo-tab-btn"       onclick="switchTab('w1','after')">After (Automation)</button>
         </div>
         <div id="w1-before" class="demo-content active">
           <div class="instruction-note">
@@ -191,22 +206,23 @@
             </div>
           </div>
         </div>
-      </div>     
+      </div>    
+    
       <div class="section-label">【Result】</div>
-      <div class="metrics-row">
-        <div class="metric-box">
-          <div class="metric-label">作業時間（宛先確認〜転送完了）</div>
-          <div class="metric-value">約45秒 → 約3秒</div>
+      <div class="metrics-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px;">
+        <div class="metric-box" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; text-align: center;">
+          <div class="metric-label" style="font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 6px;">作業時間（宛先確認〜転送完了）</div>
+          <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #078084;">約45秒 → 約3秒</div>
         </div>
-        <div class="metric-box">
-          <div class="metric-label">作業時間削減率</div>
-          <div class="metric-value">約93%削減</div>
+        <div class="metric-box" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; text-align: center;">
+          <div class="metric-label" style="font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 6px;">作業時間削減率</div>
+          <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #078084;">約93%削減</div>
         </div>
-        <div class="metric-box">
-          <div class="metric-label">手作業による選択ミス</div>
-          <div class="metric-value">防止</div>
+        <div class="metric-box" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; text-align: center;">
+          <div class="metric-label" style="font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 6px;">手作業による選択ミス</div>
+          <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #078084;">防止</div>
         </div>
-    </div>
+      </div>
         
     <!-- ===== 制作メモ work1 ===== -->
       <div class="memo-toggle-wrap">
@@ -222,7 +238,7 @@
             <div class="memo-item-num">1</div>
             <div>
               <div class="memo-item-title">プルダウンの選択肢</div>
-              <p class="memo-body">業務での開発経験をもとに、3階層プルダウンとワンクリック操作のデモを新たに制作しました。当初はA・B・Cのような仮データを使っていましたが、選択の煩雑さが伝わりにくいと感じました。そこで、選択肢の多さや名称の長さをイメージしやすいよう、「大学の学部 → 学科 → 専攻」に置き換えました。</p>
+              <p class="memo-body">業務での開発経験をもとに、3階層プルダウンとワンクリック操作のデモを一般的なデータとデザインに変更し制作しました。当初はA・B・Cのような仮データを使っていましたが、選択の煩雑さが伝わりにくいと感じました。そこで、選択肢の多さや名称の長さをイメージしやすいよう、「大学の学部 → 学科 → 専攻」に置き換えました。</p>
             </div>
           </div>
           <div class="memo-item">
@@ -233,12 +249,14 @@
             </div>
           </div>
           <div class="memo-section-head">AIの活用について</div>
-          <p class="memo-body">学部・学科・専攻の選択肢データの収集にはAIを活用し、ブラウザーで動作を確認しながら表示や動きを調整しました。</p>
+          <p class="memo-body">学部・学科・専攻の選択肢データの収集にはAIを活用し、ブラウザで動作を確認しながら表示や動きを調整しました。</p>
           <div class="memo-section-head">今後の課題</div>
           <p class="memo-body">今回の制作を通じて、定型的な入力作業は手順を整理することで自動化につなげられると学びました。今後も業務の中から繰り返し作業を見つけ、効率化に取り組んでいきたいです。</p>
         </div>
+      </div>
     </div>
      </div>
+    </article>
   </main>
   <script>/* ===== Work1 ===== */
 const listDepts = [
@@ -406,7 +424,7 @@ const listDepts = [
   "福祉社会学科",
   "福祉心理学科",
   "文化財保存学科",
-  "文学科",
+  "文学学科",
   "文芸学科",
   "法学科",
   "法律学科",
@@ -623,7 +641,6 @@ const listDepts = [
   "環境保全・エネルギー専攻",
   "ロボティクス専攻"
 ].sort((a, b) => a.localeCompare(b, 'ja'));
-//日本語の自然な順番
 
   window.addEventListener('DOMContentLoaded', () => {
     buildOptions('dept', listDepts); //学部の選択肢作る
