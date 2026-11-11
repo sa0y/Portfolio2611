@@ -12,390 +12,417 @@
   <link rel="stylesheet" href="../style.css">
   <script src="https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-     .demo-box {
-      margin-top: 14px;
-      border: 1px solid var(--border-color, #cbd5e1);
-      border-radius: 6px;
-      background: #ffffff;
-      overflow: visible;
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .demo-tabs {
-      display: flex;
-      background: #f1f5f9;
-      border-bottom: 1px solid var(--border-color, #cbd5e1);
-    }
-    .demo-tab-btn {
-      flex: 1;
-      padding: 8px 12px;
-      border: none;
-      background: transparent;
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #475569;
-      cursor: pointer;
-    }
-    .demo-tab-btn.active {
-      background: #ffffff;
-      color: var(--teal);
-      border-bottom: 2px solid var(--teal);
-    }
-    .ba-view { display: none; padding: 14px; }
-    .ba-view.active { display: block; }
+<style>
+  /* 共通カラー変数 */
+  :root {
+    --teal: #078084;
+    --teal-hover: #066c6f;
+    --border-color: #cbd5e1;
+  }
 
-    .browser-mock {
-      width: 100%;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      overflow: hidden;
-      background: #fff;
-    }
-    .browser-tabbar {
-      display: flex;
-      background: #e2e8f0;
-      padding: 6px 6px 0 6px;
-      gap: 3px;
-      flex-wrap: wrap;
-    }
-    .browser-tab {
-      padding: 8px 14px;
-      background: #cbd5e1;
-      color: #475569;
-      font-size: 11.5px;
-      font-weight: 600;
-      border-radius: 6px 6px 0 0;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .browser-tab.active {
-      background: #fff;
-      color: #0f172a;
-    }
-    .browser-content {
-      padding: 24px;
-      min-height: 220px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .browser-content-inner {
-      width: 100%;
-      max-width: 900px;
-    }
-    .browser-content .item-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 14px;
-    }
-    .browser-content .kv-row {
-      display: flex;
-      border-bottom: 1px solid #f1f5f9;
-      padding: 8px 0;
-      font-size: 12.5px;
-    }
-    .browser-content .kv-label {
-      width: 150px;
-      color: #64748b;
-      font-weight: 600;
-    }
-    .browser-content .kv-value {
-      color: #0f172a;
-    }
-    .office-subtable-label {
-      margin-top: 20px;
-      font-size: 12.5px;
-      color: #64748b;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .office-subtable {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      background: #fff;
-    }
-    .office-subtable th, .office-subtable td {
-      border: 1px solid #e2e8f0;
-      padding: 8px 12px;
-      text-align: left;
-    }
-    .office-subtable th {
-      background: #f1f5f9;
-      color: #475569;
-    }
+  /* Work3 デモ */
+  .demo-box {
+    margin-top: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: visible;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 12px rgba(82, 66, 127, 0.05);
+  }
+  .demo-tabs {
+    display: flex;
+    background: #f1f5f9;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+  }
+  .demo-tab-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .demo-tab-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .demo-tab-btn.active {
+    background: #ffffff;
+    color: var(--teal);
+    border-bottom: 2px solid var(--teal);
+  }
+  .ba-view { display: none; padding: 16px; }
+  .ba-view.active { display: block; }
 
-    /* ---- After: 検索・SQLパネルレイアウト ---- */
-    .wrap {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 20px;
-      width: 100%;
-    }
-    .panel {
-      background: #fff;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-    }
-    .panel h2 {
-      font-size: 14px;
-      color: #0f172a;
-      margin: 0 0 10px 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .code-search-box {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      margin-bottom: 14px;
-    }
-    .code-search-box textarea {
-      flex: 1;
-      padding: 8px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: Consolas, monospace;
-      line-height: 1.7;
-      resize: vertical;
-      min-height: 130px;
-      color: #0f766e;
-      background: #f0fdfa;
-    }
-    .code-search-box button {
-      background: var(--teal);
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .code-search-box button:hover { background: var(--teal-hover); }
+  .browser-mock {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .browser-tabbar {
+    display: flex;
+    background: #e2e8f0;
+    padding: 6px 6px 0 6px;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+  .browser-tab {
+    padding: 8px 14px;
+    background: #cbd5e1;
+    color: #475569;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .browser-tab.active {
+    background: #fff;
+    color: #0f172a;
+  }
+  .browser-content {
+    padding: 24px;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .browser-content-inner {
+    width: 100%;
+    max-width: 900px;
+  }
+  .browser-content .item-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #071a45;
+    margin-bottom: 14px;
+  }
+  .browser-content .kv-row {
+    display: flex;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 8px 0;
+    font-size: 12.5px;
+  }
+  .browser-content .kv-label {
+    width: 150px;
+    color: #08397e;
+    font-weight: 600;
+  }
+  .browser-content .kv-value {
+    color: #0f172a;
+  }
+  .office-subtable-label {
+    margin-top: 20px;
+    font-size: 12.5px;
+    color: #078084;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .office-subtable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    background: #fff;
+  }
+  .office-subtable th, .office-subtable td {
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .office-subtable th {
+    background: #f1f5f9;
+    color: #475569;
+  }
 
-    table { width: 100%; border-collapse: collapse; font-size: 11px; }
-    th, td { border: 1px solid #e2e8f0; padding: 5px 6px; text-align: left; white-space: nowrap; }
-    th { background: #f1f5f9; color: #475569; font-weight: 700; position: sticky; top: 0; }
-    .raw-table-scroll { overflow: auto; max-height: 420px; border: 1px solid #e2e8f0; border-radius: 6px; }
-    .placeholder-row td {
-      text-align: center;
-      color: #94a3b8;
-      padding: 24px 10px;
-      font-size: 12px;
-      white-space: normal;
-    }
+  /* ---- After: 検索・SQLパネルレイアウト ---- */
+  .wrap {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 20px;
+    width: 100%;
+  }
+  .panel {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .panel h2 {
+    font-size: 14px;
+    color: #071a45;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .code-search-box {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .code-search-box textarea {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: Consolas, monospace;
+    line-height: 1.7;
+    resize: vertical;
+    min-height: 130px;
+    color: #078084;
+    background: #e6f4f5;
+  }
+  .code-search-box button {
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(7,128,132,0.2);
+  }
+  .code-search-box button:hover { background: var(--teal-hover); }
 
-    /* ---- Excel風フィルタ ---- */
-    .th-flex { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
-    .filter-btn {
-      background: none; border: none; cursor: pointer; padding: 1px 3px;
-      font-size: 10px; color: #64748b; border-radius: 3px;
-    }
-    .filter-btn:hover { background: #e2e8f0; }
-    .filter-btn.active { color: var(--teal); font-weight: 900; }
-    th { position: relative; }
-    .filter-dropdown {
-      position: fixed;
-      background: #fff;
-      border: 1px solid #94a3b8;
-      border-radius: 6px;
-      box-shadow: 0 6px 16px rgba(0,0,0,.18);
-      z-index: 50;
-      width: 190px;
-      max-height: min(260px, calc(100vh - 16px));
-      overflow-y: auto;
-      display: none;
-      font-weight: 400;
-      text-transform: none;
-    }
-    .filter-dropdown.show { display: block; }
-    .filter-dropdown .fd-row {
-      padding: 5px 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: #334155;
-      cursor: pointer;
-    }
-    .filter-dropdown .fd-row:hover { background: #f0fdfa; }
-    .filter-dropdown .fd-all {
-      border-bottom: 1px solid #e2e8f0;
-      font-weight: 700;
-    }
-    .filter-dropdown .fd-actions {
-      display: flex; gap: 6px; padding: 6px 10px;
-      border-top: 1px solid #e2e8f0;
-      position: sticky; bottom: 0; background: #fff;
-    }
-    .fd-actions button {
-      flex: 1; font-size: 10.5px; padding: 4px 6px; border-radius: 4px;
-      border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;
-    }
-    .fd-actions button.primary { background: var(--teal); color: #fff; border: none; }
-    .filter-summary {
-      font-size: 11.5px; color: #0f766e; margin-bottom: 6px; min-height: 16px;
-    }
-    .clear-filters-btn {
-      background: none; border: 1px solid #cbd5e1; color: #475569;
-      font-size: 10.5px; padding: 2px 8px; border-radius: 5px; cursor: pointer;
-      margin-left: 8px;
-    }
-    .clear-filters-btn:hover { background: #f1f5f9; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th, td { 
+    border: 1px solid #e2e8f0; 
+    padding: 5px 6px; 
+    text-align: left; 
+    white-space: nowrap; 
+    color: #0f172a; 
+  }
+  th { background: #f1f5f9; color: #042e6a; font-weight: 700; position: sticky; top: 0; }
+  .raw-table-scroll { overflow: auto; max-height: 420px; border: 1px solid #112641; border-radius: 6px; }
+  .placeholder-row td {
+    text-align: center;
+    color: #041a3a;
+    padding: 24px 10px;
+    font-size: 12px;
+    white-space: normal;
+  }
 
-    /* ---- SQL結果テーブル・コンソール ---- */
-    .result-table-scroll {
-      overflow: auto;
-      max-height: 280px;
-      border: 1px solid #303d34;
-      border-radius: 8px;
-      margin-top: 10px;
-      background: #0d1117;
-      padding: 4px;
-    }
-    #resultTable {
-      font-size: 14px;
-      border-collapse: separate;
-      border-spacing: 0;
-    }
-    #resultTable th, #resultTable td {
-      border: 1px solid #30363d;
-      padding: 10px 14px;
-      white-space: nowrap;
-    }
-    #resultTable thead th {
-      background: #0f766e;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      position: sticky;
-      top: 0;
-      letter-spacing: 0.3px;
-    }
-    #resultTable tbody tr { background: #161b22; color: #e6edf3; }
-    #resultTable tbody tr:nth-child(even) { background: #1c2230; }
-    #resultTable tbody tr:hover { background: #22304a; }
-    #resultTable tbody td { font-family: Consolas, 'Courier New', monospace; }
-    #resultTable tbody td:first-child { color: #5eead4; font-weight: 700; }
-    .result-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .result-count {
-      font-size: 12px;
-      color: #94a3b8;
-      font-family: Consolas, monospace;
-    }
-    #exportBtn {
-      background: #166534;
-      color: #fff;
-      border: none;
-      padding: 7px 14px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      display: none; /* 初期状態では完全に非表示 */
-    }
-    #exportBtn:hover { background: #15803d; }
+  /* ---- Excel風フィルタ ---- */
+  .th-flex { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+  .filter-btn {
+    background: none; border: none; cursor: pointer; padding: 1px 3px;
+    font-size: 10px; color: #64748b; border-radius: 3px;
+  }
+  .filter-btn:hover { background: #e2e8f0; }
+  .filter-btn.active { color: var(--teal); font-weight: 900; }
+  th { position: relative; }
+  .filter-dropdown {
+    position: fixed;
+    background: #fff;
+    border: 1px solid #94a3b8;
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.18);
+    z-index: 50;
+    width: 190px;
+    max-height: min(260px, calc(100vh - 16px));
+    overflow-y: auto;
+    display: none;
+    font-weight: 400;
+    text-transform: none;
+  }
+  .filter-dropdown.show { display: block; }
+  .filter-dropdown .fd-row {
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #334155;
+    cursor: pointer;
+  }
+  .filter-dropdown .fd-row:hover { background: #e6f4f5; }
+  .filter-dropdown .fd-all {
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 700;
+  }
+  .filter-dropdown .fd-actions {
+    display: flex; gap: 6px; padding: 6px 10px;
+    border-top: 1px solid #e2e8f0;
+    position: sticky; bottom: 0; background: #fff;
+  }
+  .fd-actions button {
+    flex: 1; font-size: 10.5px; padding: 4px 6px; border-radius: 4px;
+    border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;
+  }
+  .fd-actions button.primary { background: var(--teal); color: #fff; border: none; }
+  .filter-summary {
+    font-size: 11.5px; color: var(--teal); margin-bottom: 6px; min-height: 16px;
+  }
+  .clear-filters-btn {
+    background: none; border: 1px solid #cbd5e1; color: #475569;
+    font-size: 10.5px; padding: 2px 8px; border-radius: 5px; cursor: pointer;
+    margin-left: 8px;
+  }
+  .clear-filters-btn:hover { background: #f1f5f9; }
 
-    .sql-panel {
-      background: #0a0e14;
-      border: 1px solid #1f2937;
-      border-radius: 10px;
-      padding: 0;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .sql-bar {
-      background: #161b22;
-      padding: 9px 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      border-bottom: 1px solid #1f2937;
-    }
-    .tdot { width: 9px; height: 9px; border-radius: 50%; }
-    .tdot.r { background: #ef4444; } .tdot.y { background: #f59e0b; } .tdot.g { background: #22c55e; }
-    .sql-title { color: #8b949e; font-size: 11px; margin-left: 4px; font-family: Consolas, monospace; }
-    .sql-body { padding: 14px; }
-    textarea#sqlInput {
-      width: 100%;
-      background: #0d1117;
-      color: #4ade80;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      font-family: Consolas, 'Courier New', monospace;
-      font-size: 12.5px;
-      padding: 10px;
-      resize: vertical;
-      min-height: 90px;
-      line-height: 1.5;
-    }
-    #runBtn {
-      background: var(--teal); color: #fff; border: none;
-      padding: 9px 18px; border-radius: 6px; font-size: 13px;
-      font-weight: 700; cursor: pointer; margin-top: 6px;
-    }
-    #runBtn:hover { background: var(--teal-hover); }
-    #runBtn:disabled { background: #475569; cursor: wait; }
-    #resetBtn {
-      background: #334155; color: #e2e8f0; border: 1px solid #475569;
-      padding: 8px 14px; border-radius: 6px; font-size: 12px;
-      font-weight: 700; cursor: pointer; margin: 6px 0 0 6px;
-    }
-    #resetBtn:hover { background: #475569; }
-    .log { font-family: Consolas, monospace; font-size: 11.5px; color: #64748b; margin-top: 8px; }
-    .log .ok { color: #4ade80; }
-    .log .err { color: #f87171; }
+  /* ---- SQL結果テーブル・コンソール ---- */
+  .result-table-scroll {
+    overflow: auto;
+    max-height: 280px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    margin-top: 10px;
+    background: #0d1117;
+    padding: 4px;
+  }
+  #resultTable {
+    font-size: 14px;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  #resultTable th, #resultTable td {
+    border: 1px solid #30363d;
+    padding: 10px 14px;
+    white-space: nowrap;
+  }
+  #resultTable thead th {
+    background: #078084;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    letter-spacing: 0.3px;
+  }
+  #resultTable tbody tr { background: #161b22; color: #e6edf3; }
+  #resultTable tbody tr:nth-child(even) { background: #1c2230; }
+  #resultTable tbody tr:hover { background: #22304a; }
+  #resultTable tbody td { font-family: Consolas, 'Courier New', monospace; }
+  #resultTable tbody td:first-child { color: #5eead4; font-weight: 700; }
+  .result-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+  .result-count {
+    font-size: 12px;
+    color: #94a3b8;
+    font-family: Consolas, monospace;
+  }
+  #exportBtn {
+    background: #166534;
+    color: #fff;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: none;
+  }
+  #exportBtn:hover { background: #15803d; }
 
-     /* ===== 制作メモ ===== */
+  .sql-panel {
+    background: #0a0e14;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .sql-bar {
+    background: #161b22;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid #334155;
+  }
+  .tdot { width: 9px; height: 9px; border-radius: 50%; }
+  .tdot.r { background: #ef4444; } .tdot.y { background: #f59e0b; } .tdot.g { background: #22c55e; }
+  .sql-title { color: #8b949e; font-size: 11px; margin-left: 4px; font-family: Consolas, monospace; }
+  .sql-body { padding: 14px; }
+  textarea#sqlInput {
+    width: 100%;
+    background: #0d1117;
+    color: #4ade80;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 12.5px;
+    padding: 10px;
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.5;
+  }
+  #runBtn {
+    background: var(--teal); color: #fff; border: none;
+    padding: 9px 18px; border-radius: 6px; font-size: 13px;
+    font-weight: 700; cursor: pointer; margin-top: 6px;
+    box-shadow: 0 2px 4px rgba(7,128,132,0.3);
+  }
+  #runBtn:hover { background: var(--teal-hover); }
+  #runBtn:disabled { background: #475569; cursor: wait; }
+  #resetBtn {
+    background: #334155; color: #e2e8f0; border: 1px solid #475569;
+    padding: 8px 14px; border-radius: 6px; font-size: 12px;
+    font-weight: 700; cursor: pointer; margin: 6px 0 0 6px;
+  }
+  #resetBtn:hover { background: #475569; }
+  .log { font-family: Consolas, monospace; font-size: 11.5px; color: #64748b; margin-top: 8px; }
+  .log .ok { color: #4ade80; }
+  .log .err { color: #f87171; }
+
+   /* ===== 制作メモ ===== */
     .memo-toggle-wrap { margin-top: 14px; margin-bottom: 4px; }
 
     .memo-toggle-btn {
-      background: none; border: 1px solid var(--border-color);
-      border-radius: 6px; padding: 6px 14px;
-      font-size: 0.8rem; font-weight: 600; color: var(--text-sub);
+      background: #ffffff; border: 1px solid #cbd5e1;
+      border-radius: 6px; padding: 8px 16px;
+      font-size: 0.85rem; font-weight: 700; color: #55709b;
       cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 4px rgba(129, 103, 215, 0.05);
       transition: background 0.15s, color 0.15s;
     }
 
-    .memo-toggle-btn:hover { background: #f1f5f9; color: var(--teal); }
-    .memo-toggle-btn.open { background: #f0fdf4; color: var(--teal); border-color: var(--teal); }
+    .memo-toggle-btn:hover { background: #f8fafc; color: #078084; border-color: #078084; }
+    .memo-toggle-btn.open { background: #e6f4f5; color: #078084; border-color: #078084; }
     .memo-panel {
       margin-top: 10px;
-      background: #fafafa;
-      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
       padding: 18px 20px;
+      box-shadow: 0 4px 12px rgba(82, 66, 127, 0.08);
     }
 
     .memo-title {
-      font-size: 0.9rem; font-weight: 800; color: var(--text-heading);
-      margin-bottom: 12px; padding-bottom: 8px;
-      border-bottom: 2px solid var(--teal);
-    }
+    font-size: 0.95rem; font-weight: 800; color: #071a45;
+    margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 2px solid #078084;
+   }
 
     .memo-section-head {
-      font-size: 0.78rem; font-weight: 700; color: var(--teal);
-      margin-top: 14px; margin-bottom: 6px;
-      text-transform: uppercase; letter-spacing: 0.04em;
-    }
+    font-size: 0.8rem; font-weight: 700; color: #078084;
+    margin-top: 14px; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+   }
 
-    .memo-body { font-size: 0.82rem; color: var(--text-main); line-height: 1.7; margin-bottom: 4px; }
+    .memo-body { font-size: 0.85rem; color: #334155; line-height: 1.7; margin-bottom: 4px; }
 
     .memo-item {
       display: flex; gap: 10px; align-items: flex-start;
@@ -403,20 +430,19 @@
     }
 
     .memo-item-num {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--teal); color: #fff;
-      font-size: 0.72rem; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; margin-top: 2px;
-    }
-    .memo-item-title { font-size: 0.83rem; font-weight: 700; color: var(--text-heading); margin-bottom: 3px; }
-
-    @media (max-width: 900px) {
-      .wrap { grid-template-columns: 1fr; }
-    }
-    html.embed-mode header, html.embed-mode .section-title { display: none; }
-    html.embed-mode .container { max-width: none; margin: 0; padding: 0; }
-  </style>
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #078084; color: #fff;
+    font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+}
+    .memo-item-title { font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; }
+  }
+  html.embed-mode header, html.embed-mode .section-title { display: none; }
+  html.embed-mode .container { max-width: none; margin: 0; padding: 0; }
+</style>
 </head>
 <body class="work-detail-page">
 
@@ -519,14 +545,14 @@ WHERE variant_code IN ('PC13-SIL','PC13-WHT','PC15-BLK');</textarea>
         </div>
 
        <div class="section-label" style="font-weight: bold; color: #475569; margin-top: 20px;">【Result】</div>
-        <div class="metrics-row" style="display: flex; gap: 16px; margin-top: 8px;">
-          <div class="metric-box" style="flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; text-align: center;">
-            <div class="metric-label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">表示方法</div>
-            <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #15803d; line-height: 1.3;">個別タブ → 一括表示</div>
+        <div class="metrics-row" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 8px;">
+          <div class="metric-box" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; text-align: center;">
+            <div class="metric-label" style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-bottom: 4px;">表示方法</div>
+            <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #078084; line-height: 1.3;">個別タブ → 一括表示</div>
           </div>
-          <div class="metric-box" style="flex: 1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; text-align: center;">
-            <div class="metric-label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; margin-bottom: 4px;">出力形式</div>
-            <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #15803d; line-height: 1.3;">Excel</div>
+          <div class="metric-box" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; text-align: center;">
+            <div class="metric-label" style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-bottom: 4px;">出力形式</div>
+            <div class="metric-value" style="font-size: 1.1rem; font-weight: 800; color: #078084; line-height: 1.3;">Excel</div>
           </div>
         </div>
 
