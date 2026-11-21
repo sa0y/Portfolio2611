@@ -1,0 +1,68 @@
+:root {
+  --bg: #4a5568; --bg-strong: #333d4f; --panel: #ffffff;
+  --panel-strong: #ffffff; --ink: #0f172a; --muted: #64748b;
+  --line: rgba(17, 24, 39, 0.1); --shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+  --teal: #078084; --teal-hover: #066c6f; --border-color: #cbd5e1;
+  --text-heading: #0f172a; --text-sub: #475569; --text-main: #334155;
+  --success: #10b981; --accent: #078084; --badge-bg: #e2e8f0; --danger: #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: linear-gradient(180deg, var(--bg) 0%, var(--bg-strong) 100%); color: var(--ink); line-height: 1.6; }
+
+header { background: rgba(51, 61, 79, 0.9); border-bottom: 1px solid rgba(255,255,255,0.15); padding: 14px 24px; }
+.back-link { color: #e2e8f0; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: color 0.2s; }
+.back-link:hover { color: #ffffff; }
+.container { max-width: 1200px; margin: 0 auto; padding: 26px 24px; }
+.section-title { font-size: 1.8rem; font-weight: 800; margin: 6px 0 16px 0; color: #f9fafb; }
+.game-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; margin-top: 10px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.card-title { font-size: 1.05rem; font-weight: 700; color: var(--text-heading); margin-bottom: 12px; }
+
+.chapter-tabs { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.chapter-tab { padding: 9px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: 0.2s; color: var(--text-sub); text-align: left; display: flex; justify-content: space-between; align-items: center; }
+.chapter-tab:hover { border-color: var(--teal); color: var(--teal); }
+.chapter-tab.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+.sidebar-scroll { max-height: 45vh; overflow-y: auto; padding-right: 4px; border-top: 1px solid var(--line); padding-top: 12px; }
+.mission-menu { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.mission-item { padding: 10px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
+.mission-item:hover { border-color: var(--teal); color: var(--teal); }
+.mission-item.active { background: var(--text-heading); color: #fff; border-color: var(--text-heading); }
+.mission-item.cleared::after { content: " ✔"; color: var(--success); font-weight: bold; }
+
+.sql-textarea { width: 100%; background: #0f172a; color: #7ee787; border-radius: 10px; padding: 14px; font-family: monospace; font-size: 0.95rem; margin: 10px 0; resize: vertical; outline: none; }
+.run-btn { background: var(--teal); color: white; border: none; padding: 10px 20px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 700; transition: background 0.2s; }
+.run-btn:hover { background: var(--teal-hover); }
+
+.verify-btn { background: var(--success); color: white; border: none; padding: 10px 20px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 700; transition: background 0.2s; display: none; }
+.verify-btn:hover { background: #059669; }
+
+.table-wrapper { width: 100%; overflow: auto; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border-color); min-height: 250px; max-height: 320px; }
+.table-wrapper table { width: max-content; min-width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; background: white; }
+.table-wrapper th, .table-wrapper td { padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.table-wrapper th { background: #f8fafc; color: var(--text-heading); position: sticky; top: 0; z-index: 10; }
+
+#briefing-tabs-container { min-height: 40px; margin-bottom: 6px; }
+.game-layout > div:last-child { min-width: 0; overflow: hidden; }
+
+.dialogue-box { background: #ffffff; border-left: 4px solid var(--teal); padding: 16px; border-radius: 0 12px 12px 0; margin-bottom: 16px; box-shadow: var(--shadow); white-space: pre-line; }
+.status-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 20px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px; }
+
+.info-details { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; overflow: hidden; }
+.info-summary { font-size: 0.85rem; font-weight: 700; color: var(--teal); cursor: pointer; padding: 10px 14px; user-select: none; background: #f1f5f9; }
+.info-content { padding: 12px 14px; font-size: 0.85rem; color: var(--text-sub); border-top: 1px solid var(--line); background: #fff; line-height: 1.6; white-space: pre-line; }
+.badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: var(--badge-bg); color: var(--text-heading); margin-right: 4px; font-family: monospace; }
+
+.btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600; }
+.btn-danger:hover { background: var(--danger); color: white; }
+
+.memo-toggle-wrap { margin-top: 14px; margin-bottom: 4px; }
+.memo-toggle-btn { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 16px; font-size: 0.85rem; font-weight: 700; color: #55709b; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.15s, color 0.15s; }
+.memo-toggle-btn:hover { background: #f8fafc; color: #078084; border-color: #078084; }
+.memo-panel { margin-top: 10px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 18px 20px; box-shadow: 0 4px 12px rgba(82, 66, 127, 0.08); }
+.memo-title { font-size: 0.95rem; font-weight: 800; color: #071a45; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #078084; }
+.memo-section-head { font-size: 0.8rem; font-weight: 700; color: #078084; margin-top: 14px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+.memo-body { font-size: 0.85rem; color: #334155; line-height: 1.7; margin-bottom: 4px; }
+.hint-item { margin-bottom: 6px; }
+
+@media(max-width: 868px) { .game-layout { grid-template-columns: 1fr; } }
