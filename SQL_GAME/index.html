@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL PORT AUDIT GAME</title>
+    <!-- デザインの読み込み -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- sql.js (WebAssembly版SQLite) のCDN読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+</head>
+<body>
+    <header>
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <a href="/index.html#works" class="back-link">← Back to portfolio</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="status-bar">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--muted);">OPERATOR:</span>
+                <strong id="display-codename" style="color: var(--teal); font-size: 1.1rem; margin-left: 6px;">GUEST</strong>
+            </div>
+            <div style="font-size: 0.85rem; align-items: center;">
+                クリア数: <strong id="stat-cleared">0</strong> / <span id="stat-total">21</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="changeCodename()" style="background: transparent; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.78rem;">コードネーム変更</button>
+                <button onclick="openDatabaseLibrary()" class="library-btn">📚 データベース資料</button>
+                <button onclick="resetAllProgress()" class="btn-danger">🧹 進捗をリセット</button>
+            </div>
+        </div>
+
+        <h1 class="section-title">TECH GATE 2026 - SQL PORT AUDIT</h1>
+        <p style="color: #e2e8f0; margin-bottom: 15px;">2026年10月、TECH GATEで発生した不正事件。全21ミッションを通じて全容を解き明かそう。</p>
+
+        <div class="game-layout">
+            <div class="card">
+                <h3 class="card-title">捜査チャプター選択</h3>
+                <div class="chapter-tabs" id="chapter-tabs"></div>
+                <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;" id="current-chapter-title">問題一覧</h4>
+                <div class="sidebar-scroll">
+                    <ul class="mission-menu" id="mission-list"></ul>
+                </div>
+            </div>
+
+            <div>
+                <div class="dialogue-box">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: var(--teal); text-transform: uppercase; margin-bottom: 4px;">Lead Auditor Guidance</div>
+                    <p id="dialogue-text" style="font-size: 0.92rem; color: var(--text-main);">システム準備完了...</p>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title" id="mission-title">読み込み中...</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 8px;" id="mission-desc"></p>
+                    
+                    <textarea id="sql-input" class="sql-textarea" rows="3" placeholder="ここにSQLクエリを入力してください..." oninput="saveCurrentInput()"></textarea>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 8px;">
+                        <span style="font-size: 0.78rem; color: var(--success);" id="status-guide">✅ ブラウザ内SQLite準備完了</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="run-btn" id="run-action-btn" onclick="runQuery()">SQLを実行する 🚀</button>
+                            <button class="verify-btn" id="verify-action-btn" onclick="verifyMission()">この結果で正解を判定する ✅</button>
+                        </div>
+                    </div>
+
+                    <details class="info-details">
+                        <summary class="info-summary" id="glossary-summary">📖 データベース構造・カラム解説を見る</summary>
+                        <div class="info-content" id="glossary-content"></div>
+                    </details>
+
+                    <details class="info-details">
+                        <summary class="info-summary">💡 段階的ヒント（考え方・構造）を見る</summary>
+                        <div class="info-content" id="hint-area"></div>
+                        <button id="next-hint-btn" class="run-btn" style="margin: 10px 14px; font-size: 0.8rem; padding: 6px 12px; display: none;" onclick="showNextHint()">💡 次のヒントを見る</button>
+                    </details>
+
+                    <details class="info-details">
+                        <summary class="info-summary">📖 解説を見る</summary>
+                        <div class="info-content" id="mission-explanation">ここに解説が表示されます</div>
+                    </details>
+
+                    <details class="info-details">
+                        <summary class="info-summary">📖 解答を見る</summary>
+                        <div class="info-content" id="mission-expectedSql">ここに解答が表示されます</div>
+                    </details>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 class="card-title" style="margin-bottom: 0;" id="result-title-label">捜査結果（証拠ログ）</h3>
+                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--teal);" id="row-count">0 件ヒット</span>
+                    </div>
+                    <div id="briefing-tabs-container"></div>
+                    <div class="table-wrapper">
+                        <table id="result-table"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 制作メモ -->
+   <!-- 制作メモ -->
+<div class="container" style="padding-top: 0; padding-bottom: 40px;">
+    <div class="memo-toggle-wrap">
+        <button id="memoBtnSql" class="memo-toggle-btn" onclick="toggleMemo('sql-port-audit-memo')">📝 制作メモを見る</button>
+        <div id="sql-port-audit-memo" class="memo-panel" style="display:none;">
+
+            <div class="memo-title">AIと一緒に考え、初心者目線で作り上げたSQL学習ゲーム</div>
+
+            <div class="memo-section-head">背景・制作のきっかけ</div>
+            <p class="memo-body">
+                SQLを学習した後、知識を定着させるためにゲーム感覚で学べるサービスをいくつか試しました。しかし、教材の多くが英語中心だったり、初心者には難しいJOIN（テーブル結合）が早い段階で登場したりと、学習を続けるうえで難しさを感じる場面がありました。
+                <br>
+                「もっと初心者に優しく、日本語で安心して学べる教材があったらいいのに」そんな思いから、練習用SQL学習ゲームの制作を始めました。
+                <br>
+                ストーリーの題材には、自身が持つ貿易関連の資格知識や、港湾・空港の現場を描いたドラマなどから着想を得て、輸入取引や税関検査、不正な取引の追跡をテーマにした捜査型の学習コンテンツとして構想しました。
+            </p>
+
+            <div class="memo-section-head">工夫した点・苦労した点</div>
+            <p class="memo-body">
+                特に意識したのは、問題をただ並べるのではなく、学習者が少しずつ理解を積み重ねられる順番にすることです。
+                <br>
+                基本的なSELECTから始まり、WHEREによる絞り込み、ORDER BYによる並び替え、集計関数、GROUP BY、HAVING、そしてJOINへと、学習内容が段階的に広がる全21問の構成を考えました。
+                <br>
+                また、新しいSQL構文を一度に詰め込まないことも大切にしています。例えばCASE WHENについては、最初から複雑な条件判定をさせるのではなく、まず基本形を覚える問題を用意し、その次の問題で実際の比較条件を組み込む構成にしました。
+                <br>
+                ROUND、BETWEEN、LIKE、CASE WHENなどの学習順序についても、初心者が無理なく理解できるかを考えながら何度も見直しています。
+                <br>
+                さらに、新しいテーブルが登場した際に、学習者が「このテーブルには何が入っているの？」と迷わないよう、テーブルの構造やカラムの意味を確認できる資料表示・ポップアップ機能も検討しました。
+                <br>
+                各問題にはストーリーに沿った会話、段階的なヒント、SQLの解説を用意し、正解を覚えるだけでなく、自分で考えながら進められる教材を目指しています。
+            </p>
+
+            <div class="memo-section-head">AIの活用について</div>
+            <p class="memo-body">
+                制作では、生成AIをプログラミングの補助だけでなく、企画・設計・学習内容を一緒に考える相談相手として活用しました。
+                <br>
+                最初から完成形をAIに任せるのではなく、自分の中にあるアイデアや疑問を言葉にして伝え、提案された内容を確認しながら修正を重ねていく方法を取りました。
+                <br>
+                例えば、当初の問題構成についても、問題数を維持しながら新しい学習内容を追加できないか、どの問題を残すべきか、どの順番なら初心者が理解しやすいかをAIと何度も相談しました。
+                <br>
+                特にCASE WHENの教材設計では、「まだ習っていない条件分岐をいきなり出すのは難しい」という疑問を出発点に、まず基本形だけを学び、次の問題で条件を追加する二段階の構成に改善しました。
+                <br>
+                また、ROUNDを残すか、BETWEENやLIKEをどこに配置するかといった細かなカリキュラムの調整や、新しいテーブルが登場した際にポップアップで構造を確認できるようにするアイデアなども、AIとの対話を通じて検討しています。
+                <br>
+                このように、AIから出された提案をそのまま採用するのではなく、「初心者にとって本当に分かりやすいか」「学習の順番に無理はないか」という視点で何度も問い直しました。
+                <br>
+                今回の制作を通じて、AIは単にコードを生成する道具ではなく、自分の考えを整理し、改善点を発見し、アイデアを具体的な機能へと発展させるためのパートナーにもなると感じています。
+            </p>
+
+            <div class="memo-section-head">今後の課題・目標</div>
+            <p class="memo-body">
+                AIの力を借りることで、アイデアを形にするスピードは大きく向上しました。一方で、生成されたコードの仕組みを自分自身が十分に理解できているかという課題もあります。
+                <br>
+                今後は、AIが作成したコードを一つひとつ読み解き、HTML・CSS・JavaScriptの役割や処理の流れを理解していきたいと考えています。
+                <br>
+                目指しているのは、AIに頼るだけではなく、AIの提案を自分で判断し、必要な修正を加えながら、自力でも同等のアプリケーションを設計・開発できる力を身につけることです。
+                <br>
+                そして何より、自分自身がSQLを学ぶ中で感じた「難しい」「分かりにくい」という経験を忘れず、これから学習する人が少しでも楽しく、安心して取り組める教材へと育てていきたいと思います。
+            </p>
+
+        </div>
+    </div>
+</div>
+
+    <!-- JavaScriptの読み込み順序 -->
+    <script src="js/missions.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/game.js"></script>
+
+    <div id="database-library-modal" class="database-modal" role="dialog" aria-modal="true" aria-labelledby="database-library-title" style="display: none;">
+        <div class="database-modal-backdrop" onclick="closeDatabaseLibrary()"></div>
+        <div class="database-modal-panel">
+            <div class="database-modal-header">
+                <div>
+                    <div id="database-library-kicker" class="database-modal-kicker">捜査資料室</div>
+                    <h2 id="database-library-title">データベース資料</h2>
+                </div>
+                <button type="button" class="database-modal-close" onclick="closeDatabaseLibrary()" aria-label="閉じる">×</button>
+            </div>
+            <div id="database-library-new-data" class="database-modal-notice" style="display: none;">
+                新しい捜査資料が届きました
+            </div>
+            <div id="database-library-content" class="database-library-content"></div>
+        </div>
+    </div>
+
+    <div id="join-diagram-modal" class="database-modal" role="dialog" aria-modal="true" aria-labelledby="join-diagram-title" style="display: none;">
+        <div class="database-modal-backdrop" onclick="closeJoinDiagram()"></div>
+        <div class="database-modal-panel join-diagram-panel">
+            <div class="database-modal-header">
+                <div>
+                    <div class="database-modal-kicker">第5章：テーブル結合の図解</div>
+                    <h2 id="join-diagram-title">JOIN図解</h2>
+                </div>
+                <button type="button" class="database-modal-close" onclick="closeJoinDiagram()" aria-label="閉じる">×</button>
+            </div>
+            <div class="join-diagram-tabs" aria-label="JOIN図解の種類">
+                <button type="button" class="join-diagram-tab active" onclick="showJoinDiagram('JOIN.png', this)">JOIN全体像</button>
+                <button type="button" class="join-diagram-tab" onclick="showJoinDiagram('INNER JOIN.png', this)">INNER JOIN</button>
+                <button type="button" class="join-diagram-tab" onclick="showJoinDiagram('LEFT JOIN.png', this)">LEFT JOIN</button>
+            </div>
+            <div class="join-diagram-body">
+                <img id="join-diagram-image" src="JOIN.png" alt="JOIN全体像の図解">
+            </div>
+            <p class="join-diagram-note">※下の図は仕組みを理解しやすくするためのミニ例です。実際の捜査データでは、取引IDや検査記録の内容が異なります。</p>
+        </div>
+    </div>
+</body>
+</html>
