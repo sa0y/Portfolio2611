@@ -28,7 +28,7 @@ const missions = [
     // ==========================================
     {
         title: "01. 輸入記録の全体像を把握せよ",
-        desc: "external_storage_trade_records からすべてのデータを取得し、輸入された電子部品の記録を調べる。",
+        desc: "external_storage_trade_records テーブルからすべてのデータを取得し、輸入された電子部品の記録を調べる。",
         orderSensitive: false,
         explanation: "【解説】テーブルのすべての行と列を呼び出す、最も基本的な SELECT 文の書き方です。",
         expectedSql: "SELECT * FROM external_storage_trade_records;",
@@ -108,7 +108,7 @@ const missions = [
     // ==========================================
     {
         title: "05. 数量が一致しない貨物を探せ",
-        desc: "customs_inspection_records から、申告数量（declared_quantity）と実際の検査数量（inspected_quantity）が食い違っている記録をすべて抽出せよ。",
+        desc: "customs_inspection_records テーブルから、申告数量（declared_quantity）と実際の検査数量（inspected_quantity）が食い違っている記録をすべて抽出せよ。",
         orderSensitive: false,
         explanation: "【解説】!= 演算子（または <>）を使うことで、「等しくない」条件のデータを抽出できます。",
         expectedSql: "SELECT * FROM customs_inspection_records WHERE declared_quantity != inspected_quantity;",
@@ -128,7 +128,7 @@ const missions = [
     },
     {
         title: "06. 抜き取り・数量不足の傾向を掴め",
-        desc: "検査数量が申告数量を下回っている（不足している）貨物だけを customs_inspection_records から抽出せよ。",
+        desc: "検査数量が申告数量を下回っている（不足している）貨物だけを customs_inspection_records テーブルから抽出せよ。",
         orderSensitive: false,
         explanation: "【解説】< 演算子を使うことで、より小さい値のデータを絞り込むことができます。",
         expectedSql: "SELECT * FROM customs_inspection_records WHERE inspected_quantity < declared_quantity;",
@@ -165,7 +165,7 @@ const missions = [
     },
     {
     title: "08. コンテナ単位の巨大な隠蔽工作を暴け",
-    desc: "customs_inspection_records から、申告数量から実際の検査数量を引いた不足数が200個以上ある、組織的犯行の疑いが強い重大な貨物をすべて抽出せよ。",
+    desc: "customs_inspection_records テーブルから、申告数量から実際の検査数量を引いた不足数が200個以上ある、組織的犯行の疑いが強い重大な貨物をすべて抽出せよ。",
     orderSensitive: false,
     explanation: "【解説】AND 演算子を使うことで、複数の条件（不足していること、かつ不足数が200以上であること）を同時に満たすデータを絞り込めます。",
     expectedSql: "SELECT * FROM customs_inspection_records WHERE inspected_quantity < declared_quantity AND declared_quantity - inspected_quantity >= 200;",
@@ -186,7 +186,7 @@ const missions = [
     // ==========================================
     {
     title: "09. 港湾エリアの種類を特定せよ",
-    desc: "port_trade_records から、すべての取引における港湾地域（region）を重複なしで取得せよ。",
+    desc: "port_trade_records テーブルから、すべての取引における港湾地域（region）を重複なしで取得せよ。",
     orderSensitive: false,
     explanation: "【解説】DISTINCT を使うことで、結果の重複行を取り除き、ユニークな値のリストを取得できます。",
     expectedSql: "SELECT DISTINCT region FROM port_trade_records;",
@@ -203,7 +203,7 @@ const missions = [
 },
 {
     title: "10. 地域ごとの取扱件数を集計せよ",
-    desc: "port_trade_records から地域（region）ごとにグループ化し、地域名と各地域の取引件数（trade_count）を集計せよ。",
+    desc: "port_trade_records テーブルから地域（region）ごとにグループ化し、地域名と各地域の取引件数（trade_count）を集計せよ。",
     orderSensitive: false,
     explanation: "【解説】GROUP BY 句で同じ地域のデータをグループにまとめ、COUNT(*) で各グループの行数を集計できます。また、07で学んだ AS を使って、集計結果に trade_count という名前を付けます。",
     expectedSql: "SELECT region, COUNT(*) AS trade_count FROM port_trade_records GROUP BY region;",
@@ -224,7 +224,7 @@ const missions = [
 },
     {
     title: "11. 地域ごとの申告額を集計せよ",
-    desc: "port_trade_records から地域（region）ごとにグループ化し、地域名と各地域の申告額の合計（total_value）を計算せよ。",
+    desc: "port_trade_records テーブルから地域（region）ごとにグループ化し、地域名と各地域の申告額の合計（total_value）を計算せよ。",
     orderSensitive: false,
     explanation: "【解説】10では COUNT(*) を使って地域ごとの取引件数を集計しました。今回は SUM(declared_value) に置き換えることで、地域ごとの申告額の合計を算出できます。また、07で学んだ AS を使って、集計結果に total_value という名前を付けます。GROUP BY region は10と同じです。",
     expectedSql: "SELECT region, SUM(declared_value) AS total_value FROM port_trade_records GROUP BY region;",
@@ -246,7 +246,7 @@ const missions = [
 },
     {
     title: "12. 密輸のハブ拠点を発見せよ",
-    desc: "port_trade_records から地域（region）ごとに取引件数を集計し、300件以上の地域だけを抽出して、取引件数が多い順に並べよ。",
+    desc: "port_trade_records テーブルから地域（region）ごとに取引件数を集計し、300件以上の地域だけを抽出して、取引件数が多い順に並べよ。",
     orderSensitive: true,
     explanation: "【解説】10では GROUP BY と COUNT(*) を使って地域ごとの取引件数を集計しました。今回はその集計結果に対して HAVING 句で300件以上という条件を指定します。さらに ORDER BY と DESC を組み合わせることで、取引件数が多い順に並べられます。",
     expectedSql: "SELECT region, COUNT(*) AS trade_count FROM port_trade_records GROUP BY region HAVING COUNT(*) >= 300 ORDER BY trade_count DESC;",
@@ -273,7 +273,7 @@ const missions = [
     // ==========================================
     {
         title: "13. 実容量の割合を算出せよ",
-        desc: "usb_inspection_records から商品名と、実容量の割合（actual_capacity * 100.0 / advertised_capacity）を計算した capacity_rate（小数第1位まで四捨五入）を表示せよ。",
+        desc: "usb_inspection_records テーブルから商品名と、実容量の割合（actual_capacity * 100.0 / advertised_capacity）を計算した capacity_rate（小数第1位まで四捨五入）を表示せよ。",
         orderSensitive: false,
         explanation: "【解説】ROUND(値, 桁数) 関数を使うことで、数値を指定した小数第何位までに丸めることができます。",
         expectedSql: "SELECT product_name, ROUND(actual_capacity * 100.0 / advertised_capacity, 1) AS capacity_rate FROM usb_inspection_records;",
@@ -296,7 +296,7 @@ const missions = [
     },
     {
         title: "14. 大容量モデルの不正を追跡せよ",
-        desc: "usb_inspection_records から、表示容量（advertised_capacity）が 128 から 512 までの商品をすべて抽出せよ。",
+        desc: "usb_inspection_records テーブルから、表示容量（advertised_capacity）が 128 から 512 までの商品をすべて抽出せよ。",
         orderSensitive: false,
         explanation: "【解説】BETWEEN 最小値 AND 最大値 を使うことで、指定した数値範囲内のデータを効率よく抽出できます。",
         expectedSql: "SELECT * FROM usb_inspection_records WHERE advertised_capacity BETWEEN 128 AND 512;",
@@ -313,7 +313,7 @@ const missions = [
     },
     {
         title: "15. USB関連の検査記録を網羅せよ",
-        desc: "usb_inspection_records から、商品名（product_name）に「USB」という文字が含まれている検査記録をすべて抽出せよ。",
+        desc: "usb_inspection_records テーブルから、商品名（product_name）に「USB」という文字が含まれている検査記録をすべて抽出せよ。",
         orderSensitive: false,
         explanation: "【解説】LIKE 演算子とワイルドカード `%` を組み合わせることで、部分一致する文字列を検索できます。",
         expectedSql: "SELECT * FROM usb_inspection_records WHERE product_name LIKE '%USB%';",
@@ -330,7 +330,7 @@ const missions = [
     },
     {
         title: "16. 判定結果を表示せよ",
-        desc: "usb_inspection_records から商品名（product_name）を取得し、CASE WHEN を使って、すべての商品に「調査対象」という文字を表示する status という列を追加せよ。",
+        desc: "usb_inspection_records テーブルから商品名（product_name）を取得し、CASE WHEN を使って、すべての商品に「調査対象」という文字を表示する status という列を追加せよ。",
         orderSensitive: false,
         explanation: "【解説】CASE WHEN は、条件に応じて表示する内容を切り替える構文です。今回は 1 = 1 が必ず成立するため、THEN 側の「調査対象」が表示されます。基本形では ELSE と END まで書きます。",
         expectedSql: "SELECT product_name, CASE WHEN 1 = 1 THEN '調査対象' ELSE '対象外' END AS status FROM usb_inspection_records;",
@@ -353,7 +353,7 @@ const missions = [
     },
     {
         title: "17. 悪質な容量詐称を判定せよ",
-        desc: "usb_inspection_records から商品名、表示容量、実容量を取得し、実容量の2倍が表示容量以下なら「重大な偽装」、それ以外なら「要確認」とする investigation_status を表示せよ。",
+        desc: "usb_inspection_records テーブルから商品名、表示容量、実容量を取得し、実容量の2倍が表示容量以下なら「重大な偽装」、それ以外なら「要確認」とする investigation_status を表示せよ。",
         orderSensitive: false,
         explanation: "【解説】16番で覚えた CASE WHEN の基本形に、実際の比較条件を入れます。",
         expectedSql: "SELECT product_name, advertised_capacity, actual_capacity, CASE WHEN actual_capacity * 2 <= advertised_capacity THEN '重大な偽装' ELSE '要確認' END AS investigation_status FROM usb_inspection_records;",
@@ -380,7 +380,7 @@ const missions = [
 // ==========================================
 {
     title: "18. 取引記録と税関検査記録をつなげろ",
-    desc: "external_storage_trade_records をメインにして customs_inspection_records を trade_id で結合し、取引ID（trade_id）を表示せよ。",
+    desc: "external_storage_trade_records テーブルをメインにして customs_inspection_records テーブルを trade_id で結合し、取引ID（trade_id）を表示せよ。",
     orderSensitive: false,
     explanation: `【解説】いよいよ、複数のテーブルをつなげる JOIN を学びます。
 
@@ -455,7 +455,7 @@ ON external_storage_trade_records.trade_id
 },
 {
     title: "19. 申告数量と検査数量の矛盾を暴け",
-    desc: "external_storage_trade_records をメインにして customs_inspection_records を trade_id で結合し、取引ID、申告数量（quantity）、検査数量（inspected_quantity）を表示せよ。",
+    desc: "external_storage_trade_records テーブルをメインにして customs_inspection_records テーブルを trade_id で結合し、取引ID、申告数量（quantity）、検査数量（inspected_quantity）を表示せよ。",
     orderSensitive: false,
     explanation: `【解説】18番では、2つのテーブルを INNER JOIN で結びつけました。
 
@@ -529,7 +529,7 @@ ON：結びつける目印
 },
 {
     title: "20. 検査記録が存在しない隠し貨物を暴け",
-    desc: "external_storage_trade_records をメインにして customs_inspection_records を LEFT JOIN し、税関検査記録が存在しない取引のIDとモデル番号を抽出せよ。",
+    desc: "external_storage_trade_records テーブルをメインにして customs_inspection_records テーブルを LEFT JOIN し、税関検査記録が存在しない取引のIDとモデル番号を抽出せよ。",
     orderSensitive: false,
     explanation: `【解説】18番・19番では INNER JOIN を使いました。
 
@@ -615,7 +615,7 @@ WHERE customs_inspection_records.trade_id IS NULL
 // ==========================================
 {
     title: "21. 事件の全容解明と総合捜査報告",
-    desc: "companies をメインにして external_storage_trade_records と customs_inspection_records を結合し、会社名、取引ID、申告数量、検査数量を一覧表示せよ。税関検査記録がない輸入取引も残すこと。",
+    desc: "companies テーブルをメインにして external_storage_trade_records テーブルと customs_inspection_records テーブルを結合し、会社名、取引ID、申告数量、検査数量を一覧表示せよ。税関検査記録がない輸入取引も残すこと。",
     orderSensitive: false,
     explanation: `【解説】いよいよ最後の総合問題です。
 
