@@ -8,7 +8,7 @@ let briefingTabsViewed = new Set();
 
 const databaseLibraryTables = [
     {
-        name: 'companies',
+        name: 'Company_Information_Records',
         label: '会社情報',
         columns: [
             ['company_id', '会社ID'],
@@ -17,7 +17,7 @@ const databaseLibraryTables = [
         ]
     },
     {
-        name: 'external_storage_trade_records',
+        name: 'Import_Records',
         label: '輸入・取引記録',
         columns: [
             ['trade_id', '取引ID'],
@@ -30,7 +30,7 @@ const databaseLibraryTables = [
         ]
     },
     {
-        name: 'customs_inspection_records',
+        name: 'Customs_Inspection_Records',
         label: '税関検査記録',
         columns: [
             ['inspection_id', '税関検査ID'],
@@ -41,7 +41,7 @@ const databaseLibraryTables = [
         ]
     },
     {
-        name: 'port_trade_records',
+        name: 'Port_Trade_Records',
         label: '港湾地域別取引記録',
         columns: [
             ['port_id', '港湾取引ID'],
@@ -51,7 +51,7 @@ const databaseLibraryTables = [
         ]
     },
     {
-        name: 'usb_inspection_records',
+        name: 'Usb_inspection_Records',
         label: 'USB容量検査記録',
         columns: [
             ['usb_id', 'USB検査ID'],
@@ -63,11 +63,22 @@ const databaseLibraryTables = [
     }
 ];
 
+function formatHintText(hint) {
+    if (typeof hint === 'string') return hint;
+    if (!hint) return '';
+    const prefix = hint.level && hint.type
+        ? `【ヒント${hint.level}：${hint.type}】`
+        : hint.level
+            ? `【ヒント${hint.level}】`
+            : '';
+    return `${prefix}${hint.text || ''}`;
+}
+
 async function initGame() {
     try {
         document.getElementById('display-codename').textContent = codename;
-        const actualTotal = missions.filter(m => !m.isBriefing).length;
-        const actualCleared = clearedMissions.filter(idx => missions[idx] && !missions[idx].isBriefing).length;
+        const actualTotal = missions.filter(m => !m.isBriefing && !m.isPractice).length;
+        const actualCleared = clearedMissions.filter(idx => missions[idx] && !missions[idx].isBriefing && !missions[idx].isPractice).length;
 
         document.getElementById('stat-cleared').textContent = actualCleared;
         document.getElementById('stat-total').textContent = actualTotal;
@@ -103,14 +114,23 @@ function renderSidebar() {
 
     tabs.innerHTML = '';
     chapterOrder.forEach(chapter => {
-        const count = missions.filter(m => m.group === chapter).length;
+        const count = missions.filter(m => {
+            if (m.group !== chapter) return false;
+            if (m.isPractice || m.isAdvance || m.isBriefing) return false;
+            if (typeof m.id === 'number' && !Number.isInteger(m.id)) return false; // 18.5 などのアドバンス/プロローグ系
+            if (String(m.group).includes('アドバンス') || String(m.title).includes('アドバンス')) return false;
+            return true;
+        }).length;
+
         const btn = document.createElement('button');
         btn.className = 'chapter-tab' + (currentChapter === chapter ? ' active' : '');
-        btn.innerHTML = `<span>${chapter}</span><span>${count}問</span>`;
-        btn.onclick = () => { 
-            currentChapter = chapter; 
+        btn.innerHTML = count > 0
+            ? `<span>${chapter}</span><span>${count}問</span>`
+            : `<span>${chapter}</span>`;
+        btn.onclick = () => {
+            currentChapter = chapter;
             const firstIdx = missions.findIndex(m => m.group === chapter);
-            if (firstIdx !== -1) selectMission(firstIdx); 
+            if (firstIdx !== -1) selectMission(firstIdx);
         };
         tabs.appendChild(btn);
     });
@@ -173,7 +193,6 @@ function loadBriefingTable(tableName, btnElement) {
         values.forEach(row => {
             html += '<tr>';
             row.forEach(val => {
-                // 金額などの数値であればカンマ区切りにする（文字やNULLはそのまま）
                 let displayVal = val;
                 if (typeof val === 'number') {
                     displayVal = val.toLocaleString();
@@ -194,9 +213,8 @@ function loadBriefingTable(tableName, btnElement) {
     }
 }
 
-// 捜査資料の確認状況（ステータス表示）を更新する関数（テーブル名を修正済み）
 function updateBriefingStatus() {
-    const requiredTables = ['companies', 'external_storage_trade_records'];
+    const requiredTables = ['Company_Information_Records', 'Import_Records'];
     const allViewed = requiredTables.every(t => briefingTabsViewed.has(t));
     const statusGuide = document.getElementById('status-guide');
 
@@ -223,7 +241,7 @@ function openDatabaseLibrary(selectedTableName = '', isNewTablePopup = false) {
         : databaseLibraryTables;
 
     kicker.textContent = isNewTablePopup ? '新規テーブル' : '捜査資料室';
-    title.textContent = isNewTablePopup ? 'usb_inspection_records' : 'データベース資料';
+    title.textContent = isNewTablePopup ? 'Usb_inspection_Records' : 'データベース資料';
     newDataNotice.style.display = isNewTablePopup ? 'block' : 'none';
 
     content.innerHTML = tables.map(table => `
@@ -271,12 +289,15 @@ function closeDatabaseLibrary() {
     document.body.style.overflow = '';
 }
 
-function openJoinDiagram() {
+function openJoinDiagram(fileName = 'JOIN.png') {
+    if (typeof fileName !== 'string') fileName = 'JOIN.png';
     const modal = document.getElementById('join-diagram-modal');
     if (!modal) return;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    showJoinDiagram('JOIN.png', modal.querySelector('.join-diagram-tab'));
+    const tabs = modal.querySelectorAll('.join-diagram-tab');
+    const button = Array.from(tabs).find(tab => tab.dataset.diagram === fileName);
+    showJoinDiagram(fileName, button);
 }
 
 function closeJoinDiagram() {
@@ -293,6 +314,16 @@ function showJoinDiagram(fileName, button) {
     image.src = fileName;
     image.alt = `${fileName.replace('.png', '')}の図解`;
 
+    const isComparison = fileName === '比較.png';
+    document.querySelector('.join-diagram-panel .database-modal-kicker').textContent =
+        isComparison ? '比較条件の図解' : '第5章：テーブル結合の図解';
+    document.getElementById('join-diagram-title').textContent =
+        isComparison ? '比較図解' : 'JOIN図解';
+    document.querySelector('.join-diagram-note').textContent =
+        isComparison
+            ? '※両方の表に一致する取引だけを残す INNER JOIN と、基準側のデータを残す LEFT JOIN の違いを比較します。'
+            : '※下の図は仕組みを理解しやすくするためのミニ例です。実際の捜査データでは、取引IDや検査記録の内容が異なります。';
+
     document.querySelectorAll('.join-diagram-tab').forEach(tab => {
         tab.classList.remove('active');
     });
@@ -303,9 +334,9 @@ function selectMission(idx) {
     currentMissionIndex = idx;
     const m = missions[idx];
     if (!m) return;
-    
+
     briefingTabsViewed.clear();
-    
+
     currentChapter = m.group;
     localStorage.setItem('sql_game_last_mission', idx);
 
@@ -315,7 +346,7 @@ function selectMission(idx) {
     const missionExplanation = document.getElementById('mission-explanation');
     missionExplanation.textContent = m.explanation;
     document.getElementById('mission-expectedSql').textContent = m.expectedSql;
-    document.getElementById('glossary-content').innerHTML = m.glossary ? m.glossary.html : "• <span class='badge'>companies</span> / <span class='badge'>external_storage_trade_records</span>";
+    document.getElementById('glossary-content').innerHTML = m.glossary ? m.glossary.html : "• <span class='badge'>Company_Information_Records</span> / <span class='badge'>Import_Records</span>";
 
     const hintArea = document.getElementById('hint-area');
     const hintBtn = document.getElementById('next-hint-btn');
@@ -324,7 +355,7 @@ function selectMission(idx) {
     if (m.hints && m.hints.length > 0) {
         const div = document.createElement('div');
         div.className = 'hint-item';
-        div.textContent = m.hints[0];
+        div.textContent = formatHintText(m.hints[0]);
         hintArea.appendChild(div);
         currentHintIndex = 1;
 
@@ -354,6 +385,21 @@ function selectMission(idx) {
         hintArea.appendChild(joinHintButton);
     }
 
+    if (m.isPractice && m.title.includes('trade_id')) {
+        missionExplanation.innerHTML =
+            `<span style="white-space: pre-line;">${escapeHTML(m.explanation)}</span>` +
+            `<div style="margin-top: 12px;"><button type="button" class="join-inline-btn" onclick="openJoinDiagram()">🔗 JOIN図解を見る</button></div>`;
+
+        const practiceHintButton = document.createElement('button');
+        practiceHintButton.type = 'button';
+        practiceHintButton.className = 'join-inline-btn';
+        practiceHintButton.style.marginTop = '10px';
+        practiceHintButton.textContent = '🔗 JOIN図解を見る';
+        practiceHintButton.onclick = openJoinDiagram;
+        hintArea.appendChild(practiceHintButton);
+    }
+
+
     document.querySelectorAll('details.info-details').forEach(details => { details.open = false; });
 
     const sqlInput = document.getElementById('sql-input');
@@ -369,19 +415,19 @@ function selectMission(idx) {
         verifyBtn.textContent = '資料の確認を完了する ✅';
         statusGuide.textContent = '📖 捜査資料（会社・輸入・税関情報など）を確認しましょう';
         sqlInput.value = '';
-        
+
         if (tabsContainer) {
             let tabsHtml = `
                 <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
-                    <button class="tab-btn active" onclick="loadBriefingTable('companies', this)">会社情報 (companies)</button>
-                    <button class="tab-btn" onclick="loadBriefingTable('external_storage_trade_records', this)">輸入記録 (external_storage_trade_records)</button>
-                    <button class="tab-btn" onclick="loadBriefingTable('customs_inspection_records', this)">税関検査 (customs_inspection_records)</button>
-                    <button class="tab-btn" onclick="loadBriefingTable('port_trade_records', this)">港湾取引 (port_trade_records)</button>
+                    <button class="tab-btn active" onclick="loadBriefingTable('Company_Information_Records', this)">会社情報 (Company_Information_Records)</button>
+                    <button class="tab-btn" onclick="loadBriefingTable('Import_Records', this)">輸入記録 (Import_Records)</button>
+                    <button class="tab-btn" onclick="loadBriefingTable('Customs_Inspection_Records', this)">税関検査 (Customs_Inspection_Records)</button>
+                    <button class="tab-btn" onclick="loadBriefingTable('Port_Trade_Records', this)">港湾取引 (Port_Trade_Records)</button>
             `;
             tabsHtml += `</div>`;
             tabsContainer.innerHTML = tabsHtml;
 
-            loadBriefingTable('companies', tabsContainer.querySelector('.tab-btn'));
+            loadBriefingTable('Company_Information_Records', tabsContainer.querySelector('.tab-btn'));
         }
     } else {
         sqlInput.style.display = 'block';
@@ -405,36 +451,41 @@ function selectMission(idx) {
 
     if (m.title.startsWith('13.') && localStorage.getItem('sql_game_usb_library_seen') !== '1') {
         localStorage.setItem('sql_game_usb_library_seen', '1');
-        setTimeout(() => openDatabaseLibrary('usb_inspection_records', true), 150);
+        setTimeout(() => openDatabaseLibrary('Usb_inspection_Records', true), 150);
     }
 }
 
 function showNextHint() {
     const m = missions[currentMissionIndex];
     if (!m || !m.hints) return;
-    
+
     const hintBtn = document.getElementById('next-hint-btn');
     if (currentHintIndex < m.hints.length) {
         const hintArea = document.getElementById('hint-area');
         const div = document.createElement('div');
         div.className = 'hint-item';
-        div.textContent = m.hints[currentHintIndex];
+        div.textContent = formatHintText(m.hints[currentHintIndex]);
         hintArea.appendChild(div);
         currentHintIndex++;
-        
+
         if (currentHintIndex >= m.hints.length && hintBtn) {
             hintBtn.style.display = 'none';
         }
     }
 }
 
-// SELECT文のみ安全に許可し、カラムと値も返すクエリ実行関数
+function normalizeSqlSemicolon(query) {
+    return String(query || '').trim().replace(/;+\s*$/, '').trim();
+}
+
 function executeUserQuery(query) {
     if (!db) {
         return { success: false, error: 'データベースが初期化されていません。' };
     }
-    
-    if (!/^SELECT\b/i.test(query.trim())) {
+
+    const normalizedQuery = normalizeSqlSemicolon(query);
+
+    if (!/^SELECT\b/i.test(normalizedQuery)) {
         return {
             success: false,
             error: 'このゲームでは SELECT 文のみ実行できます。'
@@ -442,7 +493,7 @@ function executeUserQuery(query) {
     }
 
     try {
-        const results = db.exec(query);
+        const results = db.exec(normalizedQuery);
         if (results.length === 0) {
             return {
                 success: true,
@@ -455,7 +506,7 @@ function executeUserQuery(query) {
 
         const columns = results[0].columns;
         const values = results[0].values;
-        
+
         const rows = values.map(row => {
             let obj = {};
             columns.forEach((col, idx) => {
@@ -506,7 +557,6 @@ function runQuery() {
     data.values.forEach(row => {
         html += '<tr>';
         row.forEach(val => {
-            // SQLの実行結果表示時も金額などの数値にカンマを付与
             let displayVal = val;
             if (typeof val === 'number') {
                 displayVal = val.toLocaleString();
@@ -524,10 +574,9 @@ function runQuery() {
     localStorage.setItem(`sql_game_count_${currentMissionIndex}`, rowCountLabel.textContent);
 }
 
-// 実行結果を比較する関数
 function compareMissionResults(userResult, expectedResult, orderSensitive) {
     if (!expectedResult || !userResult.success) return false;
-    
+
     if (JSON.stringify(userResult.columns) !== JSON.stringify(expectedResult.columns)) {
         return false;
     }
@@ -545,12 +594,11 @@ function compareMissionResults(userResult, expectedResult, orderSensitive) {
     return JSON.stringify(userRows) === JSON.stringify(expectedRows);
 }
 
-// 必須構文チェック ＋ 結果比較を行う新しい判定関数
 function verifyMission() {
     const m = missions[currentMissionIndex];
 
     if (m.isBriefing) {
-        const requiredTables = ['companies', 'external_storage_trade_records'];
+        const requiredTables = ['Company_Information_Records', 'Import_Records'];
         const allViewed = requiredTables.every(t => briefingTabsViewed.has(t));
 
         if (!allViewed) {
@@ -562,11 +610,11 @@ function verifyMission() {
         return;
     }
 
-    const sqlInput = document.getElementById('sql-input').value.trim();
+    const sqlInput = normalizeSqlSemicolon(document.getElementById('sql-input').value);
     if (!sqlInput) { alert('先にSQLを実行してください'); return; }
 
-    // ① 必須構文をチェック
-    const missionNumber = currentMissionIndex;
+    // ① 必須構文をチェック（m.id があれば優先し、なければ currentMissionIndex を使用）
+    const missionNumber = typeof m.id === 'number' ? m.id : currentMissionIndex;
     const featureCheck = checkRequiredFeatures(sqlInput, missionNumber);
     if (!featureCheck.success) {
         alert(
@@ -616,20 +664,32 @@ function verifyMission() {
 }
 
 function completeMission() {
-    if (!clearedMissions.includes(currentMissionIndex)) {
+    const m = missions[currentMissionIndex];
+
+    if (!m.isPractice && !clearedMissions.includes(currentMissionIndex)) {
         clearedMissions.push(currentMissionIndex);
         localStorage.setItem('sql_game_cleared', JSON.stringify(clearedMissions));
-        
-        const actualCleared = clearedMissions.filter(idx => missions[idx] && !missions[idx].isBriefing).length;
+
+        const actualCleared = clearedMissions.filter(idx => missions[idx] && !missions[idx].isBriefing && !missions[idx].isPractice).length;
         document.getElementById('stat-cleared').textContent = actualCleared;
     }
-    
-    if (missions[currentMissionIndex].isBriefing) {
+
+    if (m.isPractice) {
+        alert('練習問題クリア！この練習はクリア数に含めません。次の問題へ進みます。');
+    } else if (m.isBriefing) {
         alert('資料の確認が完了しました！最初のミッションへ進みます。');
     } else {
-        alert('正解です！次のミッションへ進みます。');
+        const m = missions[currentMissionIndex];
+        if (m && m.clearFeedback) {
+            const learnedText = Array.isArray(m.clearFeedback.learned)
+                ? '\n\n【今回覚えたこと】\n・' + m.clearFeedback.learned.join('\n・')
+                : '';
+            alert(`${m.clearFeedback.dialogue || '正解です！'}${learnedText}`);
+        } else {
+            alert('正解です！次のミッションへ進みます。');
+        }
     }
-    
+
     if (currentMissionIndex + 1 < missions.length) {
         selectMission(currentMissionIndex + 1);
     } else {
@@ -680,7 +740,6 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
-// ① 必須構文のパターン定義
 const requiredSqlPatterns = {
     SELECT: /\bSELECT\b/i,
     FROM: /\bFROM\b/i,
@@ -717,11 +776,10 @@ const requiredSqlPatterns = {
     IS_NULL: /\bIS\s+NULL\b/i
 };
 
-// ② ミッション番号ごとの必須構文リスト（ミッション01〜21）
 const missionFeatures = {
     1: ["SELECT", "FROM"],
     2: ["WHERE", "EQUALS"],
-    3: ["WHERE", "ORDER_BY", "ASC"],
+    3: ["WHERE", "ORDER_BY"],
     4: ["WHERE", "AND", "ORDER_BY", "DESC", "LIMIT"],
     5: ["WHERE", "NOT_EQUAL"],
     6: ["WHERE", "LESS_THAN"],
@@ -731,18 +789,22 @@ const missionFeatures = {
     10: ["COUNT", "GROUP_BY"],
     11: ["SUM", "GROUP_BY"],
     12: ["COUNT", "GROUP_BY", "HAVING", "DESC"],
-    13: ["ROUND", "MULTIPLY", "DIVIDE"],
+    13: ["LIKE"],
     14: ["BETWEEN"],
-    15: ["LIKE"],
-    16: ["CASE", "WHEN", "THEN", "ELSE", "END", "AS"],
+    15: ["ROUND", "MULTIPLY", "DIVIDE"],
+    16: ["WHERE", "AND", "OR"],
+    16.5: ["CASE", "WHEN", "THEN", "ELSE", "END", "AS"],
     17: ["CASE", "WHEN", "THEN", "ELSE", "END", "AS"],
-    18: ["INNER_JOIN", "ON"],
-    19: ["INNER_JOIN", "ON", "WHERE"],
-    20: ["LEFT_JOIN", "ON", "IS_NULL"],
-    21: ["INNER_JOIN", "LEFT_JOIN", "ON"]
-};
+    18: ["CASE", "WHEN", "THEN", "ELSE", "END", "WHERE"],    
+    18.5: ["INNER_JOIN", "ON"],
+    19: ["INNER_JOIN", "ON"],
+    20: ["INNER_JOIN", "ON", "CASE", "WHEN", "THEN", "ELSE", "END"],
+    21: ["INNER_JOIN", "ON", "CASE", "WHEN", "THEN", "ELSE", "END"],
+    22: ["LEFT_JOIN", "ON"],
+    23: ["LEFT_JOIN", "ON", "IS_NULL"],
+    24: ["INNER_JOIN", "LEFT_JOIN", "ON", "IS_NULL"],
+    };
 
-// ③ 構文チェック関数
 function checkRequiredFeatures(sql, missionNumber) {
     const required = missionFeatures[missionNumber] || [];
     const missing = required.filter(feature => {
