@@ -23,7 +23,7 @@
                 <strong id="display-codename" style="color: var(--teal); font-size: 1.1rem; margin-left: 6px;">GUEST</strong>
             </div>
             <div style="font-size: 0.85rem; align-items: center;">
-                クリア数: <strong id="stat-cleared">0</strong> / <span id="stat-total">21</span>
+                クリア数: <strong id="stat-cleared">0</strong> / <span id="stat-total">25</span>
             </div>
             <div style="display: flex; gap: 8px;">
                 <button onclick="changeCodename()" style="background: transparent; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.78rem;">コードネーム変更</button>
@@ -36,7 +36,7 @@
         <section class="game-intro" aria-labelledby="game-overview-title">
             <h2 id="game-overview-title">ゲーム概要</h2>
             <p>2026年10月、TECH GATEで発生した不正事件。あなたは監査チームの一員となり、SQLを使ってデータベースに隠された証拠を探し出します。</p>
-            <p>全21ミッションをクリアしながら、不正取引の全容を解き明かそう！</p>
+            <p>全MISSIONをクリアしながら、不正取引を解き明かそう！</p>
             <p><strong>SQL初心者でも大丈夫！</strong> SELECTやWHEREなどの基本操作からスタートし、少しずつステップアップできる構成です。ヒントや解説、データベース資料を活用しながら、自分のペースで捜査を進められます。</p>
         </section>
 
@@ -53,6 +53,10 @@
             <div>
                 <div class="dialogue-box">
                     <div style="font-size: 0.75rem; font-weight: 700; color: var(--teal); text-transform: uppercase; margin-bottom: 4px;">Lead Auditor Guidance</div>
+                    <div id="mission-prologue" class="mission-prologue" hidden>
+                        <strong class="mission-prologue-label">JOIN導入プロローグ</strong>
+                        <span class="mission-prologue-text"></span>
+                    </div>
                     <p id="dialogue-text" style="font-size: 0.92rem; color: var(--text-main);">システム準備完了...</p>
                 </div>
 
@@ -116,18 +120,16 @@
 
             <div class="memo-section-head">背景・制作のきっかけ</div>
             <p class="memo-body">
-                SQLの学習後、ゲーム感覚で学べるサービスをいくつか試しましたが、英語中心だったり、初心者には難しいJOIN（テーブル結合）が早々に出てきたりと、続ける難しさを感じました。「もっと初心者に優しく、日本語で安心して学べる教材があったらいいな」と思い、自分の練習も兼ねて制作を始めました。
-                <br>
-                ストーリーの題材には、貿易関連の資格知識や空港の現場を描いたドラマに加え、授業で学んだ「容量偽装USB」も取り入れています。これらの興味や学びを掛け合わせ、輸入取引や税関検査、不正な取引の追跡をテーマにした捜査型の学習コンテンツとして形にしました。
+                SQLの学習後、ゲーム感覚で学べるサービスをいくつか試しましたが、英語中心だったり、JOINが早々に出てきたりと、つまづいてしまいました。
+                <br>初心者に優しく、日本語で練習しながら学べる教材があったらいいのに…。自分で作ってみよう。」と思い、自分の練習も兼ねて制作を始めました。
+                <br>題材には、貿易関連の資格知識や空港の現場を描いたドラマからインスピレーションを得て、授業で学んだ「容量偽装USB」も取り入れています。「TECH GATE」とも掛け合わせ、空港や税関のゲートを現場に輸入取引の調査や不正の追跡を行う、捜査型のSQL学習ゲームとして形にしました。
             </p>
 
             <div class="memo-section-head">工夫した点・苦労した点</div>
             <p class="memo-body">
-                特に意識したのは、少しずつ理解を積み重ねられる出題順です。基本的なSELECTから始まり、WHERE、ORDER BY、集計関数、GROUP BY、HAVING、そしてJOINへと段階的に広がる全21問を考えました。
-                <br>
-                一度に新しい構文を詰め込まないよう、たとえばCASE WHENは基本形を学んでから次の問題で比較条件を組み込む二段階にするなど、ROUND・BETWEEN・LIKEも含めて順番を何度も見直しています。
-                <br>
-                また、新しいテーブルが出てきたときに迷わないよう、テーブル構造やカラムの意味を確認できる資料・ポップアップ表示も検討しました。各問題にストーリー会話や段階的なヒント、SQLの解説を用意し、丸暗記ではなく自分で考えながら進められる教材を目指しています。
+                特に意識したのは、少しずつ理解を積み重ねられる出題順です。基本的なSELECTから始まり、WHERE、ORDER BY、集計関数、GROUP BY、HAVING、そしてJOINへと段階的に広がる問題を考えました。
+            <br>
+                各問題にストーリー会話や段階的なヒント、SQLの解説を用意し、丸暗記ではなく自分で考えながら進められる教材を目指しています。
             </p>
 
             <div class="memo-section-head">AIの活用について</div>
@@ -179,15 +181,16 @@
         <div class="database-modal-panel join-diagram-panel">
             <div class="database-modal-header">
                 <div>
-                    <div class="database-modal-kicker">第5章：テーブル結合の図解</div>
+                    <div class="database-modal-kicker">JOINの導入：テーブル結合の図解</div>
                     <h2 id="join-diagram-title">JOIN図解</h2>
                 </div>
                 <button type="button" class="database-modal-close" onclick="closeJoinDiagram()" aria-label="閉じる">×</button>
             </div>
             <div class="join-diagram-tabs" aria-label="JOIN図解の種類">
-                <button type="button" class="join-diagram-tab active" onclick="showJoinDiagram('JOIN.png', this)">JOIN全体像</button>
-                <button type="button" class="join-diagram-tab" onclick="showJoinDiagram('INNER JOIN.png', this)">INNER JOIN</button>
-                <button type="button" class="join-diagram-tab" onclick="showJoinDiagram('LEFT JOIN.png', this)">LEFT JOIN</button>
+                <button type="button" class="join-diagram-tab active" data-diagram="JOIN.png" onclick="showJoinDiagram('JOIN.png', this)">JOIN全体像</button>
+                <button type="button" class="join-diagram-tab" data-diagram="INNER JOIN.png" onclick="showJoinDiagram('INNER JOIN.png', this)">INNER JOIN</button>
+                <button type="button" class="join-diagram-tab" data-diagram="LEFT JOIN.png" onclick="showJoinDiagram('LEFT JOIN.png', this)">LEFT JOIN</button>
+                <button type="button" class="join-diagram-tab" data-diagram="比較.png" onclick="showJoinDiagram('比較.png', this)">比較</button>
             </div>
             <div class="join-diagram-body">
                 <img id="join-diagram-image" src="JOIN.png" alt="JOIN全体像の図解">
