@@ -34,7 +34,7 @@ const missions = [
             title: "プロローグで確認する押収資料",
             html: `
 - <span class="badge">Companies</span> 会社マスター（company_id / company_name / address）<br>
-- <span class="badge">Imports</span> 輸入・受入数量・USB容量記録1,000件（trade_id / company_id / model_number / product_name / category / quantity / declared_value / declaration_date / received_quantity / declared_weight_kg / actual_weight_kg / advertised_capacity / actual_capacity）<br>
+- <span class="badge">Imports</span> 輸入・受入数量・USB容量記録1,000件（trade_id / company_id / model_number / product_name / category / quantity / received_quantity / declared_value / declaration_date / declared_weight_kg / actual_weight_kg / advertised_capacity / actual_capacity）<br>
 - <span class="badge">Containers</span> コンテナ保管記録（container_record_id / trade_id / container_area / container_number）
             `
         }
