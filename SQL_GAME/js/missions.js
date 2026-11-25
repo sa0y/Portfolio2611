@@ -1255,53 +1255,55 @@ WHERE model_number = 'TECH-26'
         desc: "Companiesへのサブクエリでアオバ・マイクロのIDを取得して絞り込み、TECH-26の取引の中から（数量不足かつ重量超過）または（実容量が広告容量より小さい）に当てはまる取引ID（trade_id）を特定せよ。",
         orderSensitive: false,
         explanation: `【解説】
-21番・22番のどちらでも会社ID C004（アオバ・マイクロ）が浮かび上がりました。ここではサブクエリでアオバ・マイクロの会社IDを取得して必須条件に入れ、2つの異常の塊を OR と () で統合します。
+サブクエリ（副問い合わせ）とは、SQL文の中に () で囲んで書く、もうひとつの SELECT 文のことです。外側の SELECT の条件や計算などで使う値を、先に別の SELECT で取り出して渡したいときに使います。
 
+今回の捜査では、アオバ・マイクロの会社IDを外側の条件で使うために、() の中の SELECT で会社IDを取り出します。
+
+・動きの順番：まず () の中の SELECT が先に実行され、取り出された値が外側の WHERE に渡されます
 ・必須条件（外に出す）：company_id = (サブクエリ) かつ model_number = 'TECH-26'
 ・選択条件（() で囲む）：(received_quantity < quantity AND actual_weight_kg > declared_weight_kg) OR actual_capacity < advertised_capacity
 
-これにより、21番で見つかった数量・重量異常（T004, T005）と、22番で見つかった容量異常（T014, T015）の4件を1つのクエリで確定できます。`,
+まずは「条件に使う値を取り出す SELECT」を思い浮かべてから、外側の取引絞り込みとつなげてみましょう。
+参考記事： https://techplay.jp/column/1841`,
         clearFeedback: {
-            dialogue: "上司：サブクエリでアオバ・マイクロに絞り込み、必須条件と選択条件を正しく組み合わせて対象取引IDを確定できたな。最後はコンテナ記録と照合しよう。",
+            dialogue: "上司：サブクエリでアオバ・マイクロに絞り込み、必須条件と選択条件を正しく組み合わせて対象取引IDを確定できたな。初めてのサブクエリ、よくやったぞ。最後はコンテナ記録と照合しよう。",
             learned: [
-                "サブクエリ：内側のSELECT結果を外側の必須条件で利用する",
+                "サブクエリ：SQL文の中に () で囲んで書く SELECT 文で、取り出した値を外側の条件などに渡せる",
+                "内側から考えるコツ：まずは「外側の条件で使う値を取り出す SELECT」を形にしてから外側に組み合わせる",
                 "必須条件と選択条件の統合：2つの調査結果の条件を () と OR で1つにまとめる"
             ]
         },
         expectedSql: `SELECT Imports.trade_id
 FROM Imports
-WHERE Imports.company_id = (
-        SELECT company_id
-        FROM Companies
-        WHERE company_name = 'アオバ・マイクロ'
-  )
+WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name = 'アオバ・マイクロ')
   AND Imports.model_number = 'TECH-26'
   AND (
-        (Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
-        OR Imports.actual_capacity < Imports.advertised_capacity
+    (Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
+    OR (Imports.actual_capacity < Imports.advertised_capacity)
   );`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "21番・22番で共通して浮かび上がったアオバ・マイクロのIDをサブクエリで求め、必須条件（会社と型番）の外枠と、選択条件（2つの異常のOR）のカッコを組み合わせます。"
+                text: "サブクエリとは、外側の条件などで使う値を先に別の SELECT で取り出して渡すために、() の中に書く SELECT 文のことです。まずは今回の条件に使う「アオバ・マイクロの会社IDを取り出す SELECT」を思い浮かべてみましょう。参考記事： https://techplay.jp/column/1841"
             },
             {
                 level: 2,
                 type: "使う構文",
-                text: "サブクエリ用の丸括弧に加えて、OR 群全体を囲む丸括弧 () と、条件の塊を分ける丸括弧 () を使います。"
+                text: "サブクエリ用の丸括弧 (SELECT ...) に加えて、OR 群全体を囲む丸括弧 () と、条件の塊を分ける丸括弧 () を使います。外側の = とつなぐ場合は、サブクエリが1つの値（会社ID）を返す形にします。"
             },
             {
                 level: 3,
                 type: "組み立て方",
-                text: "FROM 表A → WHERE 表A.カラム = (SELECT 表B.カラム FROM 表B WHERE 表B.カラム = '値') AND 表A.カラム = '値' AND (条件A OR 条件B) の形で組み立てましょう。"
+                text: "FROM 表A → WHERE 表A.カラム = (SELECT 表B.カラム FROM 表B WHERE 表B.カラム = '値') AND 表A.カラム = '値' AND (条件A OR 条件B) の形で組み立てましょう。まずは () の中の SELECT を先に作ると整理しやすいです。"
             }
         ],
-        dialogue: "上司：21番でも22番でもアオバ・マイクロ（C004）が浮かび上がったな。サブクエリでアオバ・マイクロに絞り込み、必須条件と選択条件のルールで2つの異常を統合しよう。",
+        dialogue: "上司：21番でも22番でもアオバ・マイクロ（C004）が浮かび上がったな。今回は初めてのサブクエリだ。() の中の SELECT で会社IDを取り出し、必須条件と選択条件のルールで2つの異常を統合しよう。",
         group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
             title: "サブクエリとカッコの基本ルール",
             html: `
+- <span class='badge'>サブクエリ (SELECT ...)</span> 外側の条件などで使う値を先に取り出して渡す、() 内の SELECT 文<br>
 - <span class='badge'>必須条件</span> 会社ID（サブクエリ）と TECH-26 は () の外に出す<br>
 - <span class='badge'>選択条件 ()</span> 2つの異常パターンの OR 全体を () で囲む<br>
 - <span class='badge'>Imports.trade_id</span> 抽出する対象取引ID
@@ -1331,10 +1333,8 @@ INNER JOIN Companies ON Imports.company_id = Companies.company_id
 INNER JOIN Containers ON Imports.trade_id = Containers.trade_id
 WHERE Imports.company_id = 'C004'
   AND Imports.model_number = 'TECH-26'
-  AND (
-        (Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
-        OR Imports.actual_capacity < Imports.advertised_capacity
-  );`,
+  AND ((Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
+        OR Imports.actual_capacity < Imports.advertised_capacity);`,
         hints: [
             {
                 level: 1,
