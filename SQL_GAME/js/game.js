@@ -193,6 +193,74 @@ function briefingTab(tableName, label) {
     return `<button class="tab-btn" onclick="loadBriefingTable('${tableName}')">${escapeHTML(label)} (${tableName})</button>`;
 }
 
+function openDatabaseLibrary() {
+    const modal = document.getElementById('database-library-modal');
+    const notice = document.getElementById('database-library-new-data');
+    const content = document.getElementById('database-library-content');
+    if (!modal || !notice || !content) return;
+
+    if (!db) {
+        notice.textContent = 'ブラウザ内データベースを読み込めませんでした。ページを再読み込みしてください。';
+        notice.style.display = 'block';
+        content.textContent = '';
+        modal.style.display = 'flex';
+        return;
+    }
+
+    notice.style.display = 'none';
+    const tables = [
+        { name: 'Companies', label: '会社マスター' },
+        { name: 'Imports', label: '輸入・受入数量・USB容量記録' },
+        { name: 'Containers', label: 'コンテナ保管記録' }
+    ];
+
+    try {
+        content.innerHTML = tables.map(({ name, label }) => {
+            const schema = db.exec(`PRAGMA table_info('${name}')`)[0];
+            if (!schema) throw new Error(`${name} テーブルが見つかりません。`);
+            const foreignKeys = db.exec(`PRAGMA foreign_key_list('${name}')`)[0]?.values || [];
+            const rowCount = db.exec(`SELECT COUNT(*) FROM "${name}"`)[0].values[0][0];
+            const columnRows = schema.values.map(([, columnName, type, notNull, , primaryKey]) => {
+                const constraints = [];
+                if (primaryKey) constraints.push('PRIMARY KEY');
+                if (notNull) constraints.push('NOT NULL');
+                foreignKeys
+                    .filter(([, , , sourceColumn]) => sourceColumn === columnName)
+                    .forEach(([, , targetTable, , targetColumn]) => {
+                        constraints.push(`外部キー → ${targetTable}.${targetColumn}`);
+                    });
+                return `<tr><td>${escapeHTML(columnName)}</td><td>${escapeHTML(type || '—')}</td><td>${escapeHTML(constraints.join(' / ') || '—')}</td></tr>`;
+            }).join('');
+
+            return `
+                <section class="database-table-section">
+                    <div class="database-table-heading">
+                        <strong>${escapeHTML(name)}</strong>
+                        <span>${escapeHTML(label)}・${rowCount.toLocaleString()}件</span>
+                    </div>
+                    <table class="database-column-table">
+                        <thead><tr><th>カラム</th><th>データ型</th><th>制約・関連</th></tr></thead>
+                        <tbody>${columnRows}</tbody>
+                    </table>
+                </section>`;
+        }).join('') + `
+            <div class="database-modal-point">
+                主な関連：Imports.company_id → Companies.company_id ／ Containers.trade_id → Imports.trade_id
+            </div>`;
+    } catch (error) {
+        notice.textContent = `データベース資料の読み込みに失敗しました：${error instanceof Error ? error.message : String(error)}`;
+        notice.style.display = 'block';
+        content.textContent = '';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeDatabaseLibrary() {
+    const modal = document.getElementById('database-library-modal');
+    if (modal) modal.style.display = 'none';
+}
+
 function formatHint(hint) {
     if (typeof hint === 'string') return hint;
     if (!hint) return '';
