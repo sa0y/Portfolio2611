@@ -193,6 +193,27 @@ function briefingTab(tableName, label) {
     return `<button class="tab-btn" onclick="loadBriefingTable('${tableName}')">${escapeHTML(label)} (${tableName})</button>`;
 }
 
+const databaseColumnDescriptions = {
+    company_id: '会社ID',
+    company_name: '会社名',
+    address: '会社住所',
+    trade_id: '取引ID',
+    model_number: '型番',
+    product_name: '商品名',
+    category: '商品カテゴリ',
+    quantity: '申告数量',
+    received_quantity: '受入数量',
+    declared_value: '申告額',
+    declaration_date: '申告日',
+    declared_weight_kg: '申告重量（kg）',
+    actual_weight_kg: '実重量（kg）',
+    advertised_capacity: '広告容量（GB）',
+    actual_capacity: '実容量（GB）',
+    container_record_id: 'コンテナ記録ID',
+    container_area: '保管エリア',
+    container_number: 'コンテナ番号'
+};
+
 function openDatabaseLibrary() {
     const modal = document.getElementById('database-library-modal');
     const notice = document.getElementById('database-library-new-data');
@@ -229,7 +250,8 @@ function openDatabaseLibrary() {
                     .forEach(([, , targetTable, , targetColumn]) => {
                         constraints.push(`外部キー → ${targetTable}.${targetColumn}`);
                     });
-                return `<tr><td>${escapeHTML(columnName)}</td><td>${escapeHTML(type || '—')}</td><td>${escapeHTML(constraints.join(' / ') || '—')}</td></tr>`;
+                const description = databaseColumnDescriptions[columnName] || '日本語の説明は未設定です';
+                return `<tr><td>${escapeHTML(columnName)}</td><td>${escapeHTML(description)}</td><td>${escapeHTML(type || '—')}</td><td>${escapeHTML(constraints.join(' / ') || '—')}</td></tr>`;
             }).join('');
 
             return `
@@ -239,7 +261,7 @@ function openDatabaseLibrary() {
                         <span>${escapeHTML(label)}・${rowCount.toLocaleString()}件</span>
                     </div>
                     <table class="database-column-table">
-                        <thead><tr><th>カラム</th><th>データ型</th><th>制約・関連</th></tr></thead>
+                        <thead><tr><th>カラム名（英語）</th><th>意味（日本語）</th><th>データ型</th><th>制約・関連</th></tr></thead>
                         <tbody>${columnRows}</tbody>
                     </table>
                 </section>`;
