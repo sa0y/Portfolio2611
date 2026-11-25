@@ -2,9 +2,9 @@ const missions = [
     {
         id: 0,
         title: "プロローグ：匿名の告発と押収資料の確認",
-        desc: "2026年4月に届いた匿名メールの手がかりをもとに、押収された各テーブルの全体像と共通IDを確認せよ。",
+        desc: "2026年11月に届いた匿名メールの手がかりをもとに、押収された各テーブルの全体像と共通IDを確認せよ。",
         isBriefing: true,
-        dialogue: "上司：2026年4月、監査部門に匿名メールが届いた。『大容量USBメモリの輸入取引を調べてください。記録を消される前に調べてください。』とのことだ。まずは輸入データを含む資料全体を見てみよう。",
+        dialogue: "上司：2026年11月、監査部門に匿名メールが届いた。『TECH-26のUSBメモリの輸入取引を記録が消される前に調べてください。』とのことだ。まずは輸入データを含む資料全体を見てみよう。",
         explanation: `まずは調査の土台となる各テーブルを確認しましょう。
 
 ・各タブを切り替えて、どんなテーブルと列（カラム）があるか確認します。
@@ -13,19 +13,29 @@ const missions = [
 確認が終わったら、「資料の確認を完了する」ボタンを押して捜査に進みます。`,
         expectedSql: "",
         hints: [
-            "【ヒント1】まずは「会社情報」や「輸入記録」などのタブをクリックして、どんなデータが入っているか見てみましょう。",
-            "【ヒント2】「輸入記録」にある company_id や trade_id が、ほかのテーブルとどう結びついているか意識してみてください。",
-            "【ヒント3】資料を確認したら、「資料の確認を完了する」ボタンを押して第1章へ進みましょう。"
+            {
+                level: 1,
+                type: "進め方",
+                text: "まずは画面上のタブを切り替えて、どんな表があり、それぞれどんな項目（列）を持っているか眺めてみましょう。まだSQLを書かなくても大丈夫です。"
+            },
+            {
+                level: 2,
+                type: "見るべき場所",
+                text: "会社を表すIDや、取引を表すIDがどの表にあるかに注目してみてください。あとで別々の表の情報を結びつけるときの目印になります。"
+            },
+            {
+                level: 3,
+                type: "次のステップ",
+                text: "表の全体像がつかめたら、下の完了ボタンを押して第1章に進みましょう。実際のSQL操作は第1章から始まります。"
+            }
         ],
         group: "🌱 プロローグ：匿名の告発",
         glossary: {
             title: "プロローグで確認する押収資料",
             html: `
-- <span class="badge">Company_Information_Records</span> 会社マスター（company_id / company_name / address）<br>
-- <span class="badge">Import_Records</span> 輸入・取引記録1,000件（trade_id / company_id / model_number / product_name / quantity / declared_value / declaration_date）<br>
-- <span class="badge">Customs_Inspection_Records</span> 税関検査記録（trade_id / declared_quantity / inspected_quantity）<br>
-- <span class="badge">Port_Trade_Records</span> 港湾地域別取引記録（trade_id / region / declared_value）<br>
-- <span class="badge">USB_Inspection_Records</span> USB容量検査記録（trade_id / product_name / advertised_capacity / actual_capacity）
+- <span class="badge">Companies</span> 会社マスター（company_id / company_name / address）<br>
+- <span class="badge">Imports</span> 輸入・受入数量・USB容量記録1,000件（trade_id / company_id / model_number / product_name / category / quantity / declared_value / declaration_date / received_quantity / declared_weight_kg / actual_weight_kg / advertised_capacity / actual_capacity）<br>
+- <span class="badge">Containers</span> コンテナ保管記録（container_record_id / trade_id / container_area / container_number）
             `
         }
     },
@@ -35,8 +45,8 @@ const missions = [
     // ==========================================
     {
         id: 1,
-        title: "01. 輸入記録1,000件の全体像を確認せよ",
-        desc: "Import_Records テーブルの全データを取得し、取引記録の全体像を確認せよ。",
+        title: "01. 輸入記録の全体像を確認せよ",
+        desc: "Imports テーブルの全データを取得し、取引記録の全体像を確認せよ。",
         orderSensitive: false,
         explanation: `【解説】
 SELECT * FROM テーブル名; は、指定したテーブルのすべての列とすべての行を取得する基本のSQLです。
@@ -47,41 +57,41 @@ SELECT * FROM テーブル名; は、指定したテーブルのすべての列�
 
 まずは1,000件の輸入取引記録にどんな項目と値が入っているか確認しましょう。`,
         clearFeedback: {
-            dialogue: "上司：よし、1,000件の輸入取引記録の全体像が見えてきたな。次はUSBメモリの取引に絞り込んでみよう。",
+            dialogue: "上司：輸入取引記録の全体像を確認できたな。",
             learned: [
                 "SELECT *：すべての列を取得する",
                 "FROM テーブル名：データを取得するテーブルを指定する"
             ]
         },
-        expectedSql: "SELECT * FROM Import_Records;",
+        expectedSql: "SELECT * FROM Imports;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "まずは条件で絞り込まず、対象テーブルに保存されている全データを確認します。"
+                text: "まずは絞り込みをせず、「どんなデータがどれくらい入っているか」を丸ごと確認する一歩目です。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "すべての列を取得するには SELECT * を使います。"
+                type: "使う構文",
+                text: "「どの列を出すか」を指定する命令と、「どの表から取るか」を指定する命令を組み合わせます。列をひとつずつ書かなくても「すべて」を表す記号が使えます。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: "SELECT * FROM テーブル名; の形を試してみましょう。"
+                type: "組み立て方",
+                text: "SELECT * FROM 表A の形で、すべての列・行を取得する指定と表名を組み合わせましょう。"
             }
         ],
-        dialogue: "上司：まずはデータを見てくれ。何が問題なのか、そこから調べよう。まずは Import_Records の全記録を出して全体を確認してみよう。",
+        dialogue: "上司：まずはデータを見てくれ。何が問題なのか、そこから調べよう。まずは Imports の全記録を出して全体を確認してみよう。",
         group: "🔍 第1章：不自然な申告金額",
         glossary: {
             title: "対象テーブル・カラム",
-            html: "• <span class='badge'>Import_Records</span> 輸入・取引記録の全データ（1,000件・すべての列）"
+            html: "• <span class='badge'>Imports</span> 輸入・取引記録の全データ（1,000件・すべての列）"
         }
     },
     {
         id: 2,
         title: "02. USBメモリの取引に絞り込め",
-        desc: "Import_Records テーブルから、カテゴリ（category）が「USBメモリ」の取引記録だけを取得せよ。",
+        desc: "Imports テーブルから、カテゴリ（category）が「USBメモリ」の取引記録だけを取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
 WHERE 句を使うと、条件に合う行だけを絞り込めます。
@@ -90,29 +100,29 @@ WHERE 句を使うと、条件に合う行だけを絞り込めます。
 
 文字列を指定するときは、シングルクォーテーション（' '）で囲むのがポイントです。`,
         clearFeedback: {
-            dialogue: "上司：USBメモリの取引に絞り込めたな。その中でも、同じ型番なのに申告金額に違いがないか見てみよう。",
+            dialogue: "上司：USBメモリの取引記録を抽出できたな。",
             learned: [
                 "WHERE：条件でデータを絞り込む",
                 "=：値が一致するか比較する",
                 "'USBメモリ'：文字列を指定する（シングルクォーテーションで囲む）"
             ]
         },
-        expectedSql: "SELECT * FROM Import_Records WHERE category = 'USBメモリ';",
+        expectedSql: "SELECT * FROM Imports WHERE category = 'USBメモリ';",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "今回は特定のカテゴリに一致する記録だけを調べます。条件を指定してデータを絞り込みましょう。"
+                text: "全件ではなく、「商品の種類（カテゴリ）が特定のものに一致する行」だけを残したいときの絞り込みです。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "条件で絞り込むには WHERE 句を使います。"
+                type: "使う構文",
+                text: "条件をつけるためのキーワードと、等しいことを表す記号を使います。文字の値を書くときは、シングルクォーテーションで囲むのがルールです。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: "WHERE カテゴリのカラム = '対象の文字列' と指定します。"
+                type: "組み立て方",
+                text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' の形で、全件取得の形に条件部分を追加しましょう。"
             }
         ],
         dialogue: "上司：匿名メールには『USBメモリの輸入取引を調べてください』とあったな。まずはカテゴリが『USBメモリ』の取引に絞り込んでみよう。",
@@ -124,8 +134,8 @@ WHERE 句を使うと、条件に合う行だけを絞り込めます。
     },
     {
         id: 3,
-        title: "03. 申告金額の偏りを並べ替えて確認せよ",
-        desc: "Import_Records テーブルから、型番（model_number）が「CT-400」の記録を、申告額（declared_value）が安い順（昇順）に並べよ。",
+        title: "03. TECH-26の申告額を安い順に並べよ",
+        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の記録を、申告額（declared_value）が安い順（昇順）に並べよ。",
         orderSensitive: true,
         explanation: `【解説】
 ORDER BY 列名 を使うと、指定した列の値が小さい順（昇順・安い順）に並べ替えられます。
@@ -135,43 +145,39 @@ ORDER BY 列名 を使うと、指定した列の値が小さい順（昇順・�
 
 同じ型番・似た数量でも、申告額が極端に低い取引がないか見比べてみましょう。`,
         clearFeedback: {
-            dialogue: "上司：同じ型番なのに申告額が大きく異なる取引が見つかったぞ。特に C001 の取引は数量に対して申告額が不自然に低い。C001 の最新の動きを確認してみよう。",
+            dialogue: "上司：TECH-26の取引では、申告額に大きな差がある記録が確認できたな。",
             learned: [
                 "ORDER BY 列名：指定した列の小さい順（昇順・安い順）に並べ替える",
                 "ASC：昇順を明示したいときに使うキーワード（省略しても昇順になる）"
             ]
         },
         expectedSql: `SELECT *
-FROM Import_Records
-WHERE model_number = 'CT-400'
+FROM Imports
+WHERE model_number = 'TECH-26'
 ORDER BY declared_value;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "02で作った「型番で絞り込むSQL」の後ろに、指定した列の小さい順に並べる命令を足します。"
+                text: "「型番で絞り込む」ことと、「金額が小さいものから順に見やすく並べる」ことの2つを同時に行います。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "並び替えには ORDER BY を使います。列名だけ書いても小さい順（昇順）になります。"
+                type: "使う構文",
+                text: "条件で絞る命令に加えて、並び替えを指定するキーワードを使います。何も指定しないと小さい順（昇順）になります。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT *
-FROM テーブル名
-WHERE 条件のカラム = '値'
-ORDER BY 並べ替えるカラム;
-の形を試してみましょう。`
+                type: "組み立て方",
+                text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' → ORDER BY 表A.カラム ASC の形で、条件のあとに並び替えを加えましょう。"
             }
         ],
-        dialogue: "上司：CT-400 の取引を申告額が安い順に並べてみよう。同じ型番なのに申告金額が大きく異なる取引がないか確かめるんだ。",
+        dialogue: "上司：TECH-26 の取引を申告額が安い順に並べてみよう。同じ型番なのに申告金額が大きく異なる取引がないか確かめるんだ。",
         group: "🔍 第1章：不自然な申告金額",
         glossary: {
             title: "対象カラムの意味",
             html: `
-- <span class='badge'>model_number</span> 製品の型番（CT-400）<br>
+- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
 - <span class='badge'>quantity</span> 輸入数量（比較の基準）<br>
 - <span class='badge'>declared_value</span> 申告された取引金額（並び替えの対象）
             `
@@ -179,59 +185,55 @@ ORDER BY 並べ替えるカラム;
     },
     {
         id: 4,
-        title: "04. 不審な取引の最新記録を1件取得せよ",
-        desc: "Import_Records テーブルから、会社ID（company_id）が「C001」かつ型番（model_number）が「CT-400」の取引を対象に、申告日（declaration_date）が最も新しい記録を1件取得せよ。",
+        title: "04. TECH-26 の最新取引記録を確認せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引を対象に、申告日（declaration_date）が最も新しい記録を10件取得せよ。",
         orderSensitive: true,
         explanation: `【解説】
-複数条件の組み合わせ、降順並び替え、件数制限を組み合わせて「最新の1件」を取り出します。
+条件絞り込み、降順並び替え、件数制限を組み合わせて「最新の10件」を取り出します。
 
-・AND：2つの条件を両方満たす行に絞る
+・WHERE model_number = 'TECH-26'：型番が TECH-26 の取引に絞る
 ・ORDER BY declaration_date DESC：新しい日付が上に来るよう並べる
-・LIMIT 1：先頭の1件だけを取得する
+・LIMIT 10：先頭の10件だけを取得する
 
 申告金額だけでは判断しきれないため、次の第2章では貨物の数量にも異常がないか調べていきます。`,
         clearFeedback: {
-            dialogue: "上司：C001 の最新取引を確認できたな。金額だけでは判断できない。貨物の数量にも異常がないか確認してくれ。",
+            dialogue: "上司：TECH-26 の申告日が新しい順の記録を確認できたな。",
             learned: [
-                "AND：複数の条件をすべて満たすデータを絞り込む",
+                "WHERE：条件に一致するデータを絞り込む",
                 "ORDER BY 列名 DESC：降順（大きい順・新しい順）に並べ替える",
-                "LIMIT 1：取得する件数を1件に制限する"
+                "LIMIT 10：取得する件数を10件に制限する"
             ]
         },
         expectedSql: `SELECT *
-FROM Import_Records
-WHERE company_id = 'C001'
-  AND model_number = 'CT-400'
+FROM Imports
+WHERE model_number = 'TECH-26'
 ORDER BY declaration_date DESC
-LIMIT 1;`,
+LIMIT 10;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "今回は2つの条件を満たす記録を探し、その中から最新の1件を取得します。"
+                text: "「新しい日付＝値が大きいほう」が上に来るように並べたあと、上から決まった件数だけ抜き出します。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "複数条件には AND、新しい順の並び替えには DESC、取得件数の制限には LIMIT を使います。"
+                type: "使う構文",
+                text: "大きい順・新しい順に並べる指定と、取り出す行数を制限するキーワードを使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `WHERE カラム1 = '値1'
-  AND カラム2 = '値2'
-ORDER BY 日付のカラム DESC
-LIMIT 1
-の型に当てはめてみましょう。`
+                type: "組み立て方",
+                text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' → ORDER BY 表A.日付列 DESC → LIMIT 件数 の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：会社ID『C001』の CT-400 取引は申告額の低さが目立つ。申告日が最も新しい記録を1件だけ出して最新の状況を確認しよう。",
+        dialogue: "上司：TECH-26 の取引は申告額の低さが気になるものがあるな。申告日が最も新しい記録を10件出して、最近の状況を確かめよう。",
         group: "🔍 第1章：不自然な申告金額",
         glossary: {
             title: "対象カラムの意味",
             html: `
-- <span class='badge'>company_id</span> 会社ID（'C001'を指定）<br>
-- <span class='badge'>declaration_date</span> 申告日（並び替えに利用）
+- <span class='badge'>model_number</span> 製品の型番（'TECH-26' を指定）<br>
+- <span class='badge'>declaration_date</span> 申告日（並び替えに利用）<br>
+- <span class='badge'>LIMIT 10</span> 取得件数の上限（最大10件）
             `
         }
     },
@@ -241,171 +243,185 @@ LIMIT 1
     // ==========================================
     {
         id: 5,
-        title: "05. 申告数量と検査数量が異なる記録を抽出せよ",
-        desc: "Customs_Inspection_Records テーブルから、申告数量（declared_quantity）と実際の検査数量（inspected_quantity）が一致しない記録をすべて取得せよ。",
+        title: "05. TECH-26の申告数量と受入数量が異なる記録を抽出せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引のうち、申告数量（quantity）と実際の受入数量（received_quantity）が一致しない記録をすべて取得せよ。",
         orderSensitive: false,
-        concept: ["WHERE", "!="],
+        concept: ["WHERE", "AND", "=", "!="],
         difficulty: 2,
         explanation: `【解説】
-!=（または <>）を使うと、2つの値が「等しくない」行を取り出せます。
+まず WHERE で型番を TECH-26 に絞り、AND で数量の条件を加えます。!=（または <>）を使うと、2つの値が「等しくない」行を取り出せます。
 
-・declared_quantity != inspected_quantity：申告数量と検査数量が違う行を探す
+・model_number = 'TECH-26'：TECH-26 の取引に絞る
+・quantity != received_quantity：申告数量と受入数量が違う行を探す
 
-まずは税関検査記録を確認し、数量が一致していない記録を洗い出しましょう。`,
+TECH-26 の受入数量の記録を確認し、数量が一致していない取引を洗い出しましょう。`,
         clearFeedback: {
-            dialogue: "上司：申告数量と検査数量が一致しない記録が見つかったな。次は検査数量が申告数量を下回っている、つまり数量が不足している記録だけに絞ってみよう。",
+            dialogue: "上司：TECH-26で申告数量と受入数量が一致しない記録を確認できたな。",
             learned: [
                 "WHERE：条件に一致するデータを絞り込む",
+                "AND：型番と数量の両方の条件を満たす行を取得する",
                 "!=：2つの値が等しくないことを判定する",
                 "<>：!= と同じく、等しくないことを判定する"
             ]
         },
-        expectedSql: "SELECT * FROM Customs_Inspection_Records WHERE declared_quantity != inspected_quantity;",
+        expectedSql: "SELECT * FROM Imports WHERE model_number = 'TECH-26' AND quantity != received_quantity;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "今回は2つの数量カラムを比較し、数値が異なる記録を探します。"
+                text: "まずTECH-26の取引に絞り、その中から「2つの数量の列を見比べて、値がズレている行」を探します。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "2つの値が等しくないことを判定するには != 演算子を使います。"
+                type: "使う構文",
+                text: "型番で絞る条件と、それに追加する条件をつなぐAND、「同じではない（等しくない）」ことを表す比較記号を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: "WHERE 数量カラム1 != 数量カラム2 と指定します。"
+                type: "組み立て方",
+                text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' AND 表A.カラム != 表A.カラム の形で、2つ目の条件をANDで加えましょう。"
             }
         ],
-        dialogue: "上司：貨物の数量にも異常がないか確認しよう。まずは税関検査記録から、申告数量と実際の検査数量が異なる記録を抽出してみよう。",
+        dialogue: "上司：TECH-26の貨物に数量の異常がないか確認しよう。申告数量と実際の受入数量が異なる取引を抽出してみてくれ。",
         group: "📦 第2章：一致しない数量",
         glossary: {
             title: "対象テーブル・カラム",
             html: `
-- <span class='badge'>Customs_Inspection_Records</span> 税関の検査記録<br>
-- <span class='badge'>declared_quantity</span> 書類上の申告数量<br>
-- <span class='badge'>inspected_quantity</span> 税関が実際に数えた検査数量
+- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
+- <span class='badge'>quantity</span> 書類上の申告数量<br>
+- <span class='badge'>received_quantity</span> 実際に受け入れた数量<br>
+- <span class='badge'>AND</span> 型番と数量の両方の条件を満たす
             `
         }
     },
     {
         id: 6,
-        title: "06. 検査数量が申告数量を下回る記録を抽出せよ",
-        desc: "Customs_Inspection_Records テーブルから、実際の検査数量（inspected_quantity）が申告数量（declared_quantity）を下回っている記録だけを取得せよ。",
+        title: "06. TECH-26の受入数量が申告数量を下回る記録を抽出せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引のうち、実際の受入数量（received_quantity）が申告数量（quantity）を下回っている記録だけを取得せよ。",
         orderSensitive: false,
-        concept: ["WHERE", "<"],
+        concept: ["WHERE", "AND", "=", "<"],
         difficulty: 2,
         explanation: `【解説】
-< を使うと、左側の値が右側の値より「小さい」行を絞り込めます。
+WHERE で TECH-26 に絞り、AND で数量の条件を加えます。< を使うと、左側の値が右側の値より「小さい」行を絞り込めます。
 
-・inspected_quantity < declared_quantity：検査数量が申告数量より少ない行を探す
+・model_number = 'TECH-26'：TECH-26 の取引に絞る
+・received_quantity < quantity：受入数量が申告数量より少ない行を探す
 
-書類上の数より実際の数が少ない記録だけを抜き出してみましょう。`,
+TECH-26 の中から、書類上の数より実際の数が少ない取引だけを抜き出しましょう。`,
         clearFeedback: {
-            dialogue: "上司：申告数量より検査数量が少ない記録が絞れたな。次はそれぞれの取引で何個不足しているのか計算してみよう。",
+            dialogue: "上司：TECH-26で申告数量より受入数量が少ない記録を抽出できたな。",
             learned: [
                 "<：左側の値が右側の値より小さいことを判定する",
+                "AND：型番と数量の両方の条件を満たす行を取得する",
                 "WHERE：指定した条件に一致する記録だけを取得する"
             ]
         },
-        expectedSql: "SELECT * FROM Customs_Inspection_Records WHERE inspected_quantity < declared_quantity;",
+        expectedSql: "SELECT * FROM Imports WHERE model_number = 'TECH-26' AND received_quantity < quantity;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "基準となる数量よりも、もう一方の数量が少ない記録を探しましょう。"
+                text: "TECH-26の取引に絞ったうえで、「下回る」＝「実際の受入数の方が、申告された数より少ない」という大小関係を調べます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "左側の値が右側の値より小さいことを判定するには < 演算子を使います。"
+                type: "使う構文",
+                text: "型番で絞る条件、それに条件を追加するAND、左の値が右の値より小さいことを示す記号を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: "WHERE 小さい方のカラム < 大きい方のカラム と指定します。"
+                type: "組み立て方",
+                text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' AND 表A.数値列 < 表A.数値列 の形で、比較条件をANDで加えましょう。"
             }
         ],
-        dialogue: "上司：今度は検査数量が申告数量より少ない、つまり数量が不足している記録だけに絞り込んでみよう。",
+        dialogue: "上司：今度はTECH-26の中から、受入数量が申告数量より少ない、つまり数量が不足している取引だけに絞り込んでみよう。",
         group: "📦 第2章：一致しない数量",
         glossary: {
             title: "対象テーブル・カラム",
             html: `
-- <span class='badge'>inspected_quantity</span> 実際の検査数量<br>
-- <span class='badge'>declared_quantity</span> 書類上の申告数量<br>
+- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
+- <span class='badge'>received_quantity</span> 実際の受入数量<br>
+- <span class='badge'>quantity</span> 書類上の申告数量<br>
+- <span class='badge'>AND</span> 型番と数量の両方の条件を満たす<br>
 - <span class='badge'><</span> 左側が右側より小さいことを表す
             `
         }
     },
     {
         id: 7,
-        title: "07. 数量の差を計算して異常の規模を確認せよ",
-        desc: "Customs_Inspection_Records テーブルから、取引ID（trade_id）と、申告数量から検査数量を引いた不足数を missing_quantity という名前で取得せよ。",
-        orderSensitive: false,
-        concept: ["SELECT", "-", "AS"],
+        title: "07. TECH-26の数量差を計算して異常の規模を確認せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引について、取引ID（trade_id）と不足数（missing_quantity）を取得し、不足数が大きい順に並べよ。",
+        orderSensitive: true,
+        concept: ["WHERE", "=", "SELECT", "-", "AS"],
         difficulty: 3,
         explanation: `【解説】
-SQLでは列同士を引き算し、その結果に AS で別名を付けられます。
+WHERE で TECH-26 の取引に絞ってから、列同士を引き算し、その結果に AS で別名を付けます。
 
-・declared_quantity - inspected_quantity：数量の差（不足数）を計算する
+・WHERE model_number = 'TECH-26'：TECH-26 の取引に絞る
+・quantity - received_quantity：数量の差（不足数）を計算する
 ・AS missing_quantity：計算結果の列名を missing_quantity にする
+・ORDER BY missing_quantity DESC：不足数が大きい順（降順）に並べる
 
-それぞれの取引でどれくらいの数量が消えているのか確認しましょう。`,
+TECH-26 の取引に限って、不足数の大きいものから確認しましょう。`,
         clearFeedback: {
-            dialogue: "上司：取引ごとの数量の差がはっきりしたな。T005 では350個もの数量不足が見つかっている。次は特に不足数が大きい記録に絞ってみよう。",
+            dialogue: "上司：TECH-26の取引ごとの数量不足を大きい順に確認できたな。T004では350個の不足が見つかった。",
             learned: [
+                "WHERE：TECH-26の取引に絞り込む",
                 "-：数値の引き算を行う算術演算子",
                 "AS：取得した列や計算結果に別名を付ける",
-                "missing_quantity：今回の不足数を表す列名"
+                "missing_quantity：今回の不足数を表す列名",
+                "ORDER BY ... DESC：指定した値が大きい順（降順）に並べる"
             ]
         },
-        expectedSql: "SELECT trade_id, declared_quantity - inspected_quantity AS missing_quantity FROM Customs_Inspection_Records;",
+        expectedSql: "SELECT trade_id, quantity - received_quantity AS missing_quantity FROM Imports WHERE model_number = 'TECH-26' ORDER BY missing_quantity DESC;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "今回はある数量から別の数量を引き算し、取引ごとの差を計算します。"
+                text: "TECH-26の取引に絞り、「申告した数から実際の数を引いた残り（不足数）」を計算して、大きい順に並べます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "数値の引き算には - を使います。また、計算結果に名前を付けるには AS を使います。"
+                type: "使う構文",
+                text: "TECH-26に絞るWHERE条件、引き算の記号、計算結果に名前をつけるキーワード、そして大きい順に並べる指定を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: "SELECT IDカラム, 数値カラム1 - 数値カラム2 AS 別名 FROM テーブル名; の形にします。"
+                type: "組み立て方",
+                text: "SELECT 表A.識別列, 表A.数値列 - 表A.数値列 AS 別名 FROM 表A → WHERE 表A.カラム = '値' → ORDER BY 別名 DESC の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：数量の差を計算して、異常の規模を確認しよう。申告数量から検査数量を引いた差を missing_quantity として出してみてくれ。",
+        dialogue: "上司：TECH-26の取引に絞って数量の差を計算し、異常の規模を確認しよう。申告数量から受入数量を引いた差を missing_quantity として出してみてくれ。",
         group: "📦 第2章：一致しない数量",
         glossary: {
             title: "対象テーブル・カラム",
             html: `
+- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
 - <span class='badge'>trade_id</span> 取引ID<br>
-- <span class='badge'>declared_quantity</span> 申告数量<br>
-- <span class='badge'>inspected_quantity</span> 検査数量<br>
-- <span class='badge'>missing_quantity</span> 計算した不足数の別名
+- <span class='badge'>quantity</span> 申告数量<br>
+- <span class='badge'>received_quantity</span> 受入数量<br>
+- <span class='badge'>missing_quantity</span> 計算した不足数の別名<br>
+- <span class='badge'>ORDER BY ... DESC</span> 不足数が大きい順に並べる
             `
         }
     },
     {
         id: 8,
-        title: "08. 200個以上の大きな数量不足を特定せよ",
-        desc: "Customs_Inspection_Records テーブルから、実際の検査数量（inspected_quantity）が申告数量（declared_quantity）を下回り、さらに申告数量と検査数量の差が200個以上ある記録をすべて取得せよ。",
+        title: "08. TECH-26の200個以上の数量不足を特定せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引のうち、実際の受入数量（received_quantity）が申告数量（quantity）を下回り、さらに申告数量と受入数量の差が200個以上ある記録をすべて取得せよ。",
         orderSensitive: false,
-        concept: ["WHERE", "AND", "()", ">=", "-"],
+        concept: ["WHERE", "AND", "=", "<", ">=", "-", "()"],
         difficulty: 3,
         explanation: `【解説】
-2つの条件を AND でつなぎ、それぞれを ( ) で囲んで分かりやすくします。
+WHERE で TECH-26 に絞り、受入数量が申告数量より少ないことと、不足数が200個以上であることを AND でつなぎます。条件のまとまりは ( ) で囲みます。
 
-・(inspected_quantity < declared_quantity)：検査数量が申告数量より少ない
-・(declared_quantity - inspected_quantity >= 200)：不足数が200個以上
+・model_number = 'TECH-26'：TECH-26 の取引に絞る
+・(received_quantity < quantity)：受入数量が申告数量より少ない
+・(quantity - received_quantity >= 200)：不足数が200個以上
 
-T005 の350個不足をはじめ、大きな数量のズレが起きている記録を特定しましょう。`,
+TECH-26 の中から、大きな数量のズレが起きている取引を特定しましょう。`,
         clearFeedback: {
-            dialogue: "上司：T005 では350個もの数量不足が見つかったな。しかし、気になることがある。数量の不一致は、特定の会社に集中しているのではないか？ 次は会社や地域ごとの傾向を調べてみよう。",
+            dialogue: "上司：TECH-26で数量差が200個以上ある記録を抽出できたな。大きな不足が起きている取引を絞り込めた。",
             learned: [
                 "AND：複数の条件をすべて満たすデータを取得する",
                 "()：条件のまとまりを分かりやすくする",
@@ -415,713 +431,621 @@ T005 の350個不足をはじめ、大きな数量のズレが起きている記
             ]
         },
         expectedSql: `SELECT *
-FROM Customs_Inspection_Records
-WHERE (inspected_quantity < declared_quantity)
-  AND (declared_quantity - inspected_quantity >= 200);`,
+FROM Imports
+WHERE model_number = 'TECH-26'
+  AND (received_quantity < quantity)
+  AND (quantity - received_quantity >= 200);`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "今回は2つの条件を両方満たす記録を探します。数量が不足していることと、その差が基準以上であることを組み合わせましょう。"
+                text: "まずTECH-26に絞り、「受入数が申告数より少ないこと」と「その差（引き算の結果）が200以上であること」の両方を満たす行を探します。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "条件を2つ用意し、AND でつなぎます。それぞれの条件は ( ) で囲みましょう。"
+                type: "使う構文",
+                text: "型番で絞る条件、複数条件をつなぐキーワード、大小比較、引き算、条件を囲む丸括弧を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: "WHERE (数量条件) AND (差の計算式 >= 基準値) の形にします。"
+                type: "組み立て方",
+                text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' AND (条件A) AND (表A.数値列 - 表A.数値列 >= 数値) の形で、条件をANDと丸括弧で組み立てましょう。"
             }
         ],
-        dialogue: "上司：数量の差が200個以上ある大きな異常を絞り込んでみよう。T005 を含む不審な記録を一覧にして確認するんだ。",
+        dialogue: "上司：TECH-26の中から数量の差が200個以上ある大きな異常を絞り込んでみよう。不審な記録を一覧にして確認するんだ。",
         group: "📦 第2章：一致しない数量",
         glossary: {
             title: "今回使う構文・カラム",
             html: `
-- <span class='badge'>declared_quantity</span> 書類上の申告数量<br>
-- <span class='badge'>inspected_quantity</span> 実際の検査数量<br>
-- <span class='badge'>AND</span> 2つの条件を両方満たす<br>
+- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
+- <span class='badge'>quantity</span> 書類上の申告数量<br>
+- <span class='badge'>received_quantity</span> 実際の受入数量<br>
+- <span class='badge'>AND</span> 複数の条件をすべて満たす<br>
 - <span class='badge'>( )</span> 条件のまとまりを表す<br>
 - <span class='badge'>>=</span> 200以上であることを判定する
             `
         }
-        },
-// ==========================================
-    // 第3章：疑わしい会社とルート（09〜13）
+    },
+
+    // ==========================================
+    // 第3章：疑わしい会社の集計（09〜13）
     // ==========================================
     {
         id: 9,
         title: "09. 会社IDごとの取引件数を集計せよ",
-        desc: "Import_Records テーブルから、会社ID（company_id）ごとにグループ化し、会社IDと各会社の取引件数（別名：trade_count）を取得せよ。",
+        desc: "Imports テーブルから、会社ID（company_id）ごとにグループ化し、会社IDと各会社の取引件数（別名：trade_count）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
-GROUP BY で同じ値ごとにまとめ、COUNT(*) で各グループの件数を数えます。
+第2章で見えた数量のズレが特定の会社に偏っていないか確かめるため、まずは会社IDごとの取引件数を集計します。
 
 ・GROUP BY company_id：会社IDごとにグループ化する
 ・COUNT(*) AS trade_count：会社ごとの取引件数を trade_count という名前で出す
 
-まずは取引件数が特定の会社に偏っていないか確認しましょう。`,
+取引件数が極端に多い会社や少ない会社がないか確認しましょう。`,
         clearFeedback: {
-            dialogue: "上司：会社IDごとの取引件数が見えてきたな。次は会社ごとの申告金額の合計や平均も比べてみよう。",
+            dialogue: "上司：会社IDごとの取引件数を集計できたな。",
             learned: [
                 "GROUP BY 列名：指定した列の値ごとにグループ化する",
                 "COUNT(*)：各グループの行数を数える",
                 "AS 別名：集計結果に別名を付ける"
             ]
         },
-        expectedSql: "SELECT company_id, COUNT(*) AS trade_count FROM Import_Records GROUP BY company_id;",
+        expectedSql: "SELECT company_id, COUNT(*) AS trade_count FROM Imports GROUP BY company_id;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "会社IDごとにデータをひとまとめにし、それぞれの会社で何件の取引があるかを数えます。"
+                text: "バラバラの取引行を「会社IDごと」に山分けして、それぞれの山に何件の行が入っているか数えます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "グループ化には GROUP BY、件数の集計には COUNT(*)、別名付けには AS を使います。"
+                type: "使う構文",
+                text: "同じ値ごとにグループを作る命令と、行数を数える集計関数、そして結果の列に別名をつけるキーワードを使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: "SELECT グループ化する列名, COUNT(*) AS trade_count FROM テーブル名 GROUP BY グループ化する列名; の型に当てはめてみましょう。"
+                type: "組み立て方",
+                text: "SELECT 表A.グループ列, COUNT(*) AS 別名 FROM 表A → GROUP BY 表A.グループ列 の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：数量の不一致は特定の会社に集中しているのではないか？ まずは Import_Records で会社IDごとの取引件数を集計してみよう。",
-        group: "🏢 第3章：疑わしい会社とルート",
+        dialogue: "上司：数量のズレや不自然な申告額は、特定の会社に集中しているのかもしれない。まずは Imports で会社IDごとの取引件数を集計してみよう。",
+        group: "🏢 第3章：疑わしい会社の集計",
         glossary: {
             title: "対象カラム・関数の意味",
             html: `
-- <span class='badge'>Import_Records</span> 輸入・取引記録<br>
+- <span class='badge'>Imports</span> 輸入・取引記録<br>
 - <span class='badge'>company_id</span> 会社ID（グループ化の基準）<br>
 - <span class='badge'>COUNT(*)</span> 各グループの件数を数える関数
             `
         }
     },
-   {
+    {
         id: 10,
-        title: "10. 会社ごとの申告金額の合計と平均を比較せよ",
-        desc: "Import_Records テーブルから、会社ID（company_id）ごとに申告額（declared_value）の合計（別名：total_value）と、小数点以下を四捨五入して丸めた平均（別名：avg_value）を取得せよ。",
+        title: "10. TECH-26 を扱う業者番号を重複なく一覧化せよ",
+        desc: "Imports テーブルから、型番（model_number）が 'TECH-26' の取引に関わっている会社ID（company_id）を重複を除いて取得せよ。",
+        concept: ["SELECT", "DISTINCT", "WHERE"],
+        difficulty: 2,
         orderSensitive: false,
         explanation: `【解説】
-SUM(列名) で合計を、AVG(列名) で平均を計算できます。
-さらに ROUND(数値, 0) を使うと、小数点以下を四捨五入して整数に丸められます。
+DISTINCT を使うと、TECH-26 の取引が複数回ある会社でも company_id を重複なく1回ずつ一覧にできます。
 
-・SUM(declared_value) AS total_value：会社ごとの申告額の合計を計算する
-・ROUND(AVG(declared_value), 0) AS avg_value：平均申告額を計算し、見やすく丸める
-・GROUP BY company_id：会社IDごとにまとめる
+・SELECT DISTINCT company_id：重複を除いた会社IDを出す
+・WHERE model_number = 'TECH-26'：型番が TECH-26 の取引に絞る
 
-取引件数が多いのに平均申告額が低い会社など、金額の偏りに注目してみましょう。`,
+まずは関わる業者番号を重複なく押さえたうえで、このあと会社ごとの金額や数量の計算に進んでいきましょう。`,
         clearFeedback: {
-            dialogue: "上司：会社ごとの合計と平均を比べると、金額の偏りがよりはっきりするな。次は一定以上の取引件数がある会社に絞り込んでみよう。",
+            dialogue: "上司：TECH-26 を扱っている業者番号を重複なく出せたな。対象となる業者の顔ぶれが見えたところで、次は各社の金額を計算して比べてみよう。",
             learned: [
-                "SUM(列名)：グループごとの数値を合計する",
-                "AVG(列名)：グループごとの数値の平均を計算する",
-                "ROUND(数値, 0)：小数点以下を四捨五入して整数に丸める",
-                "GROUP BY 列名：集計する単位を指定する"
+                "DISTINCT：取得結果から重複する行を取り除く",
+                "WHERE との併用：特定条件に合う行に絞ったうえで、重複のない一覧を作れる"
             ]
         },
-        expectedSql: `SELECT
-    company_id,
-    SUM(declared_value) AS total_value,
-    ROUND(AVG(declared_value), 0) AS avg_value
-FROM Import_Records
-GROUP BY company_id;`,
+        expectedSql: "SELECT DISTINCT company_id FROM Imports WHERE model_number = 'TECH-26';",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "会社IDごとにまとめ、金額の合計と、丸めた平均金額を計算します。"
+                text: "TECH-26 の取引がある会社IDを一覧にしますが、同じ会社IDが何回も並ばないよう重複を省きます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "合計は SUM(列名)、平均を整数に丸めるには ROUND(AVG(列名), 0) を使い、AS で別名を付けます。"
+                type: "使う構文",
+                text: "重複をなくすキーワードと、型番で絞り込む条件を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    グループ化する列名,
-    SUM(数値カラム) AS 別名1,
-    ROUND(AVG(数値カラム), 0) AS 別名2
-FROM テーブル名
-GROUP BY グループ化する列名;`
+                type: "組み立て方",
+                text: "SELECT DISTINCT 表A.カラム FROM 表A → WHERE 表A.カラム = '値' の形で、重複を除く指定と条件を組み合わせましょう。"
             }
         ],
-        dialogue: "上司：会社ごとの申告金額の合計と平均を出してみよう。平均は ROUND で丸めて見やすくするんだ。",
-        group: "🏢 第3章：疑わしい会社とルート",
-        glossary: {
-            title: "対象カラム・関数の意味",
-            html: `
-- <span class='badge'>declared_value</span> 申告額
-- <span class='badge'>SUM()</span> 各グループの合計を計算する関数
-- <span class='badge'>AVG()</span> 各グループの平均を計算する関数
-- <span class='badge'>ROUND(数値, 0)</span> 小数点以下を四捨五入して整数に丸める関数
-            `
-        }
-    },
-    {
-        id: 11,
-        title: "11. 取引件数が多い会社を抽出せよ",
-        desc: "Import_Records テーブルから、会社ID（company_id）ごとに取引件数（別名：trade_count）を集計し、100件以上の会社だけを対象に、取引件数が多い順（降順）に並べよ。",
-        orderSensitive: true,
-        explanation: `【解説】
-集計した結果に条件を付けるときは WHERE ではなく HAVING を使います。
-
-・HAVING COUNT(*) >= 100：集計後の件数が100件以上のグループに絞る
-・ORDER BY trade_count DESC：件数が多い順（降順）に並べる
-
-「行を絞る WHERE」「集計後を絞る HAVING」の違いを押さえましょう。`,
-        clearFeedback: {
-            dialogue: "上司：取引件数が多い会社が絞れたな。次は港湾地域ごとの申告額も集計して、ルートの傾向を確認しておこう。",
-            learned: [
-                "HAVING 条件：GROUP BY で集計した後の結果に条件を付ける",
-                "ORDER BY 列名 DESC：降順（大きい順・多い順）に並べ替える"
-            ]
-        },
-        expectedSql: `SELECT
-    company_id,
-    COUNT(*) AS trade_count
-FROM Import_Records
-GROUP BY company_id
-HAVING COUNT(*) >= 100
-ORDER BY trade_count DESC;`,
-        hints: [
-            {
-                level: 1,
-                type: "考え方",
-                text: "会社ごとの件数を出したあと、一定件数以上の会社だけに絞り込み、多い順に並べます。"
-            },
-            {
-                level: 2,
-                type: "構文",
-                text: "集計結果の絞り込みには HAVING、多い順の並び替えには ORDER BY と DESC を使います。"
-            },
-            {
-                level: 3,
-                type: "具体例",
-                text: `GROUP BY グループ化する列名
-HAVING COUNT(*) >= 基準値
-ORDER BY 別名 DESC
-の型に当てはめてみましょう。`
-            }
-        ],
-        dialogue: "上司：取引件数が100件以上ある会社だけを絞り込んで、多い順に並べてみよう。偏りのある会社を洗い出すんだ。",
-        group: "🏢 第3章：疑わしい会社とルート",
+        dialogue: "上司：まずはこの型番（TECH-26）を扱っている業者番号を重複なく一覧にしてくれ。そのあとで各社の金額を計算していくぞ。",
+        group: "🏢 第3章：疑わしい会社の集計",
         glossary: {
             title: "対象カラム・句の意味",
             html: `
-- <span class='badge'>company_id</span> 会社ID<br>
-- <span class='badge'>COUNT(*)</span> 会社ごとの取引件数<br>
-- <span class='badge'>HAVING</span> 集計後の条件指定<br>
-- <span class='badge'>ORDER BY ... DESC</span> 多い順（降順）の並び替え
+- <span class='badge'>DISTINCT</span> 重複する行を取り除いて表示する<br>
+- <span class='badge'>company_id</span> 業者番号（会社ID）<br>
+- <span class='badge'>model_number = 'TECH-26'</span> 絞り込む製品の型番
+            `
+        }
+    },
+   {
+        id: 11,
+        title: "11. TECH-26 の会社ごとの最高・最低申告額を比較せよ",
+        desc: "Imports テーブルから、型番（model_number）が 'TECH-26' の取引を対象に、会社ID（company_id）ごとの最高申告額（別名：max_value）と最低申告額（別名：min_value）を取得せよ。",
+        concept: ["WHERE", "MAX", "MIN", "GROUP BY"],
+        difficulty: 2,
+        orderSensitive: false,
+        explanation: `【解説】
+TECH-26 の取引に絞り、まずは会社ごとの申告額の幅（最高額と最低額の差）を把握します。
+
+・WHERE model_number = 'TECH-26'：型番が TECH-26 の取引に絞る
+・MAX(declared_value) AS max_value：会社ごとの最高申告額を求める
+・MIN(declared_value) AS min_value：会社ごとの最低申告額を求める
+・GROUP BY company_id：会社IDごとにまとめる
+
+極端に安い・高い取引が混ざっている会社がないか、振れ幅を確認しましょう。`,
+        clearFeedback: {
+            dialogue: "上司：TECH-26 の会社ごとの最高申告額と最低申告額を確認できたな。幅の大きさが分かったところで、次はならした水準（平均）を見てみよう。",
+            learned: [
+                "MAX(列名)：グループ内の最大値を求める",
+                "MIN(列名)：グループ内の最小値を求める",
+                "WHERE と GROUP BY の併用：特定の型番に絞ったうえで会社ごとの幅を比べられる"
+            ]
+        },
+        expectedSql: "SELECT company_id, MAX(declared_value) AS max_value, MIN(declared_value) AS min_value FROM Imports WHERE model_number = 'TECH-26' GROUP BY company_id;",
+        hints: [
+            {
+                level: 1,
+                type: "考え方",
+                text: "TECH-26 の取引に絞ったうえで、会社ごとに「一番高い申告額」と「一番安い申告額」を並べて金額の幅を確かめます。"
+            },
+            {
+                level: 2,
+                type: "使う構文",
+                text: "型番で絞る条件と、最大値を求める関数・最小値を求める関数・グループ化の指定を使います。"
+            },
+            {
+                level: 3,
+                type: "組み立て方",
+                text: "SELECT 表A.グループ列, MAX(表A.数値列) AS 別名, MIN(表A.数値列) AS 別名 FROM 表A → WHERE 表A.カラム = '値' → GROUP BY 表A.グループ列 の形で組み立てましょう。"
+            }
+        ],
+        dialogue: "上司：さっき出た業者たちの TECH-26 について、まずは会社ごとの申告額の最高値と最低値を出し、金額の幅を確認しよう。",
+        group: "🏢 第3章：疑わしい会社の集計",
+        glossary: {
+            title: "対象カラム・関数の意味",
+            html: `
+- <span class='badge'>model_number = 'TECH-26'</span> 絞り込む製品の型番<br>
+- <span class='badge'>MAX()</span> グループ内の最大値を求める関数<br>
+- <span class='badge'>MIN()</span> グループ内の最小値を求める関数
             `
         }
     },
     {
         id: 12,
-        title: "12. 港湾地域別の取引金額を集計せよ",
-        desc: "Port_Trade_Records テーブルから、港湾地域（region）ごとにグループ化し、地域名と各地域の申告額の合計（別名：total_value）を取得せよ。",
+        title: "12. TECH-26 の会社ごとの1個あたり申告額の平均を求めよ",
+        desc: "Imports テーブルから、型番（model_number）が 'TECH-26' の取引を対象に、会社ID（company_id）ごとの1個あたり申告額（申告額 declared_value ÷ 申告数量 quantity）の平均を小数点以下で四捨五入した値（別名：avg_unit_value）を取得せよ。",
+        concept: ["WHERE", "/", "AVG", "ROUND", "GROUP BY"],
+        difficulty: 2,
         orderSensitive: false,
         explanation: `【解説】
-Port_Trade_Records テーブルを使い、港湾地域（region）ごとの申告額合計を計算します。
+TECH-26 の取引に絞り、取引ごとの数量差に左右されない「1個あたりの申告額」を出したうえで、会社ごとの平均水準を比べます。
 
-・SUM(declared_value) AS total_value：地域ごとの申告額の合計を求める
-・GROUP BY region：港湾地域ごとにグループ化する
+・declared_value * 1.0 / quantity：1個あたりの申告額を計算する（* 1.0 で割り算の途中切り捨てを防ぐ）
+・ROUND(AVG(...), 0) AS avg_unit_value：会社ごとの平均を計算し、小数点以下を四捨五入して整数に丸める
+・WHERE model_number = 'TECH-26' AND GROUP BY company_id：TECH-26 に絞り、会社IDごとにまとめる
 
-どの港湾地域に大きな取引金額が集まっているか確認しましょう。`,
+最高・最低の幅とあわせて、ならしたときの単価水準も押さえておきましょう。`,
         clearFeedback: {
-            dialogue: "上司：港湾地域ごとの申告額の合計も確認できたな。次は取引件数が200件以上ある主要拠点を絞ってみよう。",
+            dialogue: "上司：TECH-26 の会社ごとの1個あたり申告額の平均を確認できたな。幅だけでなく、ならした単価水準の違いも見えてきたぞ。",
             learned: [
-                "Port_Trade_Records：港湾地域別の取引記録を扱うテーブル",
-                "SUM(列名) + GROUP BY：地域ごとの金額合計を集計する"
+                "/（割り算）：申告額を申告数量で割り、1個あたりの金額を求める",
+                "AVG(列名) / ROUND(数値, 0)：平均を出し、小数点以下を四捨五入して整数に丸める",
+                "WHERE と GROUP BY の併用：対象条件に絞ったうえでグループごとの平均を計算できる"
             ]
         },
-        expectedSql: "SELECT region, SUM(declared_value) AS total_value FROM Port_Trade_Records GROUP BY region;",
+        expectedSql: "SELECT company_id, ROUND(AVG(declared_value * 1.0 / quantity), 0) AS avg_unit_value FROM Imports WHERE model_number = 'TECH-26' GROUP BY company_id;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "港湾地域ごとにデータをまとめ、それぞれの地域で申告された金額の合計を出します。"
+                text: "TECH-26 の取引に絞ったうえで、まず「1個あたりの申告額（申告額÷申告数量）」を求め、その会社ごとの平均を四捨五入して整数にします。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "合計を求めるには SUM(列名) を使い、GROUP BY で地域ごとにまとめます。"
+                type: "使う構文",
+                text: "型番で絞る条件と、割り算（/）、平均を求める関数（AVG）、小数点を丸める関数（ROUND）、グループ化（GROUP BY）を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: "SELECT 地域列名, SUM(金額列名) AS total_value FROM テーブル名 GROUP BY 地域列名; の型に当てはめてみましょう。"
+                type: "組み立て方",
+                text: "SELECT 表A.グループ列, ROUND(AVG(表A.数値列 * 1.0 / 表A.数値列), 桁数) AS 別名 FROM 表A → WHERE 表A.カラム = '値' → GROUP BY 表A.グループ列 の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：会社だけでなく、港湾地域別の取引金額も確認しておこう。Port_Trade_Records で地域ごとの申告額合計を出してみてくれ。",
-        group: "🏢 第3章：疑わしい会社とルート",
+        dialogue: "上司：幅が見えたところで、今度は取引件数や個数の差に左右されないよう、会社ごとの1個あたり申告額の平均を出して単価水準を確かめよう。",
+        group: "🏢 第3章：疑わしい会社の集計",
         glossary: {
-            title: "対象テーブル・カラム",
+            title: "対象カラム・演算子・関数の意味",
             html: `
-- <span class='badge'>Port_Trade_Records</span> 港湾地域別取引記録<br>
-- <span class='badge'>region</span> 港湾地域名<br>
-- <span class='badge'>declared_value</span> 申告額
+- <span class='badge'>declared_value / quantity</span> 1個あたりの申告額（申告額 ÷ 申告数量）<br>
+- <span class='badge'>AVG(...)</span> 会社ごとの平均値<br>
+- <span class='badge'>ROUND(..., 0)</span> 小数点以下を四捨五入して整数に丸める
             `
         }
     },
     {
         id: 13,
-        title: "13. 取引件数が200件以上の港湾拠点を特定せよ",
-        desc: "Port_Trade_Records テーブルから、港湾地域（region）ごとに取引件数（別名：trade_count）を集計し、200件以上の地域だけを対象に、取引件数が多い順（降順）に並べよ。",
-        orderSensitive: true,
+        title: "13. TECH-26 の会社ごとの申告数量合計を集計せよ",
+        desc: "Imports テーブルから、型番（model_number）が 'TECH-26' の取引を対象に、会社ID（company_id）ごとの申告数量（quantity）の合計（別名：tech26_total_qty）を取得せよ。",
+        concept: ["WHERE", "SUM", "GROUP BY"],
+        difficulty: 2,
+        orderSensitive: false,
         explanation: `【解説】
-GROUP BY で地域ごとの件数を集計したあと、HAVING で200件以上の地域に絞り込み、ORDER BY ... DESC で多い順に並べます。
+TECH-26 の取引に絞り、どの会社IDでどれくらいの数量が動いているか合計を出します。
 
-・HAVING COUNT(*) >= 200：取引件数が200件以上の地域に絞る
-・ORDER BY trade_count DESC：件数が多い順に並べる
+・WHERE model_number = 'TECH-26'：型番が TECH-26 の取引に絞る
+・SUM(quantity) AS tech26_total_qty：会社ごとの申告数量の合計を求める
+・GROUP BY company_id：会社IDごとにまとめる
 
-取引件数や申告金額に偏りがある会社・地域が見つかりましたが、会社IDだけでは実際の会社名や所在地が分かりません。次の第4章では別々に保存されている記録を照合していきます。`,
+TECH-26 の数量規模を押さえたうえで、会社IDだけでは会社名までは分からないため、次のステップで他の表とつないで詳しく調べていきます。`,
         clearFeedback: {
-            dialogue: "上司：取引件数や申告金額に偏りがある会社・地域が見つかったな。しかし、会社IDだけでは実際の会社名や所在地が分からない。ここから先は、別々に保存されている記録を照合する必要がある。",
+            dialogue: "上司：TECH-26 の会社ごとの申告数量の合計を出せたな。会社IDだけでは会社名までは分からないから、次は他の表とつないで確かめよう。",
             learned: [
-                "HAVING COUNT(*) >= 200：集計後の件数条件で地域を絞り込む",
-                "第3章のまとめ：会社ID・港湾地域ごとの偏りを把握し、次の照合（JOIN）へつなげる"
+                "WHERE と SUM・GROUP BY の併用：特定の型番に絞ったうえで会社ごとに合計を計算できる",
+                "SUM(列名)：グループごとの数値を合計する"
             ]
         },
-        expectedSql: `SELECT
-    region,
-    COUNT(*) AS trade_count
-FROM Port_Trade_Records
-GROUP BY region
-HAVING COUNT(*) >= 200
-ORDER BY trade_count DESC;`,
+        expectedSql: "SELECT company_id, SUM(quantity) AS tech26_total_qty FROM Imports WHERE model_number = 'TECH-26' GROUP BY company_id;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "港湾地域ごとの取引件数を集計したあと、200件以上の地域だけに絞り込み、多い順に並べます。"
+                text: "「型番が TECH-26 の取引」だけに絞ったあと、会社IDごとに申告数量を合計します。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "集計後の絞り込みには HAVING、多い順の並び替えには ORDER BY と DESC を使います。"
+                type: "使う構文",
+                text: "型番で絞る条件と、合計を求める関数・グループ化の指定を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `GROUP BY 地域列名
-HAVING COUNT(*) >= 基準件数
-ORDER BY 別名 DESC
-の型に当てはめてみましょう。`
+                type: "組み立て方",
+                text: "SELECT 表A.グループ列, SUM(表A.数値列) AS 別名 FROM 表A → WHERE 表A.カラム = '値' → GROUP BY 表A.グループ列 の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：最後に、取引件数が200件以上ある港湾地域だけを絞り込んで、多い順に並べてみよう。偏りのある拠点を整理しておこう。",
-        group: "🏢 第3章：疑わしい会社とルート",
+        dialogue: "上司：TECH-26 の取引に絞って、会社IDごとの申告数量の合計を出してくれ。IDが分かったら、次は他の表と結びつけていくぞ。",
+        group: "🏢 第3章：疑わしい会社の集計",
         glossary: {
             title: "対象カラム・句の意味",
             html: `
-- <span class='badge'>region</span> 港湾地域名<br>
-- <span class='badge'>COUNT(*)</span> 地域ごとの取引件数<br>
-- <span class='badge'>HAVING</span> 集計後の条件指定<br>
-- <span class='badge'>ORDER BY ... DESC</span> 多い順（降順）の並び替え
+- <span class='badge'>model_number = 'TECH-26'</span> 絞り込む製品の型番<br>
+- <span class='badge'>SUM(quantity) AS tech26_total_qty</span> 会社ごとの申告数量の合計<br>
+- <span class='badge'>GROUP BY company_id</span> 会社IDごとに集計する
             `
         }
     },
-// ==========================================
-    // 第4章：つながる記録、浮かび上がる疑惑（14〜18）
+    // ==========================================
+    // 第4章：つながる記録、浮かび上がる疑惑（14〜17）
     // ==========================================
     {
         id: 14,
-        title: "14. 会社マスターと輸入記録を JOIN でつなげよ",
-        desc: "Import_Records テーブルと Company_Information_Records テーブルを company_id で JOIN し、取引ID（trade_id）・会社名（company_name）・所在地（address）・申告額（declared_value）を取得せよ。",
+        title: "14. TECH-26の会社情報と輸入記録を JOIN せよ",
+        desc: "型番（model_number）が「TECH-26」の取引に絞り、Imports と Companies を company_id で JOIN して、取引ID（trade_id）・会社名（company_name）・型番（Imports.model_number）を取得せよ。",
         prologue: "押収した資料を調べると、輸入記録には会社ID、会社マスターには会社名や所在地が別々に保存されている。記録を単独で見るだけでは、取引を行った企業の実態までは分からない。共通するIDを手がかりに複数の表を照合し、断片的な情報を一つの証拠としてつなげよう。",
         orderSensitive: false,
         explanation: `【解説】
-まずは JOIN で「2つの表を共通のIDで横につなぐ練習」をしましょう。
+まずはTECH-26の取引に絞ったうえで、2つの表を共通のID（company_id）で横につなぐ基本の JOIN から始めましょう。
 
-・JOIN Company_Information_Records：会社情報をつなぐ表を指定する
-・ON Import_Records.company_id = Company_Information_Records.company_id：同じ company_id の行どうしをくっつける目印
-
-どの表の列か分かりやすくするため、「テーブル名.列名」と書きます。まずはどの会社がどんな申告額で取引しているか確認しましょう。`,
+・JOIN Companies：会社情報をつなぐ表を指定する（INNER JOIN と同じ意味です）
+・ON Imports.company_id = Companies.company_id：同じ company_id の行どうしを合わせる目印
+・WHERE Imports.model_number = 'TECH-26'：TECH-26の取引に絞る`,
         clearFeedback: {
-            dialogue: "上司：会社名や所在地が見えるようになったな。次は INNER JOIN を使って、輸入記録と税関検査記録を trade_id でつないでみよう。",
+            dialogue: "上司：TECH-26の輸入記録を会社マスターとつないで、取引ごとの会社名と型番を確認できたな。",
             learned: [
-                "JOIN 〜 ON 〜：共通のIDが一致する行どうしを横につなぐ基本の書き方",
+                "JOIN 〜 ON 〜：共通のIDが一致する行どうしを横につなぐ基本の書き方（INNER JOIN と同じ）",
+                "WHERE Imports.model_number = 'TECH-26'：対象の型番に絞り込む",
+                "SELECT Imports.model_number：絞り込みに使った型番も結果に表示する",
                 "テーブル名.列名：どの表の列かをはっきりさせる書き方"
             ]
         },
         expectedSql: `SELECT
-    Import_Records.trade_id,
-    Company_Information_Records.company_name,
-    Company_Information_Records.address,
-    Import_Records.declared_value
-FROM Import_Records
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id;`,
+    Imports.trade_id,
+    Companies.company_name,
+    Imports.model_number
+FROM Imports
+JOIN Companies
+    ON Imports.company_id = Companies.company_id
+WHERE Imports.model_number = 'TECH-26';`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "輸入記録と会社マスターを、両方に共通する company_id を目印にして横につなぎます。"
+                text: "TECH-26の取引に絞り、会社名を知るために会社マスターをつなぎます。取引ID・会社名・型番を表示しましょう。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "JOIN でつなぐ表を書き、ON で「表1.company_id = 表2.company_id」とつなぐ目印を指定します。"
+                type: "使う構文",
+                text: "WHEREで型番を絞る条件に加えて、別の表をつなぐキーワードと、どの列同士が一致するかを教える条件指定を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    Import_Records.trade_id,
-    Company_Information_Records.company_name
-FROM Import_Records
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id;`
+                type: "組み立て方",
+                text: "FROM 表A → JOIN 表B ON 表A.共通キー = 表B.共通キー → WHERE 表A.カラム = '値' の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：まずはつなげる練習だ。会社マスターと輸入記録を JOIN でつないで、会社名と所在地を出してみよう。",
+        dialogue: "上司：TECH-26の取引がどの会社のものか、型番も表示しながらImports と Companies を JOIN して確かめよう。",
         group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
         glossary: {
             title: "会社情報と輸入記録をつなぐ項目",
             html: `
-- <span class='badge'>Company_Information_Records</span> 会社マスター（company_name / address）<br>
-- <span class='badge'>Import_Records</span> 輸入・取引記録（trade_id / declared_value）<br>
+- <span class='badge'>Companies</span> 会社マスター（company_name）<br>
+- <span class='badge'>Imports</span> 輸入・取引記録（trade_id）<br>
+- <span class='badge'>Imports.model_number</span> 型番（TECH-26に絞り込み、結果にも表示）<br>
 - <span class='badge'>company_id</span> 2つの表をつなぐ共通の会社ID
             `
         }
     },
     {
         id: 15,
-        title: "15. 輸入記録と税関検査記録を INNER JOIN で結びつけよ",
-        desc: "Import_Records テーブルと Customs_Inspection_Records テーブルを trade_id で INNER JOIN し、取引ID（trade_id）・申告数量（declared_quantity）・検査数量（inspected_quantity）を取得せよ。",
+        title: "15. TECH-26の輸入記録とコンテナ保管記録を JOIN せよ",
+        desc: "型番（model_number）が「TECH-26」の取引に絞り、Imports と Containers を trade_id で JOIN して、取引ID（trade_id）・コンテナ番号（container_number）・型番（Imports.model_number）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
-つなぐ感覚がつかめたところで、今度は INNER JOIN を使ってみましょう。
+14番に続いて、TECH-26の取引に絞ったうえで Imports と Containers を共通の trade_id でつなぎます。
 
-・INNER JOIN Customs_Inspection_Records：取引IDが一致する検査記録をつなぐ
-・ON Import_Records.trade_id = Customs_Inspection_Records.trade_id：同じ trade_id の行どうしを合わせる
-
-INNER JOIN は、両方の表に一致するデータがあるものだけを表示します。つまり「検査記録そのものが載っていない取引」は、この時点ではまだ見えません。`,
+・JOIN Containers ON Imports.trade_id = Containers.trade_id：同じ取引IDの行どうしを合わせる
+・WHERE Imports.model_number = 'TECH-26'：TECH-26の取引に絞る
+・取引とコンテナの対応関係をたどれるようにする`,
         clearFeedback: {
-            dialogue: "上司：検査記録がある取引は並べて見られたな。でも、検査記録が抜けている取引はないだろうか？ LEFT JOIN で確かめてみよう。",
+            dialogue: "上司：TECH-26の輸入記録とコンテナ保管記録をつなげて、取引・コンテナ・型番を確認できたな。",
             learned: [
-                "INNER JOIN 〜 ON 〜：両方の表に一致する行どうしを結びつける",
-                "trade_id：取引記録と税関検査記録をつなぐ共通の取引ID"
+                "JOIN 〜 ON 〜：別の表とも共通ID（trade_id）で横につなげる",
+                "WHERE Imports.model_number = 'TECH-26'：対象の型番に絞り込む",
+                "SELECT Imports.model_number：絞り込みに使った型番も結果に表示する",
+                "つなぐ相手が変わっても、JOIN と ON の形は同じ"
             ]
         },
         expectedSql: `SELECT
-    Import_Records.trade_id,
-    Customs_Inspection_Records.declared_quantity,
-    Customs_Inspection_Records.inspected_quantity
-FROM Import_Records
-INNER JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id;`,
+    Imports.trade_id,
+    Containers.container_number,
+    Imports.model_number
+FROM Imports
+JOIN Containers
+    ON Imports.trade_id = Containers.trade_id
+WHERE Imports.model_number = 'TECH-26';`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "今度は company_id ではなく trade_id を目印にして、輸入記録と税関検査記録を INNER JOIN します。"
+                text: "TECH-26に絞り、コンテナ保管記録を結びつけて、取引ID・コンテナ番号・型番を表示しましょう。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "INNER JOIN Customs_Inspection_Records のあとに、ON で trade_id 同士を結びつけます。"
+                type: "使う構文",
+                text: "WHEREで型番を絞る条件に加えて、表をつなぐ結合キーワードと取引IDを一致させる条件を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    Import_Records.trade_id,
-    Customs_Inspection_Records.inspected_quantity
-FROM Import_Records
-INNER JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id;`
+                type: "組み立て方",
+                text: "FROM 表A → JOIN 表B ON 表A.共通キー = 表B.共通キー → WHERE 表A.カラム = '値' の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：次は INNER JOIN を使って、輸入記録と税関検査記録を trade_id でつないでみよう。申告数と検査数が合っているか見るんだ。",
+        dialogue: "上司：TECH-26の貨物がどのコンテナに入っているか、型番も表示してImports と Containers をtrade_idでつないで確かめよう。",
         group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
         glossary: {
-            title: "取引記録と検査記録をつなぐ項目",
+            title: "輸入記録とコンテナ保管記録をつなぐ項目",
             html: `
-- <span class='badge'>Customs_Inspection_Records</span> 税関検査記録<br>
-- <span class='badge'>trade_id</span> 取引ID（つなぐ目印）<br>
-- <span class='badge'>declared_quantity / inspected_quantity</span> 申告数量と検査数量
+- <span class='badge'>Imports</span> 輸入・取引記録（trade_id）<br>
+- <span class='badge'>Containers</span> コンテナ保管記録（container_number）<br>
+- <span class='badge'>Imports.model_number</span> 型番（TECH-26に絞り込み、結果にも表示）<br>
+- <span class='badge'>trade_id</span> 2つの表をつなぐ共通の取引ID
             `
         }
     },
     {
         id: 16,
-        title: "16. LEFT JOIN で全取引の検査記録の有無を確認せよ",
-        desc: "Import_Records テーブルを基準に Customs_Inspection_Records テーブルを LEFT JOIN し、取引ID（trade_id）・型番（model_number）・検査数量（inspected_quantity）を取得せよ。",
+        title: "16. LEFT JOINでTECH-26の受入数量未記録取引を照合せよ",
+        desc: "型番（model_number）が「TECH-26」で、受入数量（received_quantity）がNULLの取引を対象に、Importsを左側にしてContainersをtrade_idでLEFT JOINし、取引ID（trade_id）・コンテナ番号（container_number）・型番（Imports.model_number）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
-ここからは LEFT JOIN を使います。LEFT JOIN は「左側（FROM に書いた Import_Records）の行をぜんぶ残したまま、右側の表をつなぐ」書き方です。
+15番のINNER JOINと比べ、Importsを左側にしてLEFT JOINします。Containers側に一致する記録がなくてもImportsの行は残ります。
 
-・LEFT JOIN Customs_Inspection_Records：右側に検査記録がなくても、左側の取引は消さずに残す
-・NULL：右側の表に対応するデータがないことを表す空っぽの状態
+・LEFT JOIN Containers ON Imports.trade_id = Containers.trade_id：左側のImportsをすべて残して保管情報をつなぐ
+・WHERE Imports.model_number = 'TECH-26'：TECH-26の取引に絞る
+・AND Imports.received_quantity IS NULL：その中から受入数量が空の行を選ぶ
 
-「検査記録が抜けている取引」がないか、まずは全体を見てみましょう。`,
+この問題のNULLはImports.received_quantityに記録されたNULLです。LEFT JOINで生じるContainers側のNULLとは区別して考えましょう。`,
         clearFeedback: {
-            dialogue: "上司：inspected_quantity が NULL になっている行があるぞ！ 検査記録が抜けている取引だけを絞り込んでみよう。",
+            dialogue: "上司：TECH-26のうち受入数量が未記録の取引を、型番とコンテナ番号も含めて確認できたな。",
             learned: [
-                "LEFT JOIN：左側の表をぜんぶ残しながら右側の表をつなぐ",
-                "NULL：対応するデータが存在しない状態"
+                "LEFT JOIN と WHERE の組み合わせ：Importsを残したまま条件に合う行を抽出できる",
+                "AND：型番と受入数量の両方の条件を満たす行を選ぶ",
+                "SELECT Imports.model_number：絞り込みに使った型番も結果に表示する",
+                "IS NULL：値が記録されていない行を絞り込む"
             ]
         },
         expectedSql: `SELECT
-    Import_Records.trade_id,
-    Import_Records.model_number,
-    Customs_Inspection_Records.inspected_quantity
-FROM Import_Records
-LEFT JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id;`,
+    Imports.trade_id,
+    Containers.container_number,
+    Imports.model_number
+FROM Imports
+LEFT JOIN Containers
+    ON Imports.trade_id = Containers.trade_id
+WHERE Imports.model_number = 'TECH-26'
+  AND Imports.received_quantity IS NULL;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "輸入記録の行をぜんぶ残したまま税関検査記録をつなぎ、検査数量が NULL になっている行がないか確認します。"
+                text: "15番と同じくTECH-26に絞り、LEFT JOINで受入数量の記録が空になっている行を抽出します。型番も結果に含めましょう。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "LEFT JOIN を使うと、左側の表の行が残ります。"
+                type: "使う構文",
+                text: "LEFT JOINでImportsの行を残し、WHEREで型番を絞ったあと、ANDとIS NULLで受入数量が未記録の取引に絞ります。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    Import_Records.trade_id,
-    Customs_Inspection_Records.inspected_quantity
-FROM Import_Records
-LEFT JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id;`
+                type: "組み立て方",
+                text: "FROM 表A → LEFT JOIN 表B ON 表A.共通キー = 表B.共通キー → WHERE 表A.カラム = '値' AND 表A.カラム IS NULL の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：検査記録がない取引が隠れていないかな。LEFT JOIN を使って、輸入記録をぜんぶ残したまま検査記録をつないでみよう。",
+        dialogue: "上司：TECH-26で受入数量が NULL の取引があるな。どのコンテナにあるか、絞り込んで確かめよう。",
         group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
         glossary: {
-            title: "LEFT JOIN と NULL",
+            title: "未記録の受入数量とコンテナを絞り込む項目",
             html: `
-- <span class='badge'>LEFT JOIN</span> 左側の表をぜんぶ残す結合<br>
-- <span class='badge'>inspected_quantity</span> 税関での検査数量<br>
-- <span class='badge'>NULL</span> 検査記録が存在しない状態
+- <span class='badge'>Imports.received_quantity</span> 受入数量<br>
+- <span class='badge'>Imports.model_number</span> 型番（TECH-26に絞り込み、結果にも表示）<br>
+- <span class='badge'>IS NULL</span> 値が記録されていない状態<br>
+- <span class='badge'>Containers.container_number</span> コンテナ番号
             `
         }
     },
     {
         id: 17,
-        title: "17. 検査記録が存在しない取引を発見せよ",
-        desc: "Import_Records テーブルを基準に Customs_Inspection_Records テーブルを LEFT JOIN し、税関検査記録が存在しない取引の取引ID（trade_id）と型番（model_number）を取得せよ。",
+        title: "17. TECH-26の未記録取引を3テーブルの JOIN で照合せよ",
+        desc: "Imports・Companies・Containers の3テーブルを JOIN し、型番（model_number）が「TECH-26」で受入数量（received_quantity）が NULL の取引について、会社名（company_name）・取引ID（trade_id）・型番（Imports.model_number）・コンテナ番号（container_number）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
-LEFT JOIN でつないだあとに、右側の表に記録がない（NULL の）行だけを絞り込みます。
+16番の2テーブル結合に Companies を加え、3つの表をそれぞれの共通IDでつなぎます。Importsから取引IDと型番、Companiesから会社名、Containersからコンテナ番号を取り出します。
 
-・LEFT JOIN Customs_Inspection_Records：検査記録がない取引も残す
-・WHERE Customs_Inspection_Records.trade_id IS NULL：検査記録側に一致する取引IDがない行だけを選ぶ
+・JOIN Companies ON Imports.company_id = Companies.company_id：会社IDで会社名をつなぐ
+・JOIN Containers ON Imports.trade_id = Containers.trade_id：取引IDでコンテナ番号をつなぐ
+・WHERE Imports.model_number = 'TECH-26'：TECH-26の取引に絞る
+・AND Imports.received_quantity IS NULL：その中から受入数量が未記録の行に絞る
 
-ここで T008 が見つかります。ただし、検査記録がない＝即犯人とは限りません。単なる「記録の登録漏れ（抜け）」の可能性もあるので、どの会社の取引か確認してみましょう。NULL の判定には必ず IS NULL を使います。`,
+受入数量が未記録の荷物が「どのコンテナにあり」「どこの会社に紐づくか」まで一気に照合できます。`,
         clearFeedback: {
-            dialogue: "上司：T008 の検査記録が抜けているな。ただ、記録の漏れ（事務的な抜け）かもしれない。どの会社の取引か、会社情報とつないで確かめよう。",
+            dialogue: "上司：TECH-26で受入数量が未記録の取引について、会社・型番・コンテナまで照合できたな。",
             learned: [
-                "IS NULL：値が入っていない（NULL の）行を探す条件",
-                "T008 の確認：検査記録が未登録の取引を見つける（記録漏れの可能性も含めて確認する）"
+                "3テーブルの JOIN：つなぐ相手ごとに正しい共通ID（company_id / trade_id）を指定する",
+                "複数結合＋WHERE・AND：複数の表をまとめて複数の条件で絞り込める",
+                "SELECT Imports.model_number：絞り込みに使った型番も結果に表示する"
             ]
         },
         expectedSql: `SELECT
-    Import_Records.trade_id,
-    Import_Records.model_number
-FROM Import_Records
-LEFT JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id
-WHERE Customs_Inspection_Records.trade_id IS NULL;`,
+    Companies.company_name,
+    Imports.trade_id,
+    Imports.model_number,
+    Containers.container_number
+FROM Imports
+JOIN Companies
+    ON Imports.company_id = Companies.company_id
+JOIN Containers
+    ON Imports.trade_id = Containers.trade_id
+WHERE Imports.model_number = 'TECH-26'
+  AND Imports.received_quantity IS NULL;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "16番の LEFT JOIN に、右側の検査記録が存在しない（NULL である）という条件を足します。"
+                text: "16番と同じくTECH-26かつ受入数量が未記録の取引に絞り、会社名と型番も含めて結果にまとめます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "NULL を探すときは「= NULL」ではなく「IS NULL」と書きます。"
+                type: "使う構文",
+                text: "結合を2回続けて3つの表をつなぎ、型番と受入数量の条件をANDで組み合わせます。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    Import_Records.trade_id
-FROM Import_Records
-LEFT JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id
-WHERE Customs_Inspection_Records.inspected_quantity IS NULL;`
+                type: "組み立て方",
+                text: "FROM 表A → JOIN 表B ON 表A.共通キー = 表B.共通キー → JOIN 表C ON 表A.共通キー = 表C.共通キー → WHERE 表A.カラム = '値' AND 表A.カラム IS NULL の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：記録が抜けている取引に注目してくれ。検査記録が存在しない取引だけを IS NULL で絞り込み、未登録の取引を突き止めよう。",
+        dialogue: "上司：TECH-26で受入数量が未記録の荷物がどこの会社の取引なのか、型番も含めて3つの表で照合しよう。",
         group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
         glossary: {
-            title: "未検査取引を絞り込む構文",
+            title: "3テーブル照合に使う項目とキー",
             html: `
-- <span class='badge'>IS NULL</span> 値が存在しない（NULL）行を絞り込む<br>
-- <span class='badge'>T008</span> 税関検査記録が登録されていない取引（記録漏れの可能性）
+- <span class='badge'>Companies.company_name</span> 会社名（company_id で結合）<br>
+- <span class='badge'>Imports.trade_id</span> 取引ID<br>
+- <span class='badge'>Imports.model_number</span> 型番（TECH-26に絞り込み、結果にも表示）<br>
+- <span class='badge'>Containers.container_number</span> コンテナ番号（trade_id で結合）
             `
         }
     },
+
+    // ==========================================
+    // 第5章：USB容量の分類とT008の切り分け（18〜19）
+    // ==========================================
     {
         id: 18,
-        title: "18. 検査記録が未登録の取引を行った企業を確認せよ",
-        desc: "Import_Records テーブルを基準に Company_Information_Records を JOIN、Customs_Inspection_Records を LEFT JOIN し、税関検査記録が存在しない取引について、会社名（company_name）・取引ID（trade_id）・型番（model_number）を取得せよ。",
+        title: "18. USB容量の検査結果を3段階に分類せよ",
+        desc: "Imports テーブルから、取引ID（trade_id）・広告容量（advertised_capacity）・実容量（actual_capacity）と、実容量が広告容量より少ないなら '容量不足'、同じなら '正常'、それ以外は '超過' とする分類列（別名：capacity_status）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
-ここでは「三陸フロンティア（T008）」の検査記録が抜けていることがわかります。
+CASE WHEN を使うと、条件ごとにラベルを分けて新しい列を作れます。
 
-・JOIN Company_Information_Records：会社名をくっつける
-・LEFT JOIN Customs_Inspection_Records：検査記録がない取引も消さずに残す
-・WHERE Customs_Inspection_Records.trade_id IS NULL：検査記録が抜けている取引だけに絞る
+・WHEN actual_capacity < advertised_capacity THEN '容量不足'
+・WHEN actual_capacity = advertised_capacity THEN '正常'
+・ELSE '超過'
+・END AS capacity_status
 
-三陸フロンティア（T008）は「検査記録の登録漏れ」のようにも見えます。1つの抜けや異常だけで決めつけず、次の第5章ではUSB容量の検査結果も見ていきましょう。`,
+上から順に条件をチェックし、当てはまったラベルが capacity_status に入ります。`,
         clearFeedback: {
-            dialogue: "上司：T008 は三陸フロンティアか。どうやらここは単なる検査記録の登録漏れ（抜け）の可能性が高いな。決めつけず、USB容量や金額の異常とあわせて本当の不正を突き止めよう。",
+            dialogue: "上司：USB容量の検査結果を3段階に分類できたな。",
             learned: [
-                "JOIN と LEFT JOIN の組み合わせ：会社名を出すための JOIN と、抜けを探すための LEFT JOIN を併用できる",
-                "捜査の視点：1つの抜けや異常だけで決めつけず、複数の証拠を照らし合わせる"
+                "CASE WHEN 〜 THEN 〜 ELSE 〜 END：条件ごとに異なる値を返す分岐構文",
+                "AS capacity_status：分類結果の列に別名を付ける"
             ]
         },
         expectedSql: `SELECT
-    Company_Information_Records.company_name,
-    Import_Records.trade_id,
-    Import_Records.model_number
-FROM Import_Records
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id
-LEFT JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id
-WHERE Customs_Inspection_Records.trade_id IS NULL;`,
+    trade_id,
+    advertised_capacity,
+    actual_capacity,
+    CASE
+        WHEN actual_capacity < advertised_capacity THEN '容量不足'
+        WHEN actual_capacity = advertised_capacity THEN '正常'
+        ELSE '超過'
+    END AS capacity_status
+FROM Imports;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "Import_Records を真ん中に置いて会社マスターをつなぎ、さらに税関検査記録を LEFT JOIN して IS NULL で絞ります。"
+                text: "元のデータにはない「判定ラベルの列」を、実容量と広告容量の比べ方によって新しく作り出します。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "14番の JOIN と17番の LEFT JOIN + IS NULL を組み合わせるイメージです。"
+                type: "使う構文",
+                text: "条件分岐を作る構文を使います。「もし〜なら」のあとに「そうだったらこの値」を書き、どれにも当てはまらないときの扱いと、ひとまとまりの終わり＋別名をつけます。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    Company_Information_Records.company_name,
-    Import_Records.trade_id
-FROM Import_Records
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id
-LEFT JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id
-WHERE Customs_Inspection_Records.trade_id IS NULL;`
+                type: "組み立て方",
+                text: "SELECT 表A.識別列, CASE WHEN 条件A THEN '結果A' WHEN 条件B THEN '結果B' ELSE 'その他' END AS 別名 FROM 表A の形で、分類列を組み立てましょう。"
             }
         ],
-        dialogue: "上司：検査記録が抜けている取引はどの会社のものだ？ 会社情報とつないで確かめよう。",
-        group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
+        dialogue: "上司：次はUSB容量の検査記録を見てみよう。実容量と広告容量を比べて、3段階に分類してみてくれ。",
+        group: "💾 第5章：USB容量の分類と T008 の切り分け",
         glossary: {
-            title: "会社情報と未登録取引を照合する項目",
+            title: "USB容量分類の項目",
             html: `
-- <span class='badge'>company_name</span> 会社名<br>
-- <span class='badge'>三陸フロンティア（T008）</span> 検査記録が抜けている取引（登録漏れの可能性）<br>
-- <span class='badge'>IS NULL</span> 検査記録が存在しない取引の絞り込み
+- <span class='badge'>advertised_capacity</span> 広告・表示上の容量<br>
+- <span class='badge'>actual_capacity</span> 実際の測定容量<br>
+- <span class='badge'>CASE WHEN ... END</span> 条件分岐で分類を作る構文
             `
         }
     },
-
-    // ==========================================
-    // 第5章：異常取引の分類と照合（19〜21）
-    // ==========================================
     {
         id: 19,
-        title: "19. USB容量の異常を3段階に分類せよ",
-        desc: "USB_Inspection_Records テーブルから、取引ID（trade_id）・商品名（product_name）・広告容量（advertised_capacity）・実容量（actual_capacity）と、実容量が広告容量の50%未満なら「重大な異常」、それ以外で実容量が広告容量未満なら「要確認」、それ以外は「正常」とする inspection_result を取得せよ。",
+        title: "19. T008 のUSB容量を確認して切り分けよ",
+        desc: "Imports テーブルから、取引ID（trade_id）が 'T008' の記録について、取引ID（trade_id）・広告容量（advertised_capacity）・実容量（actual_capacity）と、18番と同じ3段階分類（別名：capacity_status）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
-CASE WHEN を使うと、条件に応じて3段階の分類ラベルを付けられます。
+17番で見つかった受入数量未記録の取引（T008）について、USB容量に問題がないか確認します。
 
-・WHEN actual_capacity < advertised_capacity * 0.5 THEN '重大な異常'：実容量が広告容量の50%未満
-・WHEN actual_capacity < advertised_capacity THEN '要確認'：50%以上100%未満（広告容量より少ない）
-・ELSE '正常'：広告容量と一致（それ以外）
+・WHERE trade_id = 'T008'：対象の取引IDに絞り込む
+・CASE WHEN ... END AS capacity_status：容量の状態を確認する
 
-上から順に評価されるので、最も厳しい「50%未満」を最初に書くのがポイントです。`,
+容量に異常がなければ、受入数量の未記録は容量ごまかしではなく登録漏れの可能性が高いと判断できます。`,
         clearFeedback: {
-            dialogue: "上司：USB容量を3段階に分類できたな。そういえば、さっき検査記録が抜けていた三陸フロンティア（T008）はどうなっている？ ピンポイントで確かめてみよう。",
+            dialogue: "上司：T008 のUSB容量を確認できたな。容量に問題がないなら、受入数量の未記録は容量ごまかしではなく登録漏れの可能性が高そうだ。別の怪しい取引を絞り込もう。",
             learned: [
-                "CASE WHEN 〜 THEN 〜 WHEN 〜 THEN 〜 ELSE 〜 END：複数条件で3段階以上に分類する",
-                "AS inspection_result：分類結果の列に別名を付ける"
-            ]
-        },
-        expectedSql: `SELECT
-    trade_id,
-    product_name,
-    advertised_capacity,
-    actual_capacity,
-    CASE
-        WHEN actual_capacity < advertised_capacity * 0.5
-            THEN '重大な異常'
-        WHEN actual_capacity < advertised_capacity
-            THEN '要確認'
-        ELSE '正常'
-    END AS inspection_result
-FROM USB_Inspection_Records;`,
-        hints: [
-            {
-                level: 1,
-                type: "考え方",
-                text: "広告容量と実容量を比べ、「50%未満」→「広告容量未満（50%以上100%未満）」→「それ以外（正常）」の順に分類します。"
-            },
-            {
-                level: 2,
-                type: "構文",
-                text: "CASE の中に WHEN 〜 THEN 〜 を複数並べ、最後に ELSE 〜 END AS inspection_result と書きます。"
-            },
-            {
-                level: 3,
-                type: "具体例",
-                text: `SELECT
-    trade_id,
-    CASE
-        WHEN actual_capacity < advertised_capacity * 0.8 THEN '少ない'
-        ELSE '十分'
-    END AS status_label
-FROM USB_Inspection_Records;`
-            }
-        ],
-        dialogue: "上司：USBメモリの広告容量と実容量に差がある商品があるらしい。3段階（重大な異常・要確認・正常）に分類して見てみよう。",
-        group: "💾 第5章：異常取引の分類と照合",
-        glossary: {
-            title: "USB容量検査記録の項目と分類基準",
-            html: `
-- <span class='badge'>USB_Inspection_Records</span> USB容量検査記録<br>
-- <span class='badge'>advertised_capacity</span> 広告容量（表示容量）<br>
-- <span class='badge'>actual_capacity</span> 実容量（実測容量）<br>
-- <span class='badge'>inspection_result</span> 重大な異常 / 要確認 / 正常 の判定結果
-            `
-        }
-    },
-    {
-        id: 20,
-        title: "20. 気になる取引IDのUSB容量をピンポイントで確認せよ",
-        desc: "USB_Inspection_Records テーブルから、取引ID（trade_id）が「T008」の取引について、取引ID（trade_id）・広告容量（advertised_capacity）・実容量（actual_capacity）・検査結果（inspection_result）を取得せよ。",
-        orderSensitive: false,
-        explanation: `【解説】
-件数が多い一覧の中から探すのではなく、WHERE trade_id = 'T008' でピンポイントに絞り込みます。
-
-・T008 を確認すると、広告容量 1024 に対して実容量も 1024 で「正常」になっています。
-・つまり T008 は容量のごまかしはなく、税関検査記録の「登録漏れ」だった可能性が高いと判断できます。
-
-T008 の容量は正常と切り分けできたので、次の21番では複数 JOIN を使って、本当に「重大な異常」がある取引と会社を絞り込みましょう。`,
-        clearFeedback: {
-            dialogue: "上司：T008 は 1024 で「正常」か。容量に異常はないな。やはり税関検査記録の登録漏れで間違いなさそうだ。次は複数 JOIN を使って、本当に容量に重大な異常がある取引と会社を絞り込もう。",
-            learned: [
-                "ピンポイント確認：WHERE で特定の取引IDに絞ると、容量の判定をすぐ確かめられる",
-                "切り分け：T008 は容量正常のため登録漏れと整理し、次の複数 JOIN へ進む"
+                "WHERE と CASE WHEN の併用：特定の対象に絞ったうえで条件分類を行える",
+                "異常の切り分け：記録の欠落が容量異常と結びつくか確認できる"
             ]
         },
         expectedSql: `SELECT
@@ -1129,345 +1053,316 @@ T008 の容量は正常と切り分けできたので、次の21番では複数 
     advertised_capacity,
     actual_capacity,
     CASE
-        WHEN actual_capacity < advertised_capacity * 0.5
-            THEN '重大な異常'
-        WHEN actual_capacity < advertised_capacity
-            THEN '要確認'
-        ELSE '正常'
-    END AS inspection_result
-FROM USB_Inspection_Records
+        WHEN actual_capacity < advertised_capacity THEN '容量不足'
+        WHEN actual_capacity = advertised_capacity THEN '正常'
+        ELSE '超過'
+    END AS capacity_status
+FROM Imports
 WHERE trade_id = 'T008';`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "19番の USB容量の分類 SQL に、取引IDが 'T008' という条件を追加します。"
+                text: "18番で作った3段階の分類表示を、すべての取引ではなく「特定の1件の取引ID」だけに絞って確認します。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "FROM USB_Inspection_Records のあとに WHERE trade_id = 'T008' を書きます。"
+                type: "使う構文",
+                text: "3段階分類の仕組みと、特定のIDに一致する行だけを選ぶ条件指定を合わせます。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    trade_id,
-    advertised_capacity,
-    actual_capacity
-FROM USB_Inspection_Records
-WHERE trade_id = 'T001';`
+                type: "組み立て方",
+                text: "SELECT 表A.識別列, CASE WHEN 条件A THEN '結果A' ELSE 'その他' END AS 別名 FROM 表A → WHERE 表A.識別列 = '値' の形で、対象を絞りましょう。"
             }
         ],
-        dialogue: "上司：さっき未検査だった取引、本当に容量も正常なのか？ WHERE で T008 に絞って確かめてみよう。",
-        group: "💾 第5章：異常取引の分類と照合",
+        dialogue: "上司：さっき受入数量が未記録だった T008 だが、USB容量のほうはどうなっている？確認して切り分けよう。",
+        group: "💾 第5章：USB容量の分類と T008 の切り分け",
         glossary: {
-            title: "取引IDを指定して確認するポイント",
+            title: "T008 切り分けの確認項目",
             html: `
-- <span class='badge'>trade_id = 'T008'</span> 未検査だった取引ID<br>
-- <span class='badge'>1024 / 1024（正常）</span> 広告容量と実容量が一致しており容量異常はない<br>
-- <span class='badge'>登録漏れ</span> 検査記録が抜けていただけの可能性が高い
+- <span class='badge'>trade_id = 'T008'</span> 受入数量が未記録の対象取引<br>
+- <span class='badge'>capacity_status</span> 容量の分類結果
+            `
+        }
+    },
+
+    // ==========================================
+    // 第6章：異常の切り分けとコンテナの特定（20〜24）
+    // ==========================================
+    {
+        id: 20,
+        title: "20. 重量異常と容量不足の候補をまとめて抽出せよ",
+        desc: "Imports から、TECH-26で数量不足かつ重量超過の取引、または広告容量より実容量が小さい取引を抽出せよ。",
+        orderSensitive: false,
+        explanation: `【解説】
+        まずは2種類の異常候補を OR でまとめて洗い出します。
+
+        ・数量不足かつ重量超過：受入数量が申告数量より少ないのに実重量が重い
+        ・容量不足：実容量が広告容量より小さい
+        ・OR：どちらかの異常条件を満たす行を抽出する
+
+        この段階では候補を広く拾います。次の問題で2つの切り口を別々に確認しましょう。`,
+        clearFeedback: {
+            dialogue: "上司：重量の異常とUSB容量不足、2種類の候補が見つかった。別々に確かめてから最終照合しよう。",
+            learned: ["OR：どちらかの条件を満たす行を選ぶ", "AND：同じ切り口の複数条件をすべて満たす行を選ぶ"]
+        },
+        expectedSql: `SELECT trade_id, model_number, quantity, received_quantity, declared_weight_kg, actual_weight_kg, advertised_capacity, actual_capacity
+FROM Imports
+WHERE (model_number = 'TECH-26' AND received_quantity < quantity AND actual_weight_kg > declared_weight_kg)
+   OR (model_number = 'TECH-26' AND actual_capacity < advertised_capacity);`,
+        hints: [
+            {
+                level: 1,
+                type: "考え方",
+                text: "「TECH-26で、数が減っているのに重くなっているグループ」と「TECH-26で、容量が足りないグループ」のどちらかに当てはまるものを広く集めます。"
+            },
+            {
+                level: 2,
+                type: "使う構文",
+                text: "同じグループ内で複数条件をまとめるつなぎ方と、2つのグループを合わせるつなぎ方、そして大小比較の記号・丸括弧を使います。"
+            },
+            {
+                level: 3,
+                type: "組み立て方",
+                text: "FROM 表A → WHERE (必須条件 AND 条件A AND 条件B) OR (必須条件 AND 条件C) の形で、条件のまとまりを丸括弧に入れて組み立てましょう。"
+            }
+        ],
+        dialogue: "上司：まずはTECH-26の中から、数量と重量に不自然な差がある取引、またはUSB容量が不足している取引を拾おう。",
+        group: "🎯 最終章：異常の切り分けとコンテナ特定",
+        glossary: {
+            title: "2種類の異常候補を探すカラム",
+            html: `
+- <span class='badge'>received_quantity / quantity</span> 受入数量と申告数量<br>
+- <span class='badge'>actual_weight_kg / declared_weight_kg</span> 実重量と申告重量<br>
+- <span class='badge'>actual_capacity / advertised_capacity</span> 実容量と広告容量<br>
+- <span class='badge'>OR</span> いずれかの異常条件を満たす行を取得する
             `
         }
     },
     {
         id: 21,
-        title: "21. 複数 JOIN で容量が大きく足りない取引と会社を調べよ",
-        desc: "USB_Inspection_Records・Import_Records・Company_Information_Records をつなぎ、実容量（actual_capacity）が広告容量（advertised_capacity）の半分未満である取引について、会社名（company_name）・取引ID（trade_id）・商品名（product_name）・申告額（declared_value）を取得せよ。",
+        title: "21. 必須条件と選択条件を分け、数量・重量の異常を特定せよ",
+        desc: "Imports から、型番が TECH-26 かつ受入数量が NULL でない取引のうち、（受入数量が申告数量より少なく実重量が申告重量より重い、または実重量が申告重量の1.2倍より重い）取引（trade_id, company_id, quantity, received_quantity, declared_weight_kg, actual_weight_kg）を特定せよ。",
         orderSensitive: false,
         explanation: `【解説】
-ここでは2つの JOIN を使って、3つの表を順番につなぎます。
+まずは基本の「必須条件は外、選択条件（OR）は () で囲む」形で数量・重量の異常を探ります。T008 のような受入数量未記録（NULL）を除外するため、received_quantity IS NOT NULL を必須条件に入れています。
 
-・JOIN Import_Records ON USB_Inspection_Records.trade_id = Import_Records.trade_id：取引IDで輸入記録をつなぐ
-・JOIN Company_Information_Records ON Import_Records.company_id = Company_Information_Records.company_id：会社IDで会社マスターをつなぐ
-・WHERE USB_Inspection_Records.actual_capacity < USB_Inspection_Records.advertised_capacity / 2：実容量が広告容量の半分未満の行に絞る
+・必須条件（外に出す）：model_number = 'TECH-26' かつ received_quantity IS NOT NULL
+・選択条件（() で囲む）：((received_quantity < quantity AND actual_weight_kg > declared_weight_kg) OR actual_weight_kg > declared_weight_kg * 1.2)
 
-容量が大きく足りない取引を出した会社と、その申告額を確認しましょう。次の最終章では平均申告金額とも比べて、さらに絞り込んでいきます。`,
+まずは外枠と OR カッコの基本形に慣れましょう。`,
         clearFeedback: {
-            dialogue: "上司：容量が大きく足りない取引と、その会社名・申告額が見えてきたな。アオバ・マイクロの名前も出てきているぞ。次は最終章だ。平均申告金額とも比べて、決定的な証拠を固めよう！",
+            dialogue: "上司：T008 のような未記録行を除きつつ、数量・重量の異常取引を絞り込めたな。会社ID C004（アオバ・マイクロ）が絡んでいるぞ。",
             learned: [
-                "複数 JOIN：JOIN 〜 ON 〜 を続けて3つの表を結びつける",
-                "わかりやすい条件絞り込み：実容量が広告容量の半分未満（/ 2）の取引を抽出する"
+                "必須条件と選択条件の分離：必須条件は () の外に出し、OR 群だけを () で囲む",
+                "IS NOT NULL：未記録（NULL）のデータをあらかじめ除外する"
             ]
         },
-        expectedSql: `SELECT
-    Company_Information_Records.company_name,
-    USB_Inspection_Records.trade_id,
-    USB_Inspection_Records.product_name,
-    Import_Records.declared_value
-FROM USB_Inspection_Records
-JOIN Import_Records
-    ON USB_Inspection_Records.trade_id = Import_Records.trade_id
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id
-WHERE USB_Inspection_Records.actual_capacity < USB_Inspection_Records.advertised_capacity / 2;`,
+        expectedSql: `SELECT trade_id, company_id, quantity, received_quantity, declared_weight_kg, actual_weight_kg
+FROM Imports
+WHERE model_number = 'TECH-26'
+  AND received_quantity IS NOT NULL
+  AND (
+        (received_quantity < quantity AND actual_weight_kg > declared_weight_kg)
+        OR actual_weight_kg > declared_weight_kg * 1.2
+  );`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "USB検査記録から輸入記録をつなぎ、さらに会社マスターをつないで、実容量が広告容量の半分未満の取引を探します。"
+                text: "「TECH-26」かつ「受入数量が NULL でない」を必須条件として外に出し、重量や数量のズレに関する2つの条件を OR でまとめて絞り込みます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "JOIN 〜 ON 〜 を2回書き、最後に WHERE で実容量 < 広告容量 / 2 と指定します。"
+                type: "使う構文",
+                text: "IS NOT NULL、AND、そして OR の選択肢全体を囲む丸括弧 () を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    Company_Information_Records.company_name,
-    Import_Records.trade_id
-FROM USB_Inspection_Records
-JOIN Import_Records
-    ON USB_Inspection_Records.trade_id = Import_Records.trade_id
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id
-WHERE Import_Records.declared_value > 10000;`
+                type: "組み立て方",
+                text: "FROM 表A → WHERE 表A.カラム = '値' AND 表A.カラム IS NOT NULL AND ((条件A AND 条件B) OR 条件C) の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：三陸フロンティアは登録漏れと切り分けられた。次は複数 JOIN を使って、容量が大きく足りない取引を出している会社と申告額を調べてみよう。",
-        group: "💾 第5章：異常取引の分類と照合",
+        dialogue: "上司：まずは数量・重量の異常からだ。未記録（NULL）を弾きつつ、必須条件は外、選択条件は () で囲む基本形で絞り込んでくれ。",
+        group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
-            title: "複数 JOIN で確認する項目",
+            title: "数量・重量異常の確認項目",
             html: `
-- <span class='badge'>company_name</span> 取引を行った会社名<br>
-- <span class='badge'>trade_id / product_name</span> 取引IDと商品名<br>
-- <span class='badge'>declared_value</span> 申告額
+- <span class='badge'>IS NOT NULL</span> 受入数量が記録済みの行に絞る<br>
+- <span class='badge'>必須条件</span> model_number = 'TECH-26' と IS NOT NULL は () の外<br>
+- <span class='badge'>選択条件 ()</span> OR 群全体を () で囲む
             `
         }
     },
-
-    // ==========================================
-    // 最終章：隠された取引の全貌（22〜24）
-    // ==========================================
     {
         id: 22,
-        title: "22. サブクエリで平均申告金額より低い取引を抽出せよ",
-        desc: "Import_Records テーブルから、全取引の平均申告金額（AVG(declared_value)）をサブクエリで求め、それより申告額（declared_value）が低い取引の取引ID（trade_id）・会社ID（company_id）・商品名（product_name）・申告額（declared_value）を取得せよ。",
+        title: "22. 入れ子のカッコを使い、USB容量・仕様の異常を特定せよ",
+        desc: "Imports から、型番が TECH-26 であり、かつ（実容量が広告容量より小さい、または広告容量が 256 以上かつ実容量が 64 以下）の取引（trade_id, company_id, advertised_capacity, actual_capacity）を特定せよ。",
         orderSensitive: false,
         explanation: `【解説】
-SQLの中に別の SELECT 文を入れる書き方を「サブクエリ（副問い合わせ）」と呼びます。
+21番より少し踏み込み、OR でつなぐ選択条件の中に AND の塊を () で入れ子にして絞り込みます。
 
-・(SELECT AVG(declared_value) FROM Import_Records)：全体の平均申告金額を計算するサブクエリ
-・WHERE declared_value < (...)：平均申告金額より低い取引だけを絞り込む
+・必須条件（外に出す）：model_number = 'TECH-26'
+・選択条件（() で囲む）：(actual_capacity < advertised_capacity OR (advertised_capacity >= 256 AND actual_capacity <= 64))
 
-「そもそも、この金額や数量は通常の取引と比べてどれほど異常なのか？」を基準値（平均）と比べることで、極端に低い取引を浮かび上がらせることができます。`,
+外側の () で OR 全体くくり、内側の () で AND の塊を分けることで、複雑な条件も読みやすく正確に書けます。`,
         clearFeedback: {
-            dialogue: "上司：平均申告金額より極端に低い取引が見えてきたな。次は金額だけでなく、数量のズレやUSB容量の異常とも照らし合わせて絞り込んでみよう。",
+            dialogue: "上司：容量不足の取引はT014とT015だ。こちらも会社ID C004（アオバ・マイクロ）の取引ばかりだな。21番とあわせて、この会社をサブクエリで絞り込んでみよう。",
             learned: [
-                "サブクエリ：(SELECT ...) のように条件の中で別の集計結果を求める書き方",
-                "通常との比較：全体の平均値と比べることで、不自然な金額の取引を特定する"
+                "() の入れ子：OR 全体を囲む () の中に、AND でまとめた条件の塊を () で入れられる",
+                "段階的な条件設計：単純な比較と複合条件を OR でつなぐ"
             ]
         },
-        expectedSql: `SELECT
-    trade_id,
-    company_id,
-    product_name,
-    declared_value
-FROM Import_Records
-WHERE declared_value < (
-    SELECT AVG(declared_value)
-    FROM Import_Records
-);`,
+        expectedSql: `SELECT trade_id, company_id, advertised_capacity, actual_capacity
+FROM Imports
+WHERE model_number = 'TECH-26'
+  AND (
+        actual_capacity < advertised_capacity
+        OR (advertised_capacity >= 256 AND actual_capacity <= 64)
+  );`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "まずは全体の平均申告金額をカッコ内の SELECT 文で計算し、それより申告額が小さい取引を探します。"
+                text: "今回も「TECH-26」を必須条件として外に出し、容量不足に関する条件と「大容量表示なのに実容量が小さい」条件を OR でまとめます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "WHERE 金額カラム < (SELECT AVG(金額カラム) FROM テーブル名) のようにサブクエリを書きます。"
+                type: "使う構文",
+                text: "OR 群全体を囲む丸括弧 () と、その中の AND 条件をまとめる丸括弧 () 、AND / OR を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    trade_id,
-    declared_value
-FROM Import_Records
-WHERE declared_value > (
-    SELECT AVG(declared_value)
-    FROM Import_Records
-);`
+                type: "組み立て方",
+                text: "FROM 表A → WHERE 表A.カラム = '値' AND (条件A OR (条件B AND 条件C)) の形で、ORとANDを丸括弧で整理しましょう。"
             }
         ],
-        dialogue: "上司：そもそも、この金額や数量は通常の取引と比べてどれほど異常なのか？ サブクエリを使って平均申告金額より低い取引を抜き出してみよう。",
-        group: "🎯 最終章：隠された取引の全貌",
+        dialogue: "上司：次はUSB容量の異常だ。21番より少し条件が複雑になるが、カッコの入れ子を使って TECH-26 の容量偽装を絞り込んでくれ。",
+        group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
-            title: "サブクエリで使う項目と構文",
+            title: "容量異常の確認項目と入れ子カッコ",
             html: `
-- <span class='badge'>サブクエリ</span> (SELECT ...) の形で条件内に組み込む問い合わせ<br>
-- <span class='badge'>AVG(declared_value)</span> 平均申告金額を計算する集計関数<br>
-- <span class='badge'>declared_value</span> 比較対象となる申告額
+- <span class='badge'>advertised_capacity</span> 広告・表示上の容量（GB）<br>
+- <span class='badge'>actual_capacity</span> 実際に測定した容量（GB）<br>
+- <span class='badge'>入れ子 ()</span> OR 全体を囲む () の中に AND の塊を () で入れる
             `
         }
     },
     {
         id: 23,
-        title: "23. 金額・数量・USB容量の異常を照合して絞り込め",
-        desc: "Import_Records・Company_Information_Records・Customs_Inspection_Records・USB_Inspection_Records を結びつけ、平均申告金額より低く、かつ検査数量が申告数量未満で、さらにUSB実容量が広告容量の50%未満である取引の会社名（company_name）・取引ID（trade_id）・商品名（product_name）・申告額（declared_value）を取得せよ。",
+        title: "23. サブクエリで対象会社を絞り込み、2つの異常を統合せよ",
+        desc: "Companiesへのサブクエリでアオバ・マイクロのIDを取得して絞り込み、TECH-26の取引の中から（数量不足かつ重量超過）または（実容量が広告容量より小さい）に当てはまる取引ID（trade_id）を特定せよ。",
         orderSensitive: false,
         explanation: `【解説】
-これまで学んだ JOIN・サブクエリ・AND 条件を組み合わせ、複数の異常が重なる取引を絞り込みます。
+21番・22番のどちらでも会社ID C004（アオバ・マイクロ）が浮かび上がりました。ここではサブクエリでアオバ・マイクロの会社IDを取得して必須条件に入れ、2つの異常の塊を OR と () で統合します。
 
-・JOIN で会社情報・税関検査記録・USB容量検査記録を取引IDや会社IDでつなぐ
-・declared_value < (SELECT AVG(declared_value) FROM Import_Records)：平均申告金額より低い
-・inspected_quantity < declared_quantity：検査数量が申告数量より少ない（数量の不一致・不足）
-・actual_capacity < advertised_capacity * 0.5：USB容量が広告容量の50%未満（重大な異常）
+・必須条件（外に出す）：company_id = (サブクエリ) かつ model_number = 'TECH-26'
+・選択条件（() で囲む）：(received_quantity < quantity AND actual_weight_kg > declared_weight_kg) OR actual_capacity < advertised_capacity
 
-金額・数量・容量の異常がすべて重なる取引を特定しましょう。`,
+これにより、21番で見つかった数量・重量異常（T004, T005）と、22番で見つかった容量異常（T014, T015）の4件を1つのクエリで確定できます。`,
         clearFeedback: {
-            dialogue: "上司：金額・数量・容量の異常が重なる取引が絞り込めたな。いよいよ最後の最終調査報告だ！",
+            dialogue: "上司：サブクエリでアオバ・マイクロに絞り込み、必須条件と選択条件を正しく組み合わせて対象取引IDを確定できたな。最後はコンテナ記録と照合しよう。",
             learned: [
-                "複数テーブルの結合と条件の組み合わせ：金額・数量・容量の証拠を1つの条件で照合する",
-                "サブクエリと通常条件の併用：平均との比較に、数量や容量の異常条件を重ねる"
+                "サブクエリ：内側のSELECT結果を外側の必須条件で利用する",
+                "必須条件と選択条件の統合：2つの調査結果の条件を () と OR で1つにまとめる"
             ]
         },
-        expectedSql: `SELECT
-    Company_Information_Records.company_name,
-    Import_Records.trade_id,
-    Import_Records.product_name,
-    Import_Records.declared_value
-FROM Import_Records
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id
-JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id
-JOIN USB_Inspection_Records
-    ON Import_Records.trade_id = USB_Inspection_Records.trade_id
-WHERE Import_Records.declared_value < (
-    SELECT AVG(declared_value)
-    FROM Import_Records
-)
-  AND Customs_Inspection_Records.inspected_quantity < Customs_Inspection_Records.declared_quantity
-  AND USB_Inspection_Records.actual_capacity < USB_Inspection_Records.advertised_capacity * 0.5;`,
+        expectedSql: `SELECT Imports.trade_id
+FROM Imports
+WHERE Imports.company_id = (
+        SELECT company_id
+        FROM Companies
+        WHERE company_name = 'アオバ・マイクロ'
+  )
+  AND Imports.model_number = 'TECH-26'
+  AND (
+        (Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
+        OR Imports.actual_capacity < Imports.advertised_capacity
+  );`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "輸入記録を中心に会社・税関検査・USB検査をつなぎ、平均より低い申告額・数量不足・USB容量の重大な異常をすべて満たす取引を探します。"
+                text: "21番・22番で共通して浮かび上がったアオバ・マイクロのIDをサブクエリで求め、必須条件（会社と型番）の外枠と、選択条件（2つの異常のOR）のカッコを組み合わせます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "複数の JOIN 〜 ON 〜 でつないだあと、WHERE でサブクエリ比較と複数の条件を AND で結びます。"
+                type: "使う構文",
+                text: "サブクエリ用の丸括弧に加えて、OR 群全体を囲む丸括弧 () と、条件の塊を分ける丸括弧 () を使います。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    Company_Information_Records.company_name,
-    Import_Records.trade_id
-FROM Import_Records
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id
-JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id
-WHERE Import_Records.declared_value < (
-    SELECT AVG(declared_value)
-    FROM Import_Records
-)
-  AND Customs_Inspection_Records.inspected_quantity = Customs_Inspection_Records.declared_quantity;`
+                type: "組み立て方",
+                text: "FROM 表A → WHERE 表A.カラム = (SELECT 表B.カラム FROM 表B WHERE 表B.カラム = '値') AND 表A.カラム = '値' AND (条件A OR 条件B) の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：平均申告金額との比較だけでなく、数量の不一致やUSB容量の異常もあわせて確認しよう。複数の証拠を照合して怪しい取引を絞り込むんだ。",
-        group: "🎯 最終章：隠された取引の全貌",
+        dialogue: "上司：21番でも22番でもアオバ・マイクロ（C004）が浮かび上がったな。サブクエリでアオバ・マイクロに絞り込み、必須条件と選択条件のルールで2つの異常を統合しよう。",
+        group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
-            title: "複数証拠を照合するテーブルと条件",
+            title: "サブクエリとカッコの基本ルール",
             html: `
-- <span class='badge'>Company_Information_Records</span> 会社名<br>
-- <span class='badge'>Customs_Inspection_Records</span> 申告数量・検査数量<br>
-- <span class='badge'>USB_Inspection_Records</span> 広告容量・実容量<br>
-- <span class='badge'>サブクエリ + AND</span> 平均金額との比較と各異常条件の組み合わせ
+- <span class='badge'>必須条件</span> 会社ID（サブクエリ）と TECH-26 は () の外に出す<br>
+- <span class='badge'>選択条件 ()</span> 2つの異常パターンの OR 全体を () で囲む<br>
+- <span class='badge'>Imports.trade_id</span> 抽出する対象取引ID
             `
         }
     },
     {
         id: 24,
-        title: "24. 最終調査報告：疑わしい取引と会社を特定せよ",
-        desc: "Import_Records を基準に Company_Information_Records を JOIN、Customs_Inspection_Records を LEFT JOIN、USB_Inspection_Records を JOIN し、平均申告金額より低く、かつ（税関検査記録が存在しない、または検査数量が申告数量未満）で、USB実容量が広告容量の50%未満である取引の会社名（company_name）・所在地（address）・取引ID（trade_id）・申告額（declared_value）を取得せよ。",
+        title: "24. 最終照合でコンテナを特定せよ",
+        desc: "2つの切り口で確定した4取引について、ImportsにCompaniesとContainersをそれぞれINNER JOINし、会社名・取引ID・保管エリア・コンテナ番号を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
-最終調査報告として、途中の三陸フロンティア（T008）のような未検査（LEFT JOIN + IS NULL）や数量不足も含め、金額・数量・容量の証拠を総合して疑わしい取引と本命の企業（アオバ・マイクロ）を特定します。
+        最終照合では、会社・輸入記録・コンテナ保管記録の3テーブルをINNER JOINでつなぎます。
 
-・JOIN Company_Information_Records：会社名と所在地を取得する
-・LEFT JOIN Customs_Inspection_Records：未検査（NULL）の取引も逃さず残す
-・JOIN USB_Inspection_Records：USB容量の検査結果と結びつける
-・WHERE ...：平均申告金額より低く、未検査または数量不足で、USB容量が50%未満の取引に絞る
+        ・Imports に Companies を company_id で INNER JOIN
+        ・Imports に Containers を trade_id で INNER JOIN
+        ・23番と同じ2つの切り口を使い、C004のTECH-26に限定
 
-金額、数量、容量。それぞれ別々に見えていた異常が、ひとつの取引関係としてつながります。`,
+        アオバ・マイクロの怪しいコンテナは、BヤードのCNT-204、CNT-205、CNT-214、CNT-215です。`,
         clearFeedback: {
-            dialogue: "上司：なるほど……！ 途中の検査記録の抜けに惑わされず、金額・数量・容量の証拠をつないだことで、本命のアオバ・マイクロが見えてきたな。よくやった、調査完了だ！",
-            learned: [
-                "総合分析：SELECT / WHERE / GROUP BY / HAVING / JOIN / CASE WHEN / サブクエリの集大成",
-                "全体像の解明：断片的な異常を結びつけ、疑わしい取引と本命の企業を特定する調査フロー"
-            ]
+            dialogue: "上司：よし、怪しいコンテナを特定できた。これから押収に向かおう！\nS∀O　お疲れさまでした。一緒に学んでくださってありがとうございました。Thank you for playing!",
+            learned: ["複数のINNER JOIN：company_idとtrade_idで3つの表をつなぐ", "切り口①と②を統合して対象を4件に確定する"]
         },
-        expectedSql: `SELECT
-    Company_Information_Records.company_name,
-    Company_Information_Records.address,
-    Import_Records.trade_id,
-    Import_Records.declared_value
-FROM Import_Records
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id
-LEFT JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id
-JOIN USB_Inspection_Records
-    ON Import_Records.trade_id = USB_Inspection_Records.trade_id
-WHERE Import_Records.declared_value < (
-    SELECT AVG(declared_value)
-    FROM Import_Records
-)
+        expectedSql: `SELECT Companies.company_name, Imports.trade_id, Containers.container_area, Containers.container_number
+FROM Imports
+INNER JOIN Companies ON Imports.company_id = Companies.company_id
+INNER JOIN Containers ON Imports.trade_id = Containers.trade_id
+WHERE Imports.company_id = 'C004'
+  AND Imports.model_number = 'TECH-26'
   AND (
-        Customs_Inspection_Records.trade_id IS NULL
-     OR Customs_Inspection_Records.inspected_quantity < Customs_Inspection_Records.declared_quantity
-  )
-  AND USB_Inspection_Records.actual_capacity < USB_Inspection_Records.advertised_capacity * 0.5;`,
+        (Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
+        OR Imports.actual_capacity < Imports.advertised_capacity
+  );`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "平均申告金額より低い取引のうち、未検査（IS NULL）または数量不足があり、さらにUSB容量が50%未満になっている取引の会社情報と取引情報をまとめます。"
+                text: "最後は「どの会社か」「どの取引か」「どのコンテナに入っているか」を1つの結果に出すため、3つの表をそれぞれの共通IDでつなぎます。"
             },
             {
                 level: 2,
-                type: "構文",
-                text: "LEFT JOIN で検査記録をつなぎ、IS NULL と数量条件を ( ... OR ... ) でまとめて、サブクエリや容量条件と AND でつなぎます。"
+                type: "使う構文",
+                text: "INNER JOINを2回使います。会社とは会社IDで、コンテナとは取引IDで結びつけるのがポイントです。"
             },
             {
                 level: 3,
-                type: "具体例",
-                text: `SELECT
-    Company_Information_Records.company_name,
-    Import_Records.trade_id
-FROM Import_Records
-JOIN Company_Information_Records
-    ON Import_Records.company_id = Company_Information_Records.company_id
-LEFT JOIN Customs_Inspection_Records
-    ON Import_Records.trade_id = Customs_Inspection_Records.trade_id
-WHERE Import_Records.declared_value < (
-    SELECT AVG(declared_value)
-    FROM Import_Records
-)
-  AND (
-        Customs_Inspection_Records.trade_id IS NULL
-     OR Customs_Inspection_Records.inspected_quantity = Customs_Inspection_Records.declared_quantity
-  );`
+                type: "組み立て方",
+                text: "FROM 表A → INNER JOIN 表B ON 表A.共通キー = 表B.共通キー → INNER JOIN 表C ON 表A.共通キー = 表C.共通キー → WHERE 表A.カラム = '値' AND (条件A OR 条件B) の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：すべての調査結果をまとめ、疑わしい取引と本命の会社を特定しよう。最終調査報告を頼む！",
-        group: "🎯 最終章：隠された取引の全貌",
+        dialogue: "上司：最後に保管記録をつなごう。統合した条件に当てはまる4件のコンテナを特定してくれ。",
+        group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
-            title: "最終調査報告の重要ポイント",
+            title: "最終照合に使うテーブルとキー",
             html: `
-- <span class='badge'>LEFT JOIN + IS NULL / OR</span> 未検査取引や数量不足を逃さない条件<br>
-- <span class='badge'>サブクエリ（AVG）</span> 通常の平均申告金額との比較<br>
-- <span class='badge'>総合分析</span> 金額・数量・容量の異常をつなぐ最終確認
+- <span class='badge'>Companies</span> 会社マスター<br>
+- <span class='badge'>Imports</span> 輸入・受入数量・USB容量の記録<br>
+- <span class='badge'>Containers</span> コンテナ保管記録<br>
+- <span class='badge'>company_id / trade_id</span> テーブルをつなぐ共通ID<br>
+- <span class='badge'>container_area / container_number</span> 保管エリアとコンテナ番号
             `
         }
-    },
+    }
 ];
