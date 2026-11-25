@@ -968,7 +968,7 @@ WHERE Imports.model_number = 'TECH-26'
     },
 
     // ==========================================
-    // 第5章：USB容量の分類とT008の切り分け（18〜19）
+    // 第5章：USB容量の分類（18〜19）
     // ==========================================
     {
         id: 18,
@@ -1019,7 +1019,7 @@ FROM Imports;`,
             }
         ],
         dialogue: "上司：次はUSB容量の検査記録を見てみよう。実容量と広告容量を比べて、3段階に分類してみてくれ。",
-        group: "💾 第5章：USB容量の分類と T008 の切り分け",
+        group: "💾 第5章：USB容量の分類",
         glossary: {
             title: "USB容量分類の項目",
             html: `
@@ -1031,7 +1031,7 @@ FROM Imports;`,
     },
     {
         id: 19,
-        title: "19. T008 のUSB容量を確認して切り分けよ",
+        title: "19. 特定取引IDのUSB容量を確認",
         desc: "Imports テーブルから、取引ID（trade_id）が 'T008' の記録について、取引ID（trade_id）・広告容量（advertised_capacity）・実容量（actual_capacity）と、18番と同じ3段階分類（別名：capacity_status）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
@@ -1077,7 +1077,7 @@ WHERE trade_id = 'T008';`,
             }
         ],
         dialogue: "上司：さっき受入数量が未記録だった T008 だが、USB容量のほうはどうなっている？確認して切り分けよう。",
-        group: "💾 第5章：USB容量の分類と T008 の切り分け",
+        group: "💾 第5章：USB容量の分類",
         glossary: {
             title: "T008 切り分けの確認項目",
             html: `
