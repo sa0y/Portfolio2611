@@ -334,7 +334,7 @@ TECH-26 の中から、書類上の数より実際の数が少ない取引だけ
                 text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' AND 表A.数値列 < 表A.数値列 の形で、比較条件をANDで加えましょう。"
             }
         ],
-        dialogue: "上司：今度はTECH-26の中から、受入数量が申告数量より少ない、つまり数量が不足している取引だけに絞り込んでみよう。",
+        dialogue: "上司：受入数が申告より少ない取引を抽出しよう。ただ紛失しただけか、それとも別の何か目的があるのか……。",
         group: "📦 第2章：一致しない数量",
         glossary: {
             title: "対象テーブル・カラム",
@@ -364,7 +364,7 @@ WHERE で TECH-26 の取引に絞ってから、列同士を引き算し、そ�
 
 TECH-26 の取引に限って、不足数の大きいものから確認しましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26の取引ごとの数量不足を大きい順に確認できたな。T004では350個の不足が見つかった。",
+            dialogue: "上司：TECH-26の数量不足を大きい順に確認できたな。T004は350個も足りない……これだけの数が減っているのに、重さはどうなっているんだ？次は重量も調べてみよう。",
             learned: [
                 "WHERE：TECH-26の取引に絞り込む",
                 "-：数値の引き算を行う算術演算子",
@@ -391,7 +391,7 @@ TECH-26 の取引に限って、不足数の大きいものから確認しまし
                 text: "SELECT 表A.識別列, 表A.数値列 - 表A.数値列 AS 別名 FROM 表A → WHERE 表A.カラム = '値' → ORDER BY 別名 DESC の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：TECH-26の取引に絞って数量の差を計算し、異常の規模を確認しよう。申告数量から受入数量を引いた差を missing_quantity として出してみてくれ。",
+        dialogue: "上司：受入数が少ない取引がいくつか見つかったな。次はそれぞれ何個足りないのか、申告数量と受入数量の差（missing_quantity）を計算して大きい順に並べてみよう。",
         group: "📦 第2章：一致しない数量",
         glossary: {
             title: "対象テーブル・カラム",
@@ -407,62 +407,62 @@ TECH-26 の取引に限って、不足数の大きいものから確認しまし
     },
     {
         id: 8,
-        title: "08. TECH-26の200個以上の数量不足を特定せよ",
-        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引のうち、実際の受入数量（received_quantity）が申告数量（quantity）を下回り、さらに申告数量と受入数量の差が200個以上ある記録をすべて取得せよ。",
+        title: "08. TECH-26の数量不足・重量超過を特定せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引のうち、実際の受入数量（received_quantity）が申告数量（quantity）より少なく、実重量（actual_weight_kg）が申告重量（declared_weight_kg）より重い記録をすべて取得せよ。",
         orderSensitive: false,
-        concept: ["WHERE", "AND", "=", "<", ">=", "-", "()"],
+        concept: ["WHERE", "AND", "=", "<", ">"],
         difficulty: 3,
         explanation: `【解説】
-WHERE で TECH-26 に絞り、受入数量が申告数量より少ないことと、不足数が200個以上であることを AND でつなぎます。条件のまとまりは ( ) で囲みます。
+WHERE で TECH-26 に絞り、受入数量が申告数量より少ないことと、実重量が申告重量より重いことを AND でつなぎます。
 
 ・model_number = 'TECH-26'：TECH-26 の取引に絞る
-・(received_quantity < quantity)：受入数量が申告数量より少ない
-・(quantity - received_quantity >= 200)：不足数が200個以上
+・received_quantity < quantity：受入数量が申告数量より少ない
+・actual_weight_kg > declared_weight_kg：実重量が申告重量より重い
 
-TECH-26 の中から、大きな数量のズレが起きている取引を特定しましょう。`,
+数は少ないのに重い取引を特定し、別の荷物が紛れ込んでいる可能性を調べましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26で数量差が200個以上ある記録を抽出できたな。大きな不足が起きている取引を絞り込めた。",
+            dialogue: "上司：受入数量が申告数量より少ないのに、実重量が申告重量より重い取引を特定できたな。空いたスペースに別の荷物が紛れ込んでいる可能性があるな…。",
             learned: [
-                "AND：複数の条件をすべて満たすデータを取得する",
-                "()：条件のまとまりを分かりやすくする",
-                ">=：左側の値が右側の値以上であることを判定する",
-                "-：2つの数値カラムの差を計算する",
-                "WHERE：指定した条件に一致する記録を抽出する"
+                "AND：数量不足と重量超過の両方に当てはまる行を取得する",
+                "<：受入数量が申告数量より少ないことを判定する",
+                ">：実重量が申告重量より重いことを判定する"
             ]
         },
         expectedSql: `SELECT *
 FROM Imports
 WHERE model_number = 'TECH-26'
-  AND (received_quantity < quantity)
-  AND (quantity - received_quantity >= 200);`,
+  AND received_quantity < quantity
+  AND actual_weight_kg > declared_weight_kg;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "まずTECH-26に絞り、「受入数が申告数より少ないこと」と「その差（引き算の結果）が200以上であること」の両方を満たす行を探します。"
+                text: "TECH-26に絞ったうえで、「受入数量は申告数量より少ない」のに「実重量は申告重量より重い」取引を探します。"
             },
             {
                 level: 2,
                 type: "使う構文",
-                text: "型番で絞る条件、複数条件をつなぐキーワード、大小比較、引き算、条件を囲む丸括弧を使います。"
+                text: "型番で絞る条件に、両方の条件を満たすためのANDと、「より少ない」「より重い」を表す比較演算子を使います。"
             },
             {
                 level: 3,
                 type: "組み立て方",
-                text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' AND (条件A) AND (表A.数値列 - 表A.数値列 >= 数値) の形で、条件をANDと丸括弧で組み立てましょう。"
+                text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' AND 表A.数値列 < 表A.数値列 AND 表A.数値列 > 表A.数値列 の形で、2つの比較条件をANDでつなぎましょう。"
             }
         ],
-        dialogue: "上司：TECH-26の中から数量の差が200個以上ある大きな異常を絞り込んでみよう。不審な記録を一覧にして確認するんだ。",
+        dialogue: "上司：受入数量が申告より少ないのに実重量が重い取引を特定しよう。空いたスペースに別の荷物が紛れ込んでいる可能性がある。",
         group: "📦 第2章：一致しない数量",
         glossary: {
-            title: "今回使う構文・カラム",
+            title: "数量不足・重量超過の確認項目",
             html: `
 - <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
-- <span class='badge'>quantity</span> 書類上の申告数量<br>
 - <span class='badge'>received_quantity</span> 実際の受入数量<br>
-- <span class='badge'>AND</span> 複数の条件をすべて満たす<br>
-- <span class='badge'>( )</span> 条件のまとまりを表す<br>
-- <span class='badge'>>=</span> 200以上であることを判定する
+- <span class='badge'>quantity</span> 書類上の申告数量<br>
+- <span class='badge'>actual_weight_kg</span> 実重量（kg）<br>
+- <span class='badge'>declared_weight_kg</span> 申告重量（kg）<br>
+- <span class='badge'>AND</span> 数量不足と重量超過の両方を満たす<br>
+- <span class='badge'>&lt;</span> 左側の値が右側より小さい<br>
+- <span class='badge'>&gt;</span> 左側の値が右側より大きい
             `
         }
     },
@@ -1128,7 +1128,7 @@ WHERE (model_number = 'TECH-26' AND received_quantity < quantity AND actual_weig
                 text: "FROM 表A → WHERE (必須条件 AND 条件A AND 条件B) OR (必須条件 AND 条件C) の形で、条件のまとまりを丸括弧に入れて組み立てましょう。"
             }
         ],
-        dialogue: "上司：まずはTECH-26の中から、数量と重量に不自然な差がある取引、またはUSB容量が不足している取引を拾おう。",
+        dialogue: "上司：怪しいのは2パターンある。容量をごまかす『偽装』と、数は少ないのに重たい『紛れ込み・持ち出し』だ。まずは両方の候補を拾ってみよう。",
         group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
             title: "2種類の異常候補を探すカラム",
@@ -1184,7 +1184,7 @@ WHERE model_number = 'TECH-26'
                 text: "FROM 表A → WHERE 表A.カラム = '値' AND 表A.カラム IS NOT NULL AND ((条件A AND 条件B) OR 条件C) の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：まずは数量・重量の異常からだ。未記録（NULL）を弾きつつ、必須条件は外、選択条件は () で囲む基本形で絞り込んでくれ。",
+        dialogue: "上司：数量が減っているのに実重量が重い取引だ。別の品物を一緒に詰め込んで紛れ込ませている疑いがある——まずはこの線から絞り込もう。",
         group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
             title: "数量・重量異常の確認項目",
@@ -1298,7 +1298,7 @@ WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name 
                 text: "FROM 表A → WHERE 表A.カラム = (SELECT 表B.カラム FROM 表B WHERE 表B.カラム = '値') AND 表A.カラム = '値' AND (条件A OR 条件B) の形で組み立てましょう。まずは () の中の SELECT を先に作ると整理しやすいです。"
             }
         ],
-        dialogue: "上司：21番でも22番でもアオバ・マイクロ（C004）が浮かび上がったな。今回は初めてのサブクエリだ。() の中の SELECT で会社IDを取り出し、必須条件と選択条件のルールで2つの異常を統合しよう。",
+        dialogue: "上司：『容量偽装』と『数不足＋重量超過』。中身のスペックをごまかす手口と、別のモノを紛れ込ませる手口——2つの異常を1つにまとめて対象取引を確定しよう。",
         group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
             title: "サブクエリとカッコの基本ルール",
