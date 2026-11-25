@@ -1,202 +1,233 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQL PORT AUDIT GAME</title>
-    <!-- デザインの読み込み -->
-    <link rel="stylesheet" href="css/style.css">
-    <!-- sql.js (WebAssembly版SQLite) のCDN読み込み -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <a href="../index.html" class="back-link">← Back to portfolio</a>
+
+<!-- ======================= ヘッダー ======================= -->
+<header id="top">
+  <div class="hero-banner">
+    <div class="milky-way"></div>
+    <div class="star-field"></div>
+    <span class="shooting-star s1"></span>
+    <span class="shooting-star s2"></span>
+    <span class="shooting-star s3"></span>
+    <!-- Welcome メッセージ -->
+    <span class="hero-banner-title">PORTFOLIO</span>
+    <span class="hero-banner-subtitle">Welcome to my portfolio</span>
+  </div>
+
+  <!-- ナビゲーションバー -->
+  <div class="nav-container">
+    <div class="nav-links">
+      <a href="#profile" class="nav-link">Profile</a>
+      <a href="#qualifications" class="nav-link">Qualifications</a>
+      <a href="#works" class="nav-link">Works</a>
+      <a href="#game" class="nav-link">SQL Game</a>
+    </div>
+  </div>
+</header>
+
+<!-- ======================= メインコンテンツ ======================= -->
+<div class="container">
+  <section id="profile">
+    <div class="section-title">Profile</div>
+    <div class="card">
+      <div class="profile-box">
+        <div class="profile-avatar">
+          <div class="profile-avatar-fallback">S∀O</div>
         </div>
-    </header>
+        <div class="profile-info">
+          <div class="profile-role">Customer Success & Operations — making things work better.</div>
+           <div class="profile-desc">
+    　　　　<p>デジタルサービスの運用やカスタマーサクセスに携わり、ユーザーの声を起点としたサービス品質と顧客体験（CX）の向上に取り組んできました。問い合わせ削減に向けた施策の立案、不具合の改善、品質管理、コミュニティ運営など、幅広い業務を経験しています。</p>
+    　　　　<p>業務の中での「こうなったらいいのに」という小さなアイデアを、AIを活用してカタチにすることに挑戦しています。試行錯誤を重ねる中でアイデアがさらに広がる面白さを実感しつつ、現在はAIに頼るだけでなく仕組みを深く理解し、自分の手でコードを書けるようプログラミングの学習にも取り組んでいます。</p>
+　　　</div>
+      </div>
+    </div>
+  </section>
 
-    <div class="container">
-        <div class="status-bar">
-            <div>
-                <span style="font-size: 0.8rem; color: var(--muted);">OPERATOR:</span>
-                <strong id="display-codename" style="color: var(--teal); font-size: 1.1rem; margin-left: 6px;">GUEST</strong>
-            </div>
-            <div style="font-size: 0.85rem; align-items: center;">
-                クリア数: <strong id="stat-cleared">0</strong> / <span id="stat-total">25</span>
-            </div>
-            <div style="display: flex; gap: 8px;">
-                <button onclick="changeCodename()" style="background: transparent; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.78rem;">コードネーム変更</button>
-                <button onclick="openDatabaseLibrary()" class="library-btn">📚 データベース資料</button>
-                <button onclick="resetAllProgress()" class="btn-danger">🧹 進捗をリセット</button>
-            </div>
+  <section id="qualifications">
+    <div class="section-title">Qualifications & Learning</div>
+    <div class="card">
+      <div class="card-title">Current Learning (現在取り組んでいること)</div>
+      <div class="qual-row">
+        <div class="qual-date" style="background:rgba(74, 222, 128, 0.2); color:#4ade80; border:1px solid rgba(74, 222, 128, 0.4);">学習中</div>
+        <div class="qual-detail">
+
+          <div class="qual-title">IT基礎 ＆ AWSの学習</div>
+          <div class="qual-sub">プログラミング講座の受講・YouTubeで解説動画を視聴</div>
+          <div class="qual-desc">IT・プログラミングの基礎学習に加え、クラウドの仕組みを学ぶためAWSの基礎動画もあわせて視聴しています。</div>
         </div>
-
-        <h1 class="section-title">TECH GATE 2026 - SQL PORT AUDIT</h1>
-        <section class="game-intro" aria-labelledby="game-overview-title">
-            <h2 id="game-overview-title">ゲーム概要</h2>
-            <p>2026年10月、TECH GATEで発生した不正事件。あなたは監査チームの一員となり、SQLを使ってデータベースに隠された証拠を探し出します。</p>
-            <p>全MISSIONをクリアしながら、不正取引を解き明かそう！</p>
-            <p><strong>SQL初心者でも大丈夫！</strong> SELECTやWHEREなどの基本操作からスタートし、少しずつステップアップできる構成です。ヒントや解説、データベース資料を活用しながら、自分のペースで捜査を進められます。</p>
-        </section>
-
-        <div class="game-layout">
-            <div class="card">
-                <h3 class="card-title">捜査チャプター選択</h3>
-                <div class="chapter-tabs" id="chapter-tabs"></div>
-                <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;" id="current-chapter-title">問題一覧</h4>
-                <div class="sidebar-scroll">
-                    <ul class="mission-menu" id="mission-list"></ul>
-                </div>
-            </div>
-
-            <div>
-                <div class="dialogue-box">
-                    <div style="font-size: 0.75rem; font-weight: 700; color: var(--teal); text-transform: uppercase; margin-bottom: 4px;">Lead Auditor Guidance</div>
-                    <div id="mission-prologue" class="mission-prologue" hidden>
-                        <strong class="mission-prologue-label">JOIN導入プロローグ</strong>
-                        <span class="mission-prologue-text"></span>
-                    </div>
-                    <p id="dialogue-text" style="font-size: 0.92rem; color: var(--text-main);">システム準備完了...</p>
-                </div>
-
-                <div class="card">
-                    <h3 class="card-title" id="mission-title">読み込み中...</h3>
-                    <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 8px;" id="mission-desc"></p>
-                    
-                    <textarea id="sql-input" class="sql-textarea" rows="3" placeholder="ここにSQLクエリを入力してください..." oninput="saveCurrentInput()"></textarea>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 8px;">
-                        <span style="font-size: 0.78rem; color: var(--success);" id="status-guide">✅ ブラウザ内SQLite準備完了</span>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="run-btn" id="run-action-btn" onclick="runQuery()">SQLを実行する 🚀</button>
-                            <button class="verify-btn" id="verify-action-btn" onclick="verifyMission()">この結果で正解を判定する ✅</button>
-                        </div>
-                    </div>
-
-                    <details class="info-details">
-                        <summary class="info-summary" id="glossary-summary">📖 データベース構造・カラム解説を見る</summary>
-                        <div class="info-content" id="glossary-content"></div>
-                    </details>
-
-                    <details class="info-details">
-                        <summary class="info-summary">💡 段階的ヒント（考え方・構造）を見る</summary>
-                        <div class="info-content" id="hint-area"></div>
-                        <button id="next-hint-btn" class="run-btn" style="margin: 10px 14px; font-size: 0.8rem; padding: 6px 12px; display: none;" onclick="showNextHint()">💡 次のヒントを見る</button>
-                    </details>
-
-                    <details class="info-details">
-                        <summary class="info-summary">📖 解説を見る</summary>
-                        <div class="info-content" id="mission-explanation">ここに解説が表示されます</div>
-                    </details>
-
-                    <details class="info-details">
-                        <summary class="info-summary">📖 解答を見る</summary>
-                        <div class="info-content" id="mission-expectedSql">ここに解答が表示されます</div>
-                    </details>
-                </div>
-
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h3 class="card-title" style="margin-bottom: 0;" id="result-title-label">捜査結果（証拠ログ）</h3>
-                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--teal);" id="row-count">0 件ヒット</span>
-                    </div>
-                    <div id="briefing-tabs-container"></div>
-                    <div class="table-wrapper">
-                        <table id="result-table"></table>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="qual-row">
+        <div class="qual-date" style="background:rgba(74, 222, 128, 0.2); color:#4ade80; border:1px solid rgba(74, 222, 128, 0.4);">継続中</div>
+        <div class="qual-detail">
+          <div class="qual-title">韓国語の実用コミュニケーション学習</div>
+          <div class="qual-sub">週1回のレッスン・実践会話</div>
+          <div class="qual-desc">中級テキストにて日常表現や文法を継続学習中。<br><span style="color:var(--muted); font-size:0.78rem;">※TOPIK II 2級取得済み(2022年取得・現在期限切れ)</span></div>
         </div>
+      </div>
     </div>
 
-    <!-- 制作メモ -->
-<div class="container" style="padding-top: 0; padding-bottom: 40px;">
-    <div class="memo-toggle-wrap">
-        <button id="memoBtnSql" class="memo-toggle-btn" onclick="toggleMemo('sql-port-audit-memo')">📝 制作メモを見る</button>
-        <div id="sql-port-audit-memo" class="memo-panel" style="display:none;">
-
-            <div class="memo-title">AIと一緒に考え、初心者目線で作り上げたSQL学習ゲーム</div>
-
-            <div class="memo-section-head">背景・制作のきっかけ</div>
-            <p class="memo-body">
-                SQLの学習後、ゲーム感覚で学べるサービスをいくつか試しましたが、英語中心だったり、JOINが早々に出てきたりと、つまづいてしまいました。
-                <br>初心者に優しく、日本語で練習しながら学べる教材があったらいいのに…。自分で作ってみよう。」と思い、自分の練習も兼ねて制作を始めました。
-                <br>題材には、貿易関連の資格知識や空港の現場を描いたドラマからインスピレーションを得て、授業で学んだ「容量偽装USB」も取り入れています。「TECH GATE」とも掛け合わせ、空港や税関のゲートを現場に輸入取引の調査や不正の追跡を行う、捜査型のSQL学習ゲームとして形にしました。
-            </p>
-
-            <div class="memo-section-head">工夫した点・苦労した点</div>
-            <p class="memo-body">
-                特に意識したのは、少しずつ理解を積み重ねられる出題順です。基本的なSELECTから始まり、WHERE、ORDER BY、集計関数、GROUP BY、HAVING、そしてJOINへと段階的に広がる問題を考えました。
-            <br>
-                各問題にストーリー会話や段階的なヒント、SQLの解説を用意し、丸暗記ではなく自分で考えながら進められる教材を目指しています。
-            </p>
-
-            <div class="memo-section-head">AIの活用について</div>
-            <p class="memo-body">
-                生成AIはコード作成の補助だけでなく、企画やカリキュラムを一緒に考える相談相手として活用しました。
-                <br>
-                最初から丸投げするのではなく、自分のアイデアや疑問を言葉にして伝え、提案をもとに何度も調整を重ねています。問題構成のバランスやCASE WHENを二段階に分ける工夫、テーブル構造のポップアップ表示といったアイデアも、AIとの対話から生まれました。
-                <br>
-                提案をそのまま採用せず「初心者にとって本当に分かりやすいか？」と問い直し続けたことで、AIは考えを整理し、アイデアを具体的な機能へ一緒に育ててくれる心強いパートナーになると実感しました。
-            </p>
-
-            <div class="memo-section-head">今後の課題・目標</div>
-            <p class="memo-body">
-                AIのおかげでアイデアを形にするスピードはぐっと上がりましたが、作られたコードの仕組みを自分自身で十分に理解しきれていない点が課題です。
-                <br>
-                これからはAIが書いたコードを一つひとつ読み解き、HTML・CSS・JavaScriptの役割や処理の流れをしっかり理解したいです。AIに頼りきるのではなく、提案を自分で判断・修正しながら、自力でも同等のアプリを設計・開発できる力を身につけるのが目標です。
-                <br>
-                自分がSQLで感じた「難しさ」を忘れず、これから学ぶ人が楽しく取り組める教材へとアップデートし続けていきます。
-            </p>
-
+    <div class="card">
+      <div class="card-title">Qualifications & Licenses (保有資格)</div>
+      <div class="qual-row">
+        <div class="qual-date">2024年3月</div>
+        <div class="qual-detail">
+          <div class="qual-title">2級ファイナンシャル・プランニング技能士</div>
+          <div class="qual-sub">日本ファイナンシャル・プランナーズ協会</div>
+          <div class="qual-desc">資産運用、税金、不動産、リスク管理、ライフプランニングなどの体系的な知識を習得。</div>
         </div>
+      </div>
+      <div class="qual-row">
+        <div class="qual-date">2023年7月</div>
+        <div class="qual-detail">
+          <div class="qual-title">貿易実務検定 C級</div>
+          <div class="qual-sub">日本貿易実務検定協会</div>
+          <div class="qual-desc">貿易書類の作成や取引手順、通関実務の基礎知識を習得。</div>
+        </div>
+      </div>
+      <div class="qual-row">
+        <div class="qual-date">2013年11月</div>
+        <div class="qual-detail">
+          <div class="qual-title">秘書技能検定試験 2級</div>
+          <div class="qual-sub">公益財団法人 実務技能検定協会</div>
+          <div class="qual-desc">ビジネスマナー、敬語、正確な連絡・応対実務に関する知識を習得。</div>
+        </div>
+      </div>
     </div>
+  </section>
+
+  <!-- Works セクション（自動化ツール系 1〜3） -->
+  <section id="works">
+    <div class="section-title">Works</div>
+    <div class="modern-works" aria-label="Workflow automation tool demos">
+      <p class="works-description">Demos showcasing workflow automation tools I built.</p>
+      <br>
+      <div class="works-grid">
+        <!-- カード 1 -->
+        <a class="work-card" href="work1/work1.html">
+          <div class="work-thumb tone-1">
+            <img src="works/work1.image.jpeg" alt="One-Click Auto-Fill Tool" class="work-img">
+          </div>
+          <div class="work-card-copy">
+            <p>Workflow Optimization</p>
+            <h3>One-Click Auto-Fill Tool</h3>
+          </div>
+        </a>
+
+        <!-- カード 2 -->
+        <a class="work-card" href="work2/work2.html">
+          <div class="work-thumb tone-2">
+            <img src="works/work2.image.png" alt="Notification UX" class="work-img">
+          </div>
+          <div class="work-card-copy">
+            <p>Workflow Optimization</p>
+            <h3>Notification UX</h3>
+          </div>
+        </a>
+
+        <!-- カード 3 -->
+        <a class="work-card" href="work3/work3-index.html">
+          <div class="work-thumb tone-3">
+            <img src="works/work3.image.jpeg" alt="Automated Data Extraction Tool" class="work-img">
+          </div>
+          <div class="work-card-copy">
+            <p>Workflow Optimization</p>
+            <h3>Automated Data Extraction Tool</h3>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ★独立させたセクション：SQL Game（カード4） -->
+  <section id="game">
+    <div class="section-title">SQL Game</div>
+    <div class="modern-works" aria-label="SQL Learning Game">
+      <p class="works-description">An interactive game to learn and practice SQL queries.</p>
+      
+      <div class="single-work-grid">
+        <a class="work-card" href="SQL_GAME/index.html">
+          <div class="work-thumb tone-1">
+            <img src="works/GAME.image.png" alt="SQL Learning Game" class="work-img game-work-img">
+          </div>
+          <div class="work-card-copy">
+            <p>Interactive Learning</p>
+            <h3>SQL Learning Game</h3>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+</div> <!-- /.container -->
+
+<!-- ======================= フッター（夜空・地平線デザイン） ======================= -->
+<footer class="site-footer">
+    <div class="footer-inner">
+    <!-- 左側：Afterword（横幅いっぱいに使う） -->
+<div class="footer-col footer-afterword">
+    <h3>Afterword</h3>
+    <p>
+        This portfolio was created to document my career journey and personal growth, while serving as a versatile resource that can be adapted to a wide range of career opportunities.
+        <br>Although my programming journey is still ongoing, turning ideas into reality through iterative problem-solving has deepened my passion for web development.
+        <br>Since the course required dedicating half of my weekends, I joined the program determined to make the most of the learning experience.
+        <br>I also set a personal goal of asking at least one question during each lecture to stay actively engaged. I especially enjoyed customizing class assignments and adding little playful features of my own.
+        <br>Working on this portfolio naturally became part of my daily routine. I became so immersed in the process that I often found myself coding for hours after class without even realizing how much time had passed.
+        <br> I'm incredibly grateful to have been part of this wonderful experience!
+    </p>
 </div>
-
-    <!-- JavaScriptの読み込み順序 -->
-    <script src="js/missions.js"></script>
-    <script src="js/database.js"></script>
-    <script src="js/game.js"></script>
-
-    <div id="database-library-modal" class="database-modal" role="dialog" aria-modal="true" aria-labelledby="database-library-title" style="display: none;">
-        <div class="database-modal-backdrop" onclick="closeDatabaseLibrary()"></div>
-        <div class="database-modal-panel">
-            <div class="database-modal-header">
-                <div>
-                    <div id="database-library-kicker" class="database-modal-kicker">捜査資料室</div>
-                    <h2 id="database-library-title">データベース資料</h2>
-                </div>
-                <button type="button" class="database-modal-close" onclick="closeDatabaseLibrary()" aria-label="閉じる">×</button>
+        
+        <!-- 右側：LINKS と INFO を横並びにするグループ -->
+        <div class="footer-links-group">
+            <div class="footer-col">
+                <h4>Links</h4>
+                <ul>
+                    <li><a href="#profile">Profile</a></li>
+                    <li><a href="#qualifications">Qualifications</a></li>
+                    <li><a href="#works">Works</a></li>
+                    <li><a href="#game">SQL Game</a></li>
+                </ul>
             </div>
-            <div id="database-library-new-data" class="database-modal-notice" style="display: none;">
-                新しい捜査資料が届きました
+            <div class="footer-col">
+                <h4>Info</h4>
+                <ul>
+                    <li><a href="https://github.com/" target="_blank">GitHub</a></li>
+                </ul>
             </div>
-            <div id="database-library-content" class="database-library-content"></div>
         </div>
     </div>
-
-    <div id="join-diagram-modal" class="database-modal" role="dialog" aria-modal="true" aria-labelledby="join-diagram-title" style="display: none;">
-        <div class="database-modal-backdrop" onclick="closeJoinDiagram()"></div>
-        <div class="database-modal-panel join-diagram-panel">
-            <div class="database-modal-header">
-                <div>
-                    <div class="database-modal-kicker">JOINの導入：テーブル結合の図解</div>
-                    <h2 id="join-diagram-title">JOIN図解</h2>
-                </div>
-                <button type="button" class="database-modal-close" onclick="closeJoinDiagram()" aria-label="閉じる">×</button>
-            </div>
-            <div class="join-diagram-tabs" aria-label="JOIN図解の種類">
-                <button type="button" class="join-diagram-tab active" data-diagram="JOIN.png" onclick="showJoinDiagram('JOIN.png', this)">JOIN全体像</button>
-                <button type="button" class="join-diagram-tab" data-diagram="INNER JOIN.png" onclick="showJoinDiagram('INNER JOIN.png', this)">INNER JOIN</button>
-                <button type="button" class="join-diagram-tab" data-diagram="LEFT JOIN.png" onclick="showJoinDiagram('LEFT JOIN.png', this)">LEFT JOIN</button>
-                <button type="button" class="join-diagram-tab" data-diagram="比較.png" onclick="showJoinDiagram('比較.png', this)">比較</button>
-            </div>
-            <div class="join-diagram-body">
-                <img id="join-diagram-image" src="JOIN.png" alt="JOIN全体像の図解">
-            </div>
-            <p class="join-diagram-note">※下の図は仕組みを理解しやすくするためのミニ例です。実際の捜査データでは、取引IDや受入・容量の記録内容が異なります。</p>
-        </div>
+    
+    <div class="footer-bottom">
+        S∀O&copy; 2026 Portfolio. All rights reserved.
     </div>
+</footer>
+
+<!-- トップに戻るボタン（Page Top） -->
+<a href="#top" class="back-to-top" title="トップに戻る">
+    <span class="back-to-top-icon">↑</span>
+    <span class="back-to-top-text">Page Top</span>
+</a>
+
+<!-- 流れ星・星空のアニメーション用スクリプト -->
+<script>
+    const field = document.querySelector('.star-field');
+    if (field) {
+        for (let i = 0; i < 40; i++) {
+            const s = document.createElement('span');
+            s.className = 'star';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.animationDelay = (Math.random() * 3).toFixed(2) + 's';
+            s.style.animationDuration = (2 + Math.random() * 2).toFixed(2) + 's';
+            field.appendChild(s);
+        }
+    }
+</script>
 </body>
 </html>
