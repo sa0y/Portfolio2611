@@ -65,6 +65,14 @@ function escapeHTML(value) {
         .replace(/'/g, '&#39;');
 }
 
+function escapeHTMLWithLinks(value) {
+    return String(value).split(/(https:\/\/[^\s]+)/g).map(part => {
+        if (!part.startsWith('https://')) return escapeHTML(part);
+        const safeUrl = escapeHTML(part);
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>`;
+    }).join('');
+}
+
 function updateClearCount() {
     const count = [...new Set(clearedMissions.filter(index =>
         missions[index] && !missions[index].isBriefing && !missions[index].isPractice
@@ -112,6 +120,9 @@ function renderSidebar() {
 
 function selectMission(index) {
     if (!missions[index]) return;
+    document.querySelectorAll('.info-details[open]').forEach(section => {
+        section.open = false;
+    });
     currentMissionIndex = index;
     currentChapter = missions[index].group;
     currentHintIndex = 0;
@@ -126,7 +137,7 @@ function selectMission(index) {
     prologue.hidden = !mission.prologue;
 
     const explanation = document.getElementById('mission-explanation');
-    explanation.innerHTML = `<span style="white-space: pre-line;">${escapeHTML(mission.explanation)}</span>`;
+    explanation.innerHTML = `<span style="white-space: pre-line;">${escapeHTMLWithLinks(mission.explanation)}</span>`;
     document.getElementById('mission-expectedSql').textContent = mission.expectedSql || '';
     document.getElementById('glossary-content').innerHTML = mission.glossary?.html || '';
 
@@ -137,7 +148,7 @@ function selectMission(index) {
         feature === 'INNER_JOIN' || feature === 'LEFT_JOIN'
     );
     if (mission.hints?.length) {
-        hintArea.innerHTML = `<div class="hint-item">${escapeHTML(formatHint(mission.hints[0]))}</div>`;
+        hintArea.innerHTML = `<div class="hint-item">${escapeHTMLWithLinks(formatHint(mission.hints[0]))}</div>`;
         if (mission.hints.length > 1) {
             hintButton.style.display = 'inline-block';
             hintButton.textContent = '次のヒントを見る';
@@ -230,7 +241,7 @@ function showNextHint() {
     if (!mission?.hints || currentHintIndex >= mission.hints.length - 1) return;
     currentHintIndex++;
     const hintArea = document.getElementById('hint-area');
-    hintArea.insertAdjacentHTML('beforeend', `<div class="hint-item">${escapeHTML(formatHint(mission.hints[currentHintIndex]))}</div>`);
+    hintArea.insertAdjacentHTML('beforeend', `<div class="hint-item">${escapeHTMLWithLinks(formatHint(mission.hints[currentHintIndex]))}</div>`);
     if (currentHintIndex >= mission.hints.length - 1) document.getElementById('next-hint-btn').style.display = 'none';
 }
 
