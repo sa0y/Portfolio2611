@@ -30,7 +30,7 @@ const missionFeatures = {
     5: ["WHERE", "EQUALS", "AND", "NOT_EQUAL"],
     6: ["WHERE", "EQUALS", "AND", "LESS_THAN"],
     7: ["WHERE", "EQUALS", "SUBTRACTION", "AS", "ORDER_BY", "DESC"],
-    8: ["WHERE", "EQUALS", "AND", "LESS_THAN", "GREATER_EQUAL", "SUBTRACTION", "PARENS"],
+    8: ["WHERE", "EQUALS", "AND", "LESS_THAN", "GREATER_THAN"],
     9: ["COUNT", "GROUP_BY"], 10: ["DISTINCT", "WHERE"],
     11: ["WHERE", "MAX", "MIN", "GROUP_BY"],
     12: ["WHERE", "DIVIDE", "AVG", "ROUND", "GROUP_BY"],
