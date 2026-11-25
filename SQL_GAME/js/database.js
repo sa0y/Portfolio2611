@@ -7,44 +7,33 @@ async function initBrowserDatabase() {
     db = new SQL.Database();
 
     db.run(`
-        CREATE TABLE Company_Information_Records (
+        CREATE TABLE Companies (
             company_id TEXT PRIMARY KEY,
             company_name TEXT NOT NULL,
             address TEXT
         );
-        CREATE TABLE Import_Records (
+        CREATE TABLE Imports (
             trade_id TEXT PRIMARY KEY,
             company_id TEXT,
             model_number TEXT,
             product_name TEXT,
             category TEXT,
             quantity INTEGER,
+            received_quantity INTEGER,
             declared_value INTEGER,
             declaration_date TEXT,
-            FOREIGN KEY (company_id) REFERENCES Company_Information_Records(company_id)
-        );
-        CREATE TABLE Customs_Inspection_Records (
-            inspection_id TEXT PRIMARY KEY,
-            trade_id TEXT,
-            declared_quantity INTEGER,
-            inspected_quantity INTEGER,
-            inspection_date TEXT,
-            FOREIGN KEY (trade_id) REFERENCES Import_Records(trade_id)
-        );
-        CREATE TABLE Port_Trade_Records (
-            port_id TEXT PRIMARY KEY,
-            trade_id TEXT,
-            region TEXT,
-            declared_value INTEGER,
-            FOREIGN KEY (trade_id) REFERENCES Import_Records(trade_id)
-        );
-        CREATE TABLE USB_Inspection_Records (
-            usb_id TEXT PRIMARY KEY,
-            trade_id TEXT,
-            product_name TEXT,
+            declared_weight_kg REAL,
+            actual_weight_kg REAL,
             advertised_capacity INTEGER,
             actual_capacity INTEGER,
-            FOREIGN KEY (trade_id) REFERENCES Import_Records(trade_id)
+            FOREIGN KEY (company_id) REFERENCES Companies(company_id)
+        );
+        CREATE TABLE Containers (
+            container_record_id TEXT PRIMARY KEY,
+            trade_id TEXT,
+            container_area TEXT,
+            container_number TEXT,
+            FOREIGN KEY (trade_id) REFERENCES Imports(trade_id)
         );
     `);
     seedInitialData();
@@ -65,21 +54,56 @@ function seedInitialData() {
         ['C011', 'セントラル・ロジ', '埼玉県さいたま市大宮区'],
         ['C012', 'オーシャン・ゲート沖縄', '沖縄県那覇市']
     ];
-    companies.forEach(row => db.run('INSERT INTO Company_Information_Records VALUES (?, ?, ?)', row));
+    companies.forEach(row => db.run('INSERT INTO Companies VALUES (?, ?, ?)', row));
 
-    const tradeData = [];
-    const models = ['CT-400', 'USB-1TB', 'SSD-2TB', 'MEM-512G', 'LAN-C6', 'HD-2TB', 'HUB-8P'];
+    // trade_id, company_id, model_number, product_name, category, quantity, declared_value,
+    // declaration_date, received_quantity, declared_weight_kg, actual_weight_kg,
+    // advertised_capacity, actual_capacity
+    const importData = [
+        ['T001', 'C001', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 2000, 96000000, '2026-08-10', 1985, 120.0, 120.0, 1024, 1024],
+        ['T002', 'C002', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 3000, 150000000, '2026-08-15', 3000, 180.0, 180.0, 1024, 1024],
+        ['T003', 'C003', 'MEM-512G', 'USB512GB Type-C', 'USBメモリ', 2000, 100000000, '2026-08-25', 2000, 120.0, 120.0, 512, 512],
+
+        // 切り口①：数量不足 ＋ 重量オーバー（数は少ないのに重い＝何か詰まっている）
+        ['T004', 'C004', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 2000, 12000000, '2026-09-02', 1650, 120.0, 168.5, 1024, 1024],
+        ['T005', 'C004', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 3000, 18000000, '2026-09-08', 2720, 180.0, 235.0, 1024, 1024],
+
+        ['T006', 'C005', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 3000, 150000000, '2026-09-12', 3000, 180.0, 180.0, 1024, 1024],
+        ['T007', 'C006', 'SSD-2TB', '外付けSSD2TB Type-C', 'ストレージ', 4000, 196000000, '2026-09-15', 4000, 240.0, 240.0, 2048, 2048],
+
+        // 受入数量未記録（received_quantity = NULL）の例
+        ['T008', 'C007', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 2000, 104000000, '2026-09-18', null, 120.0, 120.0, 1024, 1024],
+
+        ['T009', 'C008', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 3000, 152000000, '2026-09-20', 3000, 180.0, 180.0, 1024, 1024],
+        ['T010', 'C009', 'LAN-C6', 'LANケーブルCat6', 'アクセサリ', 2000, 98000000, '2026-09-22', 2000, 120.0, 120.0, 512, 512],
+        ['T011', 'C010', 'HD-2TB', 'ハードディスク2TB Type-A', 'ストレージ', 4000, 204000000, '2026-09-25', 4000, 240.0, 240.0, 2048, 2048],
+        ['T012', 'C011', 'HUB-8P', 'USBハブ8ポート Type-C', 'アクセサリ', 2000, 100000000, '2026-09-28', 2000, 120.0, 120.0, 512, 512],
+        ['T013', 'C012', 'MEM-512G', 'USB512GB Type-C', 'USBメモリ', 3000, 149000000, '2026-09-30', 3000, 180.0, 180.0, 512, 512],
+
+        // 切り口②：USB容量不足（広告1024GBに対して実容量64GB）
+        ['T014', 'C004', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 3000, 16500000, '2026-10-01', 3000, 180.0, 180.0, 1024, 64],
+        ['T015', 'C004', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 4000, 22000000, '2026-10-02', 4000, 240.0, 240.0, 1024, 64],
+
+        ['T016', 'C007', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 2000, 102000000, '2026-10-03', 2000, 120.0, 120.0, 1024, 1024],
+        ['T017', 'C001', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 4000, 192000000, '2026-10-04', 4000, 240.0, 240.0, 1024, 1024],
+
+        // ちょっとした数量ズレの例（受入3個多い / 受入1個少ない）
+        ['T018', 'C002', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 3000, 150000000, '2026-10-05', 3003, 180.0, 180.0, 1024, 1024],
+        ['T019', 'C005', 'TECH-26', 'USB1TB 2-in-1', 'USBメモリ', 2000, 100000000, '2026-10-06', 1999, 120.0, 120.0, 1024, 1024]
+    ];
+
+    const models = ['TECH-26', 'USB-1TB', 'SSD-2TB', 'MEM-512G', 'LAN-C6', 'HD-2TB', 'HUB-8P'];
     const names = {
-        'CT-400': 'USB1TB',
-        'USB-1TB': 'USB1TB',
-        'SSD-2TB': '外付けSSD2TB',
-        'MEM-512G': 'USB512GB',
+        'TECH-26': 'USB1TB 2-in-1',
+        'USB-1TB': 'USB1TB Type-A',
+        'SSD-2TB': '外付けSSD2TB Type-C',
+        'MEM-512G': 'USB512GB Type-C',
         'LAN-C6': 'LANケーブルCat6',
-        'HD-2TB': 'ハードディスク2TB',
-        'HUB-8P': 'USBハブ8ポート'
+        'HD-2TB': 'ハードディスク2TB Type-A',
+        'HUB-8P': 'USBハブ8ポート Type-C'
     };
     const categories = {
-        'CT-400': 'USBメモリ',
+        'TECH-26': 'USBメモリ',
         'USB-1TB': 'USBメモリ',
         'SSD-2TB': 'ストレージ',
         'MEM-512G': 'USBメモリ',
@@ -88,109 +112,101 @@ function seedInitialData() {
         'HUB-8P': 'アクセサリ'
     };
 
-    // C004（アオバ・マイクロ）を本命とし、他社も一部に気になるデータを持たせて途中で断定しにくくする
-    const core = [
-        ['T001', 'C001', 'CT-400', 'USB1TB', 'USBメモリ', 2000, 96000000, '2026-01-10'],
-        ['T002', 'C002', 'CT-400', 'USB1TB', 'USBメモリ', 3000, 150000000, '2026-01-15'],
-        ['T003', 'C003', 'CT-400', 'USB1TB', 'USBメモリ', 2000, 100000000, '2026-02-05'],
-        ['T004', 'C004', 'CT-400', 'USB1TB', 'USBメモリ', 2000, 12000000, '2026-02-12'],
-        ['T005', 'C004', 'CT-400', 'USB1TB', 'USBメモリ', 3000, 18000000, '2026-03-01'],
-        ['T006', 'C005', 'CT-400', 'USB1TB', 'USBメモリ', 3000, 150000000, '2026-03-05'],
-        ['T007', 'C006', 'CT-400', 'USB1TB', 'USBメモリ', 4000, 196000000, '2026-03-10'],
-        ['T008', 'C007', 'CT-400', 'USB1TB', 'USBメモリ', 2000, 104000000, '2026-03-15'],
-        ['T009', 'C008', 'CT-400', 'USB1TB', 'USBメモリ', 3000, 152000000, '2026-03-20'],
-        ['T010', 'C009', 'CT-400', 'USB1TB', 'USBメモリ', 2000, 98000000, '2026-03-22'],
-        ['T011', 'C010', 'CT-400', 'USB1TB', 'USBメモリ', 4000, 204000000, '2026-03-25'],
-        ['T012', 'C011', 'CT-400', 'USB1TB', 'USBメモリ', 2000, 100000000, '2026-03-28'],
-        ['T013', 'C012', 'CT-400', 'USB1TB', 'USBメモリ', 3000, 149000000, '2026-03-30'],
-        ['T014', 'C004', 'CT-400', 'USB1TB', 'USBメモリ', 3000, 16500000, '2026-03-31'],
-        ['T015', 'C004', 'CT-400', 'USB1TB', 'USBメモリ', 4000, 22000000, '2026-04-01'],
-        ['T016', 'C007', 'CT-400', 'USB1TB', 'USBメモリ', 2000, 102000000, '2026-04-02'],
-        ['T017', 'C001', 'CT-400', 'USB1TB', 'USBメモリ', 4000, 192000000, '2026-04-03']
+    // TECH-26 を扱うのは全体の半分（6社）に限定
+    const tech26Companies = ['C001', 'C002', 'C004', 'C005', 'C007', 'C008'];
+
+    // 会社ごとの取引件数に差をつけるための重み付けテーブル（合計30枠）
+    const companyWeights = [
+        1, 1, 2, 3, // C001〜C004
+        4, 2, 2, 5, // C005〜C008
+        1, 3, 4, 2  // C009〜C012
     ];
-    core.forEach(row => tradeData.push(row));
+    const weightedPool = [];
+    companyWeights.forEach((weight, idx) => {
+        const compId = 'C0' + String(idx + 1).padStart(2, '0');
+        for (let w = 0; w < weight; w++) {
+            weightedPool.push(compId);
+        }
+    });
 
-    for (let i = 18; i <= 1000; i++) {
+    let tech26Seq = 0;
+    for (let i = 20; i <= 1000; i++) {
         const id = 'T' + String(i).padStart(4, '0');
-        let compNum = i % 7 === 0 ? 4 : i % 9 === 0 ? 1 : (i % 12) + 1;
-        const compId = 'C0' + String(compNum).padStart(2, '0');
         const model = models[i % models.length];
-        const qty = ((i % 4) + 1) * 1000;
-        const val = (compId === 'C004' && model === 'CT-400') ? qty * 6000 : qty * 50000;
-        const month = String((i % 3) + 1).padStart(2, '0');
-        const day = String((i % 28) + 1).padStart(2, '0');
-        tradeData.push([id, compId, model, names[model], categories[model], qty, val, `2026-${month}-${day}`]);
-    }
-    tradeData.forEach(row => db.run('INSERT INTO Import_Records VALUES (?, ?, ?, ?, ?, ?, ?, ?)', row));
+        const isTech26 = model === 'TECH-26';
 
-    // tradeId -> companyId マップを用意して検査データやUSB検査データを調整
-    const tradeCompanyMap = new Map(tradeData.map(row => [row[0], row[1]]));
+        const compId = isTech26
+            ? tech26Companies[(tech26Seq * 5 + Math.floor(tech26Seq / 6)) % tech26Companies.length]
+            : weightedPool[i % weightedPool.length];
 
-    let inspectionCounter = 1;
-    tradeData.forEach((row, idx) => {
-        const [tradeId, compId, , , , qty] = row;
-        // T008（C007）は未検査（Customs_Inspection_Records に登録しない）
-        if (tradeId === 'T008') return;
+        const qtySeed = isTech26 ? (i + tech26Seq * 3) : i;
+        const qty = ((qtySeed % 4) + 1) * 1000;
+        const val = qty * 50000;
 
-        let inspected = qty;
-        if (tradeId === 'T004') inspected = qty - 350;
-        else if (tradeId === 'T005') inspected = qty - 280;
-        else if (tradeId === 'T014' || tradeId === 'T015') inspected = qty - 260;
-        else if (compId === 'C004' && idx % 21 === 0) inspected = qty - 220;
-        else if (tradeId === 'T001') inspected = qty - 15;
-        else if (idx % 100 === 50) inspected = idx % 200 === 50 ? qty - 220 : qty + 10;
+        // 84件周期で同じ日付・同じ会社・同じ数量が重ならないよう分散
+        const monthNum = isTech26
+            ? (((i + tech26Seq * 2) % 3) + 8)
+            : ((i % 3) + 8);
+        const dayNum = isTech26
+            ? ((((i * 11) + tech26Seq * 13) % 28) + 1)
+            : (((i * 7) % 28) + 1);
+        if (isTech26) tech26Seq++;
 
-        db.run('INSERT INTO Customs_Inspection_Records VALUES (?, ?, ?, ?, ?)',
-            ['I' + String(inspectionCounter++).padStart(4, '0'), tradeId, qty, inspected, '2026-03-15']);
-    });
+        const month = String(monthNum).padStart(2, '0');
+        const day = String(dayNum).padStart(2, '0');
+        const receivedQty = qty;
+        const declaredWeight = Number((qty * 0.06).toFixed(1));
+        const actualWeight = declaredWeight;
 
-    const highRegions = ['中央', '東部', '東北'];
-    const lowRegions = ['北部', '南部', '西部', '西南', '東南', '西北'];
-    tradeData.forEach((row, idx) => {
-        const [tradeId, compId, , , , , value] = row;
-        let reg = lowRegions[idx % lowRegions.length];
-        let declaredValue = value;
-        if (compId === 'C004' || compId === 'C007') reg = highRegions[idx % highRegions.length];
-        else if (declaredValue >= 100000000 && idx % 10 < 7) reg = highRegions[idx % highRegions.length];
-        else if (declaredValue >= 100000000) {
-            declaredValue = 50000000;
-        }
-        db.run('INSERT INTO Port_Trade_Records VALUES (?, ?, ?, ?)',
-            ['P' + String(idx + 1).padStart(4, '0'), tradeId, reg, declaredValue]);
-    });
-
-    tradeData.forEach((row, idx) => {
-        const [tradeId, , , productName] = row;
-        const compId = tradeCompanyMap.get(tradeId);
         let adv = 512;
-        let name = productName;
-        if (productName.includes('512GB')) adv = 512;
-        else if (productName.includes('SSD') || productName.includes('ハードディスク')) adv = idx % 6 === 0 ? 2048 : 1024;
-        else {
-            const mod = idx % 3;
-            if (mod === 0) { adv = 256; name = 'USB256GB'; }
-            else if (mod === 1) { adv = 512; name = 'USB512GB'; }
-            else { adv = 1024; name = 'USB1TB'; }
+        let prodName = names[model];
+        if (prodName.includes('512GB')) {
+            adv = 512;
+            prodName = 'USB512GB Type-C';
+        } else if (prodName.includes('SSD') || prodName.includes('ハードディスク')) {
+            adv = i % 6 === 0 ? 2048 : 1024;
+        } else if (prodName.includes('USB')) {
+            const mod = i % 3;
+            if (mod === 0) { adv = 256; prodName = 'USB256GB Type-C'; }
+            else if (mod === 1) { adv = 512; prodName = 'USB512GB Type-A'; }
+            else { adv = 1024; prodName = 'USB1TB 2-in-1'; }
         }
+        const act = adv;
 
-        let act = adv;
-        // C004 の対象取引（T004, T005, T014, T015 など）を重大な異常（50%未満）にする
-        if (['T004', 'T005', 'T014', 'T015'].includes(tradeId)) {
-            adv = 1024; name = 'USB1TB'; act = 64;
-        } else if (['T008', 'T016'].includes(tradeId)) {
-            // C007 は容量正常にして「未検査（T008）だが容量は正常」というまぎらわしさを作る
-            adv = 1024; name = 'USB1TB'; act = 1024;
-        } else if (compId === 'C004' && idx % 21 === 0) {
-            adv = 1024; name = 'USB1TB'; act = 64;
-        } else if (idx % 100 === 0) {
-            act = idx % 200 === 0 ? Math.round(adv / 16) : Math.round(adv / 8);
-        } else if (adv === 256 && idx % 50 === 0) {
-            act = 64;
-        } else if (idx % 40 === 0) {
-            act = Math.round(adv * 0.75);
-        }
+        importData.push([
+            id, compId, model, prodName, categories[model], qty, val,
+            `2026-${month}-${day}`, receivedQty, declaredWeight, actualWeight, adv, act
+        ]);
+    }
 
-        db.run('INSERT INTO USB_Inspection_Records VALUES (?, ?, ?, ?, ?)',
-            ['U' + String(idx + 1).padStart(4, '0'), tradeId, name, adv, act]);
+    importData.forEach(row => db.run(
+        `INSERT INTO Imports (
+            trade_id, company_id, model_number, product_name, category, quantity,
+            declared_value, declaration_date, received_quantity, declared_weight_kg,
+            actual_weight_kg, advertised_capacity, actual_capacity
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        row
+    ));
+
+    const areas = ['Aヤード', 'Bヤード', 'Cヤード', 'Dヤード', 'Eヤード', 'Fヤード'];
+    const specialContainers = {
+        'T004': ['Bヤード', 'CNT-204'],
+        'T005': ['Bヤード', 'CNT-205'],
+        'T014': ['Bヤード', 'CNT-214'],
+        'T015': ['Bヤード', 'CNT-215']
+    };
+
+    importData.forEach((row, idx) => {
+        const tradeId = row[0];
+        const [area, containerNo] = specialContainers[tradeId] || [
+            areas[idx % areas.length],
+            'CNT-' + String((idx % 90) + 101)
+        ];
+        db.run('INSERT INTO Containers VALUES (?, ?, ?, ?)', [
+            'CR' + String(idx + 1).padStart(4, '0'),
+            tradeId,
+            area,
+            containerNo
+        ]);
     });
 }
