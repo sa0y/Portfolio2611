@@ -8,36 +8,44 @@ const chapterOrder = [...new Set(missions.map(mission => mission.group))];
 
 const requiredSqlPatterns = {
     SELECT: /\bSELECT\b/i, FROM: /\bFROM\b/i, WHERE: /\bWHERE\b/i,
-    EQUALS: /=/, NOT_EQUAL: /!=|<>/, LESS_THAN: /<(?![=>])/, GREATER_EQUAL: />=/,
+    EQUALS: /=/, NOT_EQUAL: /!=|<>/, LESS_THAN: /<(?![=>])/, GREATER_THAN: />(?!=)/, GREATER_EQUAL: />=/,
     AND: /\bAND\b/i, OR: /\bOR\b/i, ORDER_BY: /\bORDER\s+BY\b/i,
+    PARENS: /\([^)]*\)/,
     ASC: /\bASC\b/i, DESC: /\bDESC\b/i, LIMIT: /\bLIMIT\b/i,
-    SUBTRACTION: /declared_quantity\s*-\s*inspected_quantity/i,
+    SUBTRACTION: /quantity\s*-\s*received_quantity/i,
     AS: /\bAS\b/i, DISTINCT: /\bDISTINCT\b/i, COUNT: /\bCOUNT\s*\(/i,
     GROUP_BY: /\bGROUP\s+BY\b/i, SUM: /\bSUM\s*\(/i, AVG: /\bAVG\s*\(/i,
+    MAX: /\bMAX\s*\(/i, MIN: /\bMIN\s*\(/i,
     HAVING: /\bHAVING\b/i, ROUND: /\bROUND\s*\(/i, MULTIPLY: /\*/,
     DIVIDE: /\//, CASE: /\bCASE\b/i, WHEN: /\bWHEN\b/i, THEN: /\bTHEN\b/i,
     ELSE: /\bELSE\b/i, END: /\bEND\b/i, BETWEEN: /\bBETWEEN\b/i,
     LIKE: /\bLIKE\b/i, INNER_JOIN: /\b(?:INNER\s+)?JOIN\b/i, LEFT_JOIN: /\bLEFT\s+JOIN\b/i,
-    ON: /\bON\b/i, IS_NULL: /\bIS\s+NULL\b/i, SUBQUERY: /\(\s*SELECT\b/i
+    ON: /\bON\b/i, IS_NULL: /\bIS\s+NULL\b/i, SUBQUERY: /\(\s*SELECT\b/i,
+    MULTIPLE_JOINS: /\bJOIN\b[\s\S]*\bJOIN\b/i
 };
 
 const missionFeatures = {
     1: ["SELECT", "FROM"], 2: ["WHERE", "EQUALS"], 3: ["WHERE", "ORDER_BY"],
-    4: ["WHERE", "AND", "ORDER_BY", "DESC", "LIMIT"],
-    5: ["WHERE", "NOT_EQUAL"], 6: ["WHERE", "LESS_THAN"],
-    7: ["SUBTRACTION", "AS"], 8: ["WHERE", "AND", "GREATER_EQUAL"],
-    9: ["COUNT", "GROUP_BY"], 10: ["SUM", "AVG", "ROUND", "GROUP_BY"],    
-    11: ["COUNT", "GROUP_BY", "HAVING", "DESC"], 12: ["SUM", "GROUP_BY"],
-    13: ["COUNT", "GROUP_BY", "HAVING", "DESC"],
-    14: ["INNER_JOIN", "ON"], 15: ["INNER_JOIN", "ON"],
-    16: ["LEFT_JOIN", "ON"], 17: ["LEFT_JOIN", "ON", "IS_NULL"],
-    18: ["INNER_JOIN", "LEFT_JOIN", "ON", "IS_NULL"],
-    19: ["CASE", "WHEN", "THEN", "ELSE", "END", "AS"],
-    20: ["WHERE", "EQUALS", "CASE", "WHEN", "THEN", "ELSE", "END"],
-    21: ["INNER_JOIN", "ON", "WHERE", "LESS_THAN", "DIVIDE"],
-    22: ["WHERE", "LESS_THAN", "SUBQUERY", "AVG"],
-    23: ["INNER_JOIN", "ON", "WHERE", "AND", "SUBQUERY", "AVG"],
-    24: ["INNER_JOIN", "LEFT_JOIN", "ON", "WHERE", "AND", "OR", "IS_NULL", "SUBQUERY", "AVG"]
+    4: ["WHERE", "EQUALS", "ORDER_BY", "DESC", "LIMIT"],
+    5: ["WHERE", "EQUALS", "AND", "NOT_EQUAL"],
+    6: ["WHERE", "EQUALS", "AND", "LESS_THAN"],
+    7: ["WHERE", "EQUALS", "SUBTRACTION", "AS", "ORDER_BY", "DESC"],
+    8: ["WHERE", "EQUALS", "AND", "LESS_THAN", "GREATER_EQUAL", "SUBTRACTION", "PARENS"],
+    9: ["COUNT", "GROUP_BY"], 10: ["DISTINCT", "WHERE"],
+    11: ["WHERE", "MAX", "MIN", "GROUP_BY"],
+    12: ["WHERE", "DIVIDE", "AVG", "ROUND", "GROUP_BY"],
+    13: ["WHERE", "SUM", "GROUP_BY"],
+    14: ["INNER_JOIN", "ON", "WHERE", "EQUALS"],
+    15: ["INNER_JOIN", "ON", "WHERE", "EQUALS"],
+    16: ["LEFT_JOIN", "ON", "WHERE", "EQUALS", "AND", "IS_NULL"],
+    17: ["INNER_JOIN", "MULTIPLE_JOINS", "ON", "WHERE", "EQUALS", "AND", "IS_NULL"],
+    18: ["CASE", "WHEN", "THEN", "ELSE", "END", "AS", "LESS_THAN"],
+    19: ["WHERE", "EQUALS", "CASE", "WHEN", "THEN", "ELSE", "END", "AS", "LESS_THAN"],
+    20: ["WHERE", "EQUALS", "LESS_THAN", "GREATER_THAN", "AND", "OR", "PARENS"],
+    21: ["WHERE", "EQUALS", "LESS_THAN", "GREATER_THAN", "AND", "PARENS"],
+    22: ["WHERE", "EQUALS", "LESS_THAN", "AND", "PARENS"],
+    23: ["SUBQUERY", "WHERE", "EQUALS", "LESS_THAN", "GREATER_THAN", "AND", "OR", "PARENS"],
+    24: ["INNER_JOIN", "MULTIPLE_JOINS", "ON", "WHERE", "EQUALS", "LESS_THAN", "GREATER_THAN", "AND", "OR", "PARENS"]
 };
 
 async function initGame() {
@@ -152,13 +160,11 @@ function selectMission(index) {
         verifyButton.textContent = '資料の確認を完了する';
         tabs.innerHTML = `
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-                ${briefingTab('Company_Information_Records', '会社情報')}
-                ${briefingTab('Import_Records', '輸入記録')}
-                ${briefingTab('Customs_Inspection_Records', '税関検査')}
-                ${briefingTab('Port_Trade_Records', '港湾取引')}
-                ${briefingTab('USB_Inspection_Records', 'USB容量検査')}
+                ${briefingTab('Companies', '会社情報')}
+                ${briefingTab('Imports', '輸入・受入数量記録')}
+                ${briefingTab('Containers', 'コンテナ保管')}
             </div>`;
-        loadBriefingTable('Company_Information_Records');
+        loadBriefingTable('Companies');
     } else {
         sqlInput.style.display = 'block';
         runButton.style.display = 'inline-block';
@@ -283,7 +289,9 @@ function runQuery() {
     document.getElementById('row-count').textContent = `${result.values.length} 件ヒット`;
     table.innerHTML = result.columns.length
         ? '<thead><tr>' + result.columns.map(column => `<th>${escapeHTML(column)}</th>`).join('') + '</tr></thead><tbody>'
-          + result.values.map(row => '<tr>' + row.map(value => `<td>${escapeHTML(value === null ? 'NULL' : value)}</td>`).join('') + '</tr>').join('') + '</tbody>'
+          + result.values.map(row => '<tr>' + row.map(value =>
+              `<td>${escapeHTML(value === null ? 'NULL' : typeof value === 'number' ? value.toLocaleString() : value)}</td>`
+          ).join('') + '</tr>').join('') + '</tbody>'
         : '';
     localStorage.setItem(`sql_game_query_${currentMissionIndex}`, sql);
     localStorage.setItem(`sql_game_table_${currentMissionIndex}`, table.innerHTML);
