@@ -3,6 +3,7 @@ let clearedMissions = JSON.parse(localStorage.getItem('sql_game_cleared') || '[]
 let currentMissionIndex = parseInt(localStorage.getItem('sql_game_last_mission') || '0', 10);
 let currentChapter = '';
 let currentHintIndex = 0;
+let centerFeedbackTimer = null;
 
 const chapterOrder = [...new Set(missions.map(mission => mission.group))];
 
@@ -48,8 +49,128 @@ const missionFeatures = {
     24: ["INNER_JOIN", "MULTIPLE_JOINS", "ON", "WHERE", "EQUALS", "LESS_THAN", "GREATER_THAN", "AND", "OR", "PARENS"]
 };
 
+function ensureCenterFeedback() {
+    let layer = document.getElementById('center-feedback-layer');
+    if (layer) return layer;
+
+    layer = document.createElement('div');
+    layer.id = 'center-feedback-layer';
+    layer.className = 'center-feedback-layer';
+    layer.innerHTML = `
+        <div class="center-feedback-card" id="center-feedback-card" role="status" aria-live="polite">
+            <div class="center-feedback-top">
+                <span class="center-feedback-badge" id="center-feedback-badge">FEEDBACK</span>
+                <span class="center-feedback-meta" id="center-feedback-meta"></span>
+            </div>
+            <div class="center-feedback-title" id="center-feedback-title"></div>
+            <div class="center-feedback-message" id="center-feedback-message"></div>
+            <div class="center-feedback-learned" id="center-feedback-learned" style="display:none;"></div>
+            <div class="center-feedback-actions" id="center-feedback-actions"></div>
+        </div>
+    `;
+    layer.addEventListener('click', (event) => {
+        if (event.target === layer && !layer.classList.contains('is-modal')) {
+            hideCenterFeedback();
+        }
+    });
+    document.body.appendChild(layer);
+    return layer;
+}
+
+function hideCenterFeedback() {
+    if (centerFeedbackTimer) {
+        clearTimeout(centerFeedbackTimer);
+        centerFeedbackTimer = null;
+    }
+    const layer = document.getElementById('center-feedback-layer');
+    if (!layer) return;
+    layer.classList.remove('is-open', 'is-modal');
+}
+
+function showCenterFeedback({
+    tone = 'info',
+    badge = 'FEEDBACK',
+    title = '',
+    message = '',
+    learned = [],
+    meta = '',
+    duration = 1600,
+    modal = false,
+    onNext = null
+}) {
+    const layer = ensureCenterFeedback();
+    const card = document.getElementById('center-feedback-card');
+    const badgeEl = document.getElementById('center-feedback-badge');
+    const titleEl = document.getElementById('center-feedback-title');
+    const msgEl = document.getElementById('center-feedback-message');
+    const learnedEl = document.getElementById('center-feedback-learned');
+    const metaEl = document.getElementById('center-feedback-meta');
+    const actionsEl = document.getElementById('center-feedback-actions');
+
+    if (centerFeedbackTimer) {
+        clearTimeout(centerFeedbackTimer);
+        centerFeedbackTimer = null;
+    }
+
+    const wrapper = document.getElementById('result-table')?.closest('.table-wrapper');
+    if (wrapper) {
+        wrapper.classList.remove('feedback-success', 'feedback-error');
+        if (tone === 'success') wrapper.classList.add('feedback-success');
+        if (tone === 'error' || tone === 'warn') wrapper.classList.add('feedback-error');
+    }
+
+    card.className = `center-feedback-card is-${tone}`;
+    badgeEl.textContent = badge;
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    metaEl.textContent = meta;
+
+    if (learnedEl) {
+        if (Array.isArray(learned) && learned.length > 0) {
+            learnedEl.style.display = 'flex';
+            learnedEl.innerHTML = learned
+                .map(item => `<div class="center-feedback-learned-item">${escapeHTML(item)}</div>`)
+                .join('');
+        } else {
+            learnedEl.style.display = 'none';
+            learnedEl.innerHTML = '';
+        }
+    }
+
+    actionsEl.innerHTML = '';
+    if (typeof onNext === 'function') {
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = 'center-feedback-btn primary';
+        nextBtn.textContent = '次のミッションへ';
+        nextBtn.addEventListener('click', () => {
+            hideCenterFeedback();
+            onNext();
+        });
+        actionsEl.appendChild(nextBtn);
+    }
+    if (modal) {
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'center-feedback-btn';
+        closeBtn.textContent = '閉じる';
+        closeBtn.addEventListener('click', hideCenterFeedback);
+        actionsEl.appendChild(closeBtn);
+    }
+
+    layer.classList.toggle('is-modal', Boolean(modal));
+    requestAnimationFrame(() => layer.classList.add('is-open'));
+
+    if (!modal && duration > 0) {
+        centerFeedbackTimer = setTimeout(() => {
+            hideCenterFeedback();
+        }, duration);
+    }
+}
+
 async function initGame() {
     document.getElementById('display-codename').textContent = codename;
+    ensureCenterFeedback();
     await initBrowserDatabase();
     updateClearCount();
     renderSidebar();
@@ -123,6 +244,7 @@ function selectMission(index) {
     document.querySelectorAll('.info-details[open]').forEach(section => {
         section.open = false;
     });
+    hideCenterFeedback();
     currentMissionIndex = index;
     currentChapter = missions[index].group;
     currentHintIndex = 0;
@@ -353,8 +475,15 @@ function loadBriefingTable(tableName) {
         ).join('') + '</tr>').join('');
         resultTable.innerHTML = html + '</tbody>';
     } catch (error) {
-        resultTable.innerHTML = `<tr><td style="color:red">${escapeHTML(error.message)}</td></tr>`;
+        resultTable.innerHTML = `<div class="result-error-box">${escapeHTML(error.message)}</div>`;
         rowCount.textContent = '0 件ヒット';
+        showCenterFeedback({
+            tone: 'error',
+            badge: 'ERROR',
+            title: '資料の読み込みエラー',
+            message: error.message,
+            duration: 2600
+        });
     }
 }
 
@@ -377,16 +506,35 @@ function executeUserQuery(query) {
 function runQuery() {
     const sql = document.getElementById('sql-input').value.trim();
     if (!sql) {
-        alert('SQLを入力してください');
+        showCenterFeedback({
+            tone: 'warn',
+            badge: 'NOTICE',
+            title: 'SQLが入力されていません',
+            message: 'クエリを書いてから実行してみよう。',
+            duration: 1600
+        });
         return;
     }
+
+    const startedAt = performance.now();
     const result = executeUserQuery(sql);
+    const elapsedMs = Math.max(1, Math.round(performance.now() - startedAt));
     const table = document.getElementById('result-table');
+
     if (!result.success) {
-        table.innerHTML = `<tr><td style="color:red">${escapeHTML(result.error)}</td></tr>`;
+        table.innerHTML = `<div class="result-error-box">${escapeHTML(result.error)}</div>`;
         document.getElementById('row-count').textContent = '0 件ヒット';
+        showCenterFeedback({
+            tone: 'error',
+            badge: 'SQL ERROR',
+            title: 'クエリの実行に失敗しました',
+            message: result.error,
+            meta: `${elapsedMs}ms`,
+            duration: 2800
+        });
         return;
     }
+
     document.getElementById('row-count').textContent = `${result.values.length} 件ヒット`;
     table.innerHTML = result.columns.length
         ? '<thead><tr>' + result.columns.map(column => `<th>${escapeHTML(column)}</th>`).join('') + '</tr></thead><tbody>'
@@ -394,6 +542,16 @@ function runQuery() {
               `<td>${escapeHTML(value === null ? 'NULL' : typeof value === 'number' ? value.toLocaleString() : value)}</td>`
           ).join('') + '</tr>').join('') + '</tbody>'
         : '';
+
+    showCenterFeedback({
+        tone: 'info',
+        badge: 'EXECUTED',
+        title: `${result.values.length} 件ヒット`,
+        message: `${result.columns.length} 列のデータを取得しました。`,
+        meta: `${elapsedMs}ms`,
+        duration: 1300
+    });
+
     localStorage.setItem(`sql_game_query_${currentMissionIndex}`, sql);
     localStorage.setItem(`sql_game_table_${currentMissionIndex}`, table.innerHTML);
     localStorage.setItem(`sql_game_count_${currentMissionIndex}`, document.getElementById('row-count').textContent);
@@ -425,17 +583,35 @@ function verifyMission() {
 
     const sql = normalizeSql(document.getElementById('sql-input').value);
     if (!sql) {
-        alert('先にSQLを実行してください');
+        showCenterFeedback({
+            tone: 'warn',
+            badge: 'NOTICE',
+            title: '先にSQLを実行してください',
+            message: 'クエリを実行してから正解を判定しよう。',
+            duration: 1700
+        });
         return;
     }
     const featureCheck = checkRequiredFeatures(sql, mission.id);
     if (!featureCheck.success) {
-        alert(`必要なSQL構文が不足しています：${featureCheck.missing.join(', ')}`);
+        showCenterFeedback({
+            tone: 'warn',
+            badge: 'SYNTAX CHECK',
+            title: '必要なSQL構文が不足しています',
+            message: `不足している要素：${featureCheck.missing.join(', ')}`,
+            duration: 2400
+        });
         return;
     }
     const userResult = executeUserQuery(sql);
     if (!userResult.success) {
-        alert(`SQLの実行エラー：${userResult.error}`);
+        showCenterFeedback({
+            tone: 'error',
+            badge: 'SQL ERROR',
+            title: 'SQLの実行エラー',
+            message: userResult.error,
+            duration: 2600
+        });
         return;
     }
     let expectedResult;
@@ -443,11 +619,23 @@ function verifyMission() {
         const raw = db.exec(mission.expectedSql);
         expectedResult = raw.length ? { columns: raw[0].columns, values: raw[0].values } : { columns: [], values: [] };
     } catch (error) {
-        alert(`模範解答の実行エラー：${error.message}`);
+        showCenterFeedback({
+            tone: 'error',
+            badge: 'SYSTEM ERROR',
+            title: '模範解答の実行エラー',
+            message: error.message,
+            duration: 2600
+        });
         return;
     }
     if (!compareResults(userResult, expectedResult, mission.orderSensitive)) {
-        alert('取得したデータまたは条件が正解と一致しません。');
+        showCenterFeedback({
+            tone: 'warn',
+            badge: 'NOT MATCHED',
+            title: '正解と一致しません',
+            message: '取得したデータや条件・並び順を見直してみよう。',
+            duration: 2200
+        });
         return;
     }
     completeMission();
@@ -461,8 +649,17 @@ function completeMission() {
         updateClearCount();
         renderSidebar();
     }
-    alert(mission.clearFeedback?.dialogue || '正解です！');
-    if (currentMissionIndex + 1 < missions.length) selectMission(currentMissionIndex + 1);
+    const hasNext = currentMissionIndex + 1 < missions.length;
+    showCenterFeedback({
+        tone: 'success',
+        badge: 'MISSION CLEARED',
+        title: mission.title,
+        message: mission.clearFeedback?.dialogue || '正解です！',
+        learned: mission.clearFeedback?.learned || [],
+        modal: hasNext,
+        duration: hasNext ? 0 : 2600,
+        onNext: hasNext ? () => selectMission(currentMissionIndex + 1) : null
+    });
 }
 
 function saveCurrentInput() {
@@ -475,6 +672,13 @@ function changeCodename() {
         codename = value.trim();
         localStorage.setItem('sql_game_codename', codename);
         document.getElementById('display-codename').textContent = codename;
+        showCenterFeedback({
+            tone: 'info',
+            badge: 'CODENAME',
+            title: 'コードネームを更新しました',
+            message: `現在のコードネーム：${codename}`,
+            duration: 1500
+        });
     }
 }
 
