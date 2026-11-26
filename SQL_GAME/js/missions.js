@@ -1324,7 +1324,7 @@ WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name 
 
         アオバ・マイクロの怪しいコンテナは、BヤードのCNT-204、CNT-205、CNT-214、CNT-215です。`,
         clearFeedback: {
-            dialogue: "上司：よし、怪しいコンテナを特定できた。これから押収に向かおう！\nS∀O　お疲れさまでした。一緒に学んでくださってありがとうございました。Thank you for playing!",
+            dialogue: "上司：よし、怪しいコンテナを特定できた。これから押収に向かおう！\nS∀O　Thank you for playing🎮お疲れさまでした。一緒に学んでくださってありがとうございました。",
             learned: ["複数のINNER JOIN：company_idとtrade_idで3つの表をつなぐ", "切り口①と②を統合して対象を4件に確定する"]
         },
         expectedSql: `SELECT Companies.company_name, Imports.trade_id, Containers.container_area, Containers.container_number
