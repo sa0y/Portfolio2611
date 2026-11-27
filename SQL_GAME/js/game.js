@@ -558,14 +558,40 @@ function runQuery() {
 }
 
 function compareResults(user, expected, orderSensitive) {
-    if (JSON.stringify(user.columns) !== JSON.stringify(expected.columns)) return false;
-    let userRows = user.values;
-    let expectedRows = expected.values;
-    if (!orderSensitive) {
-        userRows = userRows.map(row => JSON.stringify(row)).sort();
-        expectedRows = expectedRows.map(row => JSON.stringify(row)).sort();
+    if (!user.columns.length && !user.values.length && expected.columns.length) {
+        return { matches: false, reason: 'rows' };
     }
-    return JSON.stringify(userRows) === JSON.stringify(expectedRows);
+    if (JSON.stringify(user.columns) !== JSON.stringify(expected.columns)) {
+        return { matches: false, reason: 'columns' };
+    }
+
+    const userRows = user.values;
+    const expectedRows = expected.values;
+    const userRowKeys = userRows.map(row => JSON.stringify(row));
+    const expectedRowKeys = expectedRows.map(row => JSON.stringify(row));
+    if (!orderSensitive) {
+        const matches = JSON.stringify(userRowKeys.slice().sort()) === JSON.stringify(expectedRowKeys.slice().sort());
+        return matches ? { matches: true } : { matches: false, reason: 'rows' };
+    }
+
+    if (JSON.stringify(userRows) === JSON.stringify(expectedRows)) {
+        return { matches: true };
+    }
+    if (JSON.stringify(userRowKeys.slice().sort()) === JSON.stringify(expectedRowKeys.slice().sort())) {
+        return { matches: false, reason: 'order' };
+    }
+    return { matches: false, reason: 'rows' };
+}
+
+function getMismatchMessage(comparison) {
+    if (comparison.reason === 'columns') {
+        return '抽出する列が問題文の要件と合っていないようです。SELECT句で選んだ列や、その並びをもう一度確認してみよう。';
+    }
+    if (comparison.reason === 'order') {
+        return 'レコードの表示順序が違うようです。ORDER BYで指定した列と、昇順・降順の指定を問題文と照らしてみよう。';
+    }
+
+    return '取得したレコードが一致しません。WHERE条件や比較値、条件の組み合わせを見直し、問題文の要件を一つずつ確認してみよう。';
 }
 
 function checkRequiredFeatures(sql, missionNumber) {
@@ -628,13 +654,14 @@ function verifyMission() {
         });
         return;
     }
-    if (!compareResults(userResult, expectedResult, mission.orderSensitive)) {
+    const comparison = compareResults(userResult, expectedResult, mission.orderSensitive);
+    if (!comparison.matches) {
         showCenterFeedback({
             tone: 'warn',
             badge: 'NOT MATCHED',
             title: '正解と一致しません',
-            message: '取得したデータや条件・並び順を見直してみよう。',
-            duration: 2200
+            message: getMismatchMessage(comparison),
+            duration: 6000
         });
         return;
     }
