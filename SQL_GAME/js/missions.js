@@ -4,7 +4,7 @@ const missions = [
         title: "プロローグ：匿名の告発と押収資料の確認",
         desc: "2026年11月に届いた匿名メールの手がかりをもとに、押収された各テーブルの全体像と共通IDを確認せよ。",
         isBriefing: true,
-        dialogue: "上司：2026年11月、監査部門に匿名メールが届いた。『TECH-26のUSBメモリの輸入取引を記録が消される前に調べてください。』とのことだ。まずは輸入データを含む資料全体を見てみよう。",
+        dialogue: "上司：2026年11月、監査部門に匿名メールが届いた。『TGCS-26のUSBメモリの輸入取引を記録が消される前に調べてください。』とのことだ。まずは輸入データを含む資料全体を見てみよう。",
         explanation: `まずは調査の土台となる各テーブルを確認しましょう。
 
 ・各タブを切り替えて、どんなテーブルと列（カラム）があるか確認します。
@@ -134,8 +134,8 @@ WHERE 句を使うと、条件に合う行だけを絞り込めます。
     },
     {
         id: 3,
-        title: "03. TECH-26の申告額を安い順に並べよ",
-        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の記録を、申告額（declared_value）が安い順（昇順）に並べよ。",
+        title: "03. TGCS-26の申告額を安い順に並べよ",
+        desc: "Imports テーブルから、型番（model_number）が「TGCS-26」の記録を、申告額（declared_value）が安い順（昇順）に並べよ。",
         orderSensitive: true,
         explanation: `【解説】
 ORDER BY 列名 を使うと、指定した列の値が小さい順（昇順・安い順）に並べ替えられます。
@@ -145,7 +145,7 @@ ORDER BY 列名 を使うと、指定した列の値が小さい順（昇順・�
 
 同じ型番・似た数量でも、申告額が極端に低い取引がないか見比べてみましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26の取引では、申告額に大きな差がある記録が確認できたな。",
+            dialogue: "上司：TGCS-26の取引では、申告額に大きな差がある記録が確認できたな。",
             learned: [
                 "ORDER BY 列名：指定した列の小さい順（昇順・安い順）に並べ替える",
                 "ASC：昇順を明示したいときに使うキーワード（省略しても昇順になる）"
@@ -153,7 +153,7 @@ ORDER BY 列名 を使うと、指定した列の値が小さい順（昇順・�
         },
         expectedSql: `SELECT *
 FROM Imports
-WHERE model_number = 'TECH-26'
+WHERE model_number = 'TGCS-26'
 ORDER BY declared_value;`,
         hints: [
             {
@@ -172,12 +172,12 @@ ORDER BY declared_value;`,
                 text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' → ORDER BY 表A.カラム ASC の形で、条件のあとに並び替えを加えましょう。"
             }
         ],
-        dialogue: "上司：TECH-26 の取引を申告額が安い順に並べてみよう。同じ型番なのに申告金額が大きく異なる取引がないか確かめるんだ。",
+        dialogue: "上司：TGCS-26 の取引を申告額が安い順に並べてみよう。同じ型番なのに申告金額が大きく異なる取引がないか確かめるんだ。",
         group: "🔍 第1章：不自然な申告金額",
         glossary: {
             title: "対象カラムの意味",
             html: `
-- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
+- <span class='badge'>model_number</span> 製品の型番（TGCS-26）<br>
 - <span class='badge'>quantity</span> 輸入数量（比較の基準）<br>
 - <span class='badge'>declared_value</span> 申告された取引金額（並び替えの対象）
             `
@@ -185,19 +185,19 @@ ORDER BY declared_value;`,
     },
     {
         id: 4,
-        title: "04. TECH-26 の最新取引記録を確認せよ",
-        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引を対象に、申告日（declaration_date）が最も新しい記録を10件取得せよ。",
+        title: "04. TGCS-26 の最新取引記録を確認せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TGCS-26」の取引を対象に、申告日（declaration_date）が最も新しい記録を10件取得せよ。",
         orderSensitive: true,
         explanation: `【解説】
 条件絞り込み、降順並び替え、件数制限を組み合わせて「最新の10件」を取り出します。
 
-・WHERE model_number = 'TECH-26'：型番が TECH-26 の取引に絞る
+・WHERE model_number = 'TGCS-26'：型番が TGCS-26 の取引に絞る
 ・ORDER BY declaration_date DESC：新しい日付が上に来るよう並べる
 ・LIMIT 10：先頭の10件だけを取得する
 
 申告金額だけでは判断しきれないため、次の第2章では貨物の数量にも異常がないか調べていきます。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26 の申告日が新しい順の記録を確認できたな。",
+            dialogue: "上司：TGCS-26 の申告日が新しい順の記録を確認できたな。",
             learned: [
                 "WHERE：条件に一致するデータを絞り込む",
                 "ORDER BY 列名 DESC：降順（大きい順・新しい順）に並べ替える",
@@ -206,7 +206,7 @@ ORDER BY declared_value;`,
         },
         expectedSql: `SELECT *
 FROM Imports
-WHERE model_number = 'TECH-26'
+WHERE model_number = 'TGCS-26'
 ORDER BY declaration_date DESC
 LIMIT 10;`,
         hints: [
@@ -226,12 +226,12 @@ LIMIT 10;`,
                 text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' → ORDER BY 表A.日付列 DESC → LIMIT 件数 の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：TECH-26 の取引は申告額の低さが気になるものがあるな。申告日が最も新しい記録を10件出して、最近の状況を確かめよう。",
+        dialogue: "上司：TGCS-26 の取引は申告額の低さが気になるものがあるな。申告日が最も新しい記録を10件出して、最近の状況を確かめよう。",
         group: "🔍 第1章：不自然な申告金額",
         glossary: {
             title: "対象カラムの意味",
             html: `
-- <span class='badge'>model_number</span> 製品の型番（'TECH-26' を指定）<br>
+- <span class='badge'>model_number</span> 製品の型番（'TGCS-26' を指定）<br>
 - <span class='badge'>declaration_date</span> 申告日（並び替えに利用）<br>
 - <span class='badge'>LIMIT 10</span> 取得件数の上限（最大10件）
             `
@@ -243,20 +243,20 @@ LIMIT 10;`,
     // ==========================================
     {
         id: 5,
-        title: "05. TECH-26の申告数量と受入数量が異なる記録を抽出せよ",
-        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引のうち、申告数量（quantity）と実際の受入数量（received_quantity）が一致しない記録をすべて取得せよ。",
+        title: "05. TGCS-26の申告数量と受入数量が異なる記録を抽出せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TGCS-26」の取引のうち、申告数量（quantity）と実際の受入数量（received_quantity）が一致しない記録をすべて取得せよ。",
         orderSensitive: false,
         concept: ["WHERE", "AND", "=", "!="],
         difficulty: 2,
         explanation: `【解説】
-まず WHERE で型番を TECH-26 に絞り、AND で数量の条件を加えます。!=（または <>）を使うと、2つの値が「等しくない」行を取り出せます。
+まず WHERE で型番を TGCS-26 に絞り、AND で数量の条件を加えます。!=（または <>）を使うと、2つの値が「等しくない」行を取り出せます。
 
-・model_number = 'TECH-26'：TECH-26 の取引に絞る
+・model_number = 'TGCS-26'：TGCS-26 の取引に絞る
 ・quantity != received_quantity：申告数量と受入数量が違う行を探す
 
-TECH-26 の受入数量の記録を確認し、数量が一致していない取引を洗い出しましょう。`,
+TGCS-26 の受入数量の記録を確認し、数量が一致していない取引を洗い出しましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26で申告数量と受入数量が一致しない記録を確認できたな。",
+            dialogue: "上司：TGCS-26で申告数量と受入数量が一致しない記録を確認できたな。",
             learned: [
                 "WHERE：条件に一致するデータを絞り込む",
                 "AND：型番と数量の両方の条件を満たす行を取得する",
@@ -264,12 +264,12 @@ TECH-26 の受入数量の記録を確認し、数量が一致していない取
                 "<>：!= と同じく、等しくないことを判定する"
             ]
         },
-        expectedSql: "SELECT * FROM Imports WHERE model_number = 'TECH-26' AND quantity != received_quantity;",
+        expectedSql: "SELECT * FROM Imports WHERE model_number = 'TGCS-26' AND quantity != received_quantity;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "まずTECH-26の取引に絞り、その中から「2つの数量の列を見比べて、値がズレている行」を探します。"
+                text: "まずTGCS-26の取引に絞り、その中から「2つの数量の列を見比べて、値がズレている行」を探します。"
             },
             {
                 level: 2,
@@ -282,12 +282,12 @@ TECH-26 の受入数量の記録を確認し、数量が一致していない取
                 text: "SELECT * FROM 表A → WHERE 表A.カラム = '値' AND 表A.カラム != 表A.カラム の形で、2つ目の条件をANDで加えましょう。"
             }
         ],
-        dialogue: "上司：TECH-26の貨物に数量の異常がないか確認しよう。申告数量と実際の受入数量が異なる取引を抽出してみてくれ。",
+        dialogue: "上司：TGCS-26の貨物に数量の異常がないか確認しよう。申告数量と実際の受入数量が異なる取引を抽出してみてくれ。",
         group: "📦 第2章：一致しない数量",
         glossary: {
             title: "対象テーブル・カラム",
             html: `
-- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
+- <span class='badge'>model_number</span> 製品の型番（TGCS-26）<br>
 - <span class='badge'>quantity</span> 書類上の申告数量<br>
 - <span class='badge'>received_quantity</span> 実際に受け入れた数量<br>
 - <span class='badge'>AND</span> 型番と数量の両方の条件を満たす
@@ -296,32 +296,32 @@ TECH-26 の受入数量の記録を確認し、数量が一致していない取
     },
     {
         id: 6,
-        title: "06. TECH-26の受入数量が申告数量を下回る記録を抽出せよ",
-        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引のうち、実際の受入数量（received_quantity）が申告数量（quantity）を下回っている記録だけを取得せよ。",
+        title: "06. TGCS-26の受入数量が申告数量を下回る記録を抽出せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TGCS-26」の取引のうち、実際の受入数量（received_quantity）が申告数量（quantity）を下回っている記録だけを取得せよ。",
         orderSensitive: false,
         concept: ["WHERE", "AND", "=", "<"],
         difficulty: 2,
         explanation: `【解説】
-WHERE で TECH-26 に絞り、AND で数量の条件を加えます。< を使うと、左側の値が右側の値より「小さい」行を絞り込めます。
+WHERE で TGCS-26 に絞り、AND で数量の条件を加えます。< を使うと、左側の値が右側の値より「小さい」行を絞り込めます。
 
-・model_number = 'TECH-26'：TECH-26 の取引に絞る
+・model_number = 'TGCS-26'：TGCS-26 の取引に絞る
 ・received_quantity < quantity：受入数量が申告数量より少ない行を探す
 
-TECH-26 の中から、書類上の数より実際の数が少ない取引だけを抜き出しましょう。`,
+TGCS-26 の中から、書類上の数より実際の数が少ない取引だけを抜き出しましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26で申告数量より受入数量が少ない記録を抽出できたな。",
+            dialogue: "上司：TGCS-26で申告数量より受入数量が少ない記録を抽出できたな。",
             learned: [
                 "<：左側の値が右側の値より小さいことを判定する",
                 "AND：型番と数量の両方の条件を満たす行を取得する",
                 "WHERE：指定した条件に一致する記録だけを取得する"
             ]
         },
-        expectedSql: "SELECT * FROM Imports WHERE model_number = 'TECH-26' AND received_quantity < quantity;",
+        expectedSql: "SELECT * FROM Imports WHERE model_number = 'TGCS-26' AND received_quantity < quantity;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "TECH-26の取引に絞ったうえで、「下回る」＝「実際の受入数の方が、申告された数より少ない」という大小関係を調べます。"
+                text: "TGCS-26の取引に絞ったうえで、「下回る」＝「実際の受入数の方が、申告された数より少ない」という大小関係を調べます。"
             },
             {
                 level: 2,
@@ -339,7 +339,7 @@ TECH-26 の中から、書類上の数より実際の数が少ない取引だけ
         glossary: {
             title: "対象テーブル・カラム",
             html: `
-- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
+- <span class='badge'>model_number</span> 製品の型番（TGCS-26）<br>
 - <span class='badge'>received_quantity</span> 実際の受入数量<br>
 - <span class='badge'>quantity</span> 書類上の申告数量<br>
 - <span class='badge'>AND</span> 型番と数量の両方の条件を満たす<br>
@@ -349,41 +349,41 @@ TECH-26 の中から、書類上の数より実際の数が少ない取引だけ
     },
     {
         id: 7,
-        title: "07. TECH-26の数量差を計算して異常の規模を確認せよ",
-        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引について、取引ID（trade_id）と不足数（missing_quantity）を取得し、不足数が大きい順に並べよ。",
+        title: "07. TGCS-26の数量差を計算して異常の規模を確認せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TGCS-26」の取引について、取引ID（trade_id）と不足数（missing_quantity）を取得し、不足数が大きい順に並べよ。",
         orderSensitive: true,
         concept: ["WHERE", "=", "SELECT", "-", "AS"],
         difficulty: 3,
         explanation: `【解説】
-WHERE で TECH-26 の取引に絞ってから、列同士を引き算し、その結果に AS で別名を付けます。
+WHERE で TGCS-26 の取引に絞ってから、列同士を引き算し、その結果に AS で別名を付けます。
 
-・WHERE model_number = 'TECH-26'：TECH-26 の取引に絞る
+・WHERE model_number = 'TGCS-26'：TGCS-26 の取引に絞る
 ・quantity - received_quantity：数量の差（不足数）を計算する
 ・AS missing_quantity：計算結果の列名を missing_quantity にする
 ・ORDER BY missing_quantity DESC：不足数が大きい順（降順）に並べる
 
-TECH-26 の取引に限って、不足数の大きいものから確認しましょう。`,
+TGCS-26 の取引に限って、不足数の大きいものから確認しましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26の数量不足を大きい順に確認できたな。T004は350個も足りない……これだけの数が減っているのに、重さはどうなっているんだ？次は重量も調べてみよう。",
+            dialogue: "上司：TGCS-26の数量不足を大きい順に確認できたな。T004は350個も足りない……これだけの数が減っているのに、重さはどうなっているんだ？次は重量も調べてみよう。",
             learned: [
-                "WHERE：TECH-26の取引に絞り込む",
+                "WHERE：TGCS-26の取引に絞り込む",
                 "-：数値の引き算を行う算術演算子",
                 "AS：取得した列や計算結果に別名を付ける",
                 "missing_quantity：今回の不足数を表す列名",
                 "ORDER BY ... DESC：指定した値が大きい順（降順）に並べる"
             ]
         },
-        expectedSql: "SELECT trade_id, quantity - received_quantity AS missing_quantity FROM Imports WHERE model_number = 'TECH-26' ORDER BY missing_quantity DESC;",
+        expectedSql: "SELECT trade_id, quantity - received_quantity AS missing_quantity FROM Imports WHERE model_number = 'TGCS-26' ORDER BY missing_quantity DESC;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "TECH-26の取引に絞り、「申告した数から実際の数を引いた残り（不足数）」を計算して、大きい順に並べます。"
+                text: "TGCS-26の取引に絞り、「申告した数から実際の数を引いた残り（不足数）」を計算して、大きい順に並べます。"
             },
             {
                 level: 2,
                 type: "使う構文",
-                text: "TECH-26に絞るWHERE条件、引き算の記号、計算結果に名前をつけるキーワード、そして大きい順に並べる指定を使います。"
+                text: "TGCS-26に絞るWHERE条件、引き算の記号、計算結果に名前をつけるキーワード、そして大きい順に並べる指定を使います。"
             },
             {
                 level: 3,
@@ -396,7 +396,7 @@ TECH-26 の取引に限って、不足数の大きいものから確認しまし
         glossary: {
             title: "対象テーブル・カラム",
             html: `
-- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
+- <span class='badge'>model_number</span> 製品の型番（TGCS-26）<br>
 - <span class='badge'>trade_id</span> 取引ID<br>
 - <span class='badge'>quantity</span> 申告数量<br>
 - <span class='badge'>received_quantity</span> 受入数量<br>
@@ -407,15 +407,15 @@ TECH-26 の取引に限って、不足数の大きいものから確認しまし
     },
     {
         id: 8,
-        title: "08. TECH-26の数量不足・重量超過を特定せよ",
-        desc: "Imports テーブルから、型番（model_number）が「TECH-26」の取引のうち、実際の受入数量（received_quantity）が申告数量（quantity）より少なく、実重量（actual_weight_kg）が申告重量（declared_weight_kg）より重い記録をすべて取得せよ。",
+        title: "08. TGCS-26の数量不足・重量超過を特定せよ",
+        desc: "Imports テーブルから、型番（model_number）が「TGCS-26」の取引のうち、実際の受入数量（received_quantity）が申告数量（quantity）より少なく、実重量（actual_weight_kg）が申告重量（declared_weight_kg）より重い記録をすべて取得せよ。",
         orderSensitive: false,
         concept: ["WHERE", "AND", "=", "<", ">"],
         difficulty: 3,
         explanation: `【解説】
-WHERE で TECH-26 に絞り、受入数量が申告数量より少ないことと、実重量が申告重量より重いことを AND でつなぎます。
+WHERE で TGCS-26 に絞り、受入数量が申告数量より少ないことと、実重量が申告重量より重いことを AND でつなぎます。
 
-・model_number = 'TECH-26'：TECH-26 の取引に絞る
+・model_number = 'TGCS-26'：TGCS-26 の取引に絞る
 ・received_quantity < quantity：受入数量が申告数量より少ない
 ・actual_weight_kg > declared_weight_kg：実重量が申告重量より重い
 
@@ -430,14 +430,14 @@ WHERE で TECH-26 に絞り、受入数量が申告数量より少ないこと�
         },
         expectedSql: `SELECT *
 FROM Imports
-WHERE model_number = 'TECH-26'
+WHERE model_number = 'TGCS-26'
   AND received_quantity < quantity
   AND actual_weight_kg > declared_weight_kg;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "TECH-26に絞ったうえで、「受入数量は申告数量より少ない」のに「実重量は申告重量より重い」取引を探します。"
+                text: "TGCS-26に絞ったうえで、「受入数量は申告数量より少ない」のに「実重量は申告重量より重い」取引を探します。"
             },
             {
                 level: 2,
@@ -455,7 +455,7 @@ WHERE model_number = 'TECH-26'
         glossary: {
             title: "数量不足・重量超過の確認項目",
             html: `
-- <span class='badge'>model_number</span> 製品の型番（TECH-26）<br>
+- <span class='badge'>model_number</span> 製品の型番（TGCS-26）<br>
 - <span class='badge'>received_quantity</span> 実際の受入数量<br>
 - <span class='badge'>quantity</span> 書類上の申告数量<br>
 - <span class='badge'>actual_weight_kg</span> 実重量（kg）<br>
@@ -521,31 +521,31 @@ WHERE model_number = 'TECH-26'
     },
     {
         id: 10,
-        title: "10. TECH-26 を扱う業者番号を重複なく一覧化せよ",
-        desc: "Imports テーブルから、型番（model_number）が 'TECH-26' の取引に関わっている会社ID（company_id）を重複を除いて取得せよ。",
+        title: "10. TGCS-26 を扱う業者番号を重複なく一覧化せよ",
+        desc: "Imports テーブルから、型番（model_number）が 'TGCS-26' の取引に関わっている会社ID（company_id）を重複を除いて取得せよ。",
         concept: ["SELECT", "DISTINCT", "WHERE"],
         difficulty: 2,
         orderSensitive: false,
         explanation: `【解説】
-DISTINCT を使うと、TECH-26 の取引が複数回ある会社でも company_id を重複なく1回ずつ一覧にできます。
+DISTINCT を使うと、TGCS-26 の取引が複数回ある会社でも company_id を重複なく1回ずつ一覧にできます。
 
 ・SELECT DISTINCT company_id：重複を除いた会社IDを出す
-・WHERE model_number = 'TECH-26'：型番が TECH-26 の取引に絞る
+・WHERE model_number = 'TGCS-26'：型番が TGCS-26 の取引に絞る
 
 まずは関わる業者番号を重複なく押さえたうえで、このあと会社ごとの金額や数量の計算に進んでいきましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26 を扱っている業者番号を重複なく出せたな。対象となる業者の顔ぶれが見えたところで、次は各社の金額を計算して比べてみよう。",
+            dialogue: "上司：TGCS-26 を扱っている業者番号を重複なく出せたな。対象となる業者の顔ぶれが見えたところで、次は各社の金額を計算して比べてみよう。",
             learned: [
                 "DISTINCT：取得結果から重複する行を取り除く",
                 "WHERE との併用：特定条件に合う行に絞ったうえで、重複のない一覧を作れる"
             ]
         },
-        expectedSql: "SELECT DISTINCT company_id FROM Imports WHERE model_number = 'TECH-26';",
+        expectedSql: "SELECT DISTINCT company_id FROM Imports WHERE model_number = 'TGCS-26';",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "TECH-26 の取引がある会社IDを一覧にしますが、同じ会社IDが何回も並ばないよう重複を省きます。"
+                text: "TGCS-26 の取引がある会社IDを一覧にしますが、同じ会社IDが何回も並ばないよう重複を省きます。"
             },
             {
                 level: 2,
@@ -558,47 +558,47 @@ DISTINCT を使うと、TECH-26 の取引が複数回ある会社でも company_
                 text: "SELECT DISTINCT 表A.カラム FROM 表A → WHERE 表A.カラム = '値' の形で、重複を除く指定と条件を組み合わせましょう。"
             }
         ],
-        dialogue: "上司：まずはこの型番（TECH-26）を扱っている業者番号を重複なく一覧にしてくれ。そのあとで各社の金額を計算していくぞ。",
+        dialogue: "上司：まずはこの型番（TGCS-26）を扱っている業者番号を重複なく一覧にしてくれ。そのあとで各社の金額を計算していくぞ。",
         group: "🏢 第3章：疑わしい会社の集計",
         glossary: {
             title: "対象カラム・句の意味",
             html: `
 - <span class='badge'>DISTINCT</span> 重複する行を取り除いて表示する<br>
 - <span class='badge'>company_id</span> 業者番号（会社ID）<br>
-- <span class='badge'>model_number = 'TECH-26'</span> 絞り込む製品の型番
+- <span class='badge'>model_number = 'TGCS-26'</span> 絞り込む製品の型番
             `
         }
     },
    {
         id: 11,
-        title: "11. TECH-26 の会社ごとの最高・最低申告額を比較せよ",
-        desc: "Imports テーブルから、型番（model_number）が 'TECH-26' の取引を対象に、会社ID（company_id）ごとの最高申告額（別名：max_value）と最低申告額（別名：min_value）を取得せよ。",
+        title: "11. TGCS-26 の会社ごとの最高・最低申告額を比較せよ",
+        desc: "Imports テーブルから、型番（model_number）が 'TGCS-26' の取引を対象に、会社ID（company_id）ごとの最高申告額（別名：max_value）と最低申告額（別名：min_value）を取得せよ。",
         concept: ["WHERE", "MAX", "MIN", "GROUP BY"],
         difficulty: 2,
         orderSensitive: false,
         explanation: `【解説】
-TECH-26 の取引に絞り、まずは会社ごとの申告額の幅（最高額と最低額の差）を把握します。
+TGCS-26 の取引に絞り、まずは会社ごとの申告額の幅（最高額と最低額の差）を把握します。
 
-・WHERE model_number = 'TECH-26'：型番が TECH-26 の取引に絞る
+・WHERE model_number = 'TGCS-26'：型番が TGCS-26 の取引に絞る
 ・MAX(declared_value) AS max_value：会社ごとの最高申告額を求める
 ・MIN(declared_value) AS min_value：会社ごとの最低申告額を求める
 ・GROUP BY company_id：会社IDごとにまとめる
 
 極端に安い・高い取引が混ざっている会社がないか、振れ幅を確認しましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26 の会社ごとの最高申告額と最低申告額を確認できたな。幅の大きさが分かったところで、次はならした水準（平均）を見てみよう。",
+            dialogue: "上司：TGCS-26 の会社ごとの最高申告額と最低申告額を確認できたな。幅の大きさが分かったところで、次はならした水準（平均）を見てみよう。",
             learned: [
                 "MAX(列名)：グループ内の最大値を求める",
                 "MIN(列名)：グループ内の最小値を求める",
                 "WHERE と GROUP BY の併用：特定の型番に絞ったうえで会社ごとの幅を比べられる"
             ]
         },
-        expectedSql: "SELECT company_id, MAX(declared_value) AS max_value, MIN(declared_value) AS min_value FROM Imports WHERE model_number = 'TECH-26' GROUP BY company_id;",
+        expectedSql: "SELECT company_id, MAX(declared_value) AS max_value, MIN(declared_value) AS min_value FROM Imports WHERE model_number = 'TGCS-26' GROUP BY company_id;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "TECH-26 の取引に絞ったうえで、会社ごとに「一番高い申告額」と「一番安い申告額」を並べて金額の幅を確かめます。"
+                text: "TGCS-26 の取引に絞ったうえで、会社ごとに「一番高い申告額」と「一番安い申告額」を並べて金額の幅を確かめます。"
             },
             {
                 level: 2,
@@ -611,12 +611,12 @@ TECH-26 の取引に絞り、まずは会社ごとの申告額の幅（最高額
                 text: "SELECT 表A.グループ列, MAX(表A.数値列) AS 別名, MIN(表A.数値列) AS 別名 FROM 表A → WHERE 表A.カラム = '値' → GROUP BY 表A.グループ列 の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：さっき出た業者たちの TECH-26 について、まずは会社ごとの申告額の最高値と最低値を出し、金額の幅を確認しよう。",
+        dialogue: "上司：さっき出た業者たちの TGCS-26 について、まずは会社ごとの申告額の最高値と最低値を出し、金額の幅を確認しよう。",
         group: "🏢 第3章：疑わしい会社の集計",
         glossary: {
             title: "対象カラム・関数の意味",
             html: `
-- <span class='badge'>model_number = 'TECH-26'</span> 絞り込む製品の型番<br>
+- <span class='badge'>model_number = 'TGCS-26'</span> 絞り込む製品の型番<br>
 - <span class='badge'>MAX()</span> グループ内の最大値を求める関数<br>
 - <span class='badge'>MIN()</span> グループ内の最小値を求める関数
             `
@@ -624,33 +624,33 @@ TECH-26 の取引に絞り、まずは会社ごとの申告額の幅（最高額
     },
     {
         id: 12,
-        title: "12. TECH-26 の会社ごとの1個あたり申告額の平均を求めよ",
-        desc: "Imports テーブルから、型番（model_number）が 'TECH-26' の取引を対象に、会社ID（company_id）ごとの1個あたり申告額（申告額 declared_value ÷ 申告数量 quantity）の平均を小数点以下で四捨五入した値（別名：avg_unit_value）を取得せよ。",
+        title: "12. TGCS-26 の会社ごとの1個あたり申告額の平均を求めよ",
+        desc: "Imports テーブルから、型番（model_number）が 'TGCS-26' の取引を対象に、会社ID（company_id）ごとの1個あたり申告額（申告額 declared_value ÷ 申告数量 quantity）の平均を小数点以下で四捨五入した値（別名：avg_unit_value）を取得せよ。",
         concept: ["WHERE", "/", "AVG", "ROUND", "GROUP BY"],
         difficulty: 2,
         orderSensitive: false,
         explanation: `【解説】
-TECH-26 の取引に絞り、取引ごとの数量差に左右されない「1個あたりの申告額」を出したうえで、会社ごとの平均水準を比べます。
+TGCS-26 の取引に絞り、取引ごとの数量差に左右されない「1個あたりの申告額」を出したうえで、会社ごとの平均水準を比べます。
 
 ・declared_value * 1.0 / quantity：1個あたりの申告額を計算する（* 1.0 で割り算の途中切り捨てを防ぐ）
 ・ROUND(AVG(...), 0) AS avg_unit_value：会社ごとの平均を計算し、小数点以下を四捨五入して整数に丸める
-・WHERE model_number = 'TECH-26' AND GROUP BY company_id：TECH-26 に絞り、会社IDごとにまとめる
+・WHERE model_number = 'TGCS-26' AND GROUP BY company_id：TGCS-26 に絞り、会社IDごとにまとめる
 
 最高・最低の幅とあわせて、ならしたときの単価水準も押さえておきましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26 の会社ごとの1個あたり申告額の平均を確認できたな。幅だけでなく、ならした単価水準の違いも見えてきたぞ。",
+            dialogue: "上司：TGCS-26 の会社ごとの1個あたり申告額の平均を確認できたな。幅だけでなく、ならした単価水準の違いも見えてきたぞ。",
             learned: [
                 "/（割り算）：申告額を申告数量で割り、1個あたりの金額を求める",
                 "AVG(列名) / ROUND(数値, 0)：平均を出し、小数点以下を四捨五入して整数に丸める",
                 "WHERE と GROUP BY の併用：対象条件に絞ったうえでグループごとの平均を計算できる"
             ]
         },
-        expectedSql: "SELECT company_id, ROUND(AVG(declared_value * 1.0 / quantity), 0) AS avg_unit_value FROM Imports WHERE model_number = 'TECH-26' GROUP BY company_id;",
+        expectedSql: "SELECT company_id, ROUND(AVG(declared_value * 1.0 / quantity), 0) AS avg_unit_value FROM Imports WHERE model_number = 'TGCS-26' GROUP BY company_id;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "TECH-26 の取引に絞ったうえで、まず「1個あたりの申告額（申告額÷申告数量）」を求め、その会社ごとの平均を四捨五入して整数にします。"
+                text: "TGCS-26 の取引に絞ったうえで、まず「1個あたりの申告額（申告額÷申告数量）」を求め、その会社ごとの平均を四捨五入して整数にします。"
             },
             {
                 level: 2,
@@ -676,32 +676,32 @@ TECH-26 の取引に絞り、取引ごとの数量差に左右されない「1�
     },
     {
         id: 13,
-        title: "13. TECH-26 の会社ごとの申告数量合計を集計せよ",
-        desc: "Imports テーブルから、型番（model_number）が 'TECH-26' の取引を対象に、会社ID（company_id）ごとの申告数量（quantity）の合計（別名：tech26_total_qty）を取得せよ。",
+        title: "13. TGCS-26 の会社ごとの申告数量合計を集計せよ",
+        desc: "Imports テーブルから、型番（model_number）が 'TGCS-26' の取引を対象に、会社ID（company_id）ごとの申告数量（quantity）の合計（別名：tech26_total_qty）を取得せよ。",
         concept: ["WHERE", "SUM", "GROUP BY"],
         difficulty: 2,
         orderSensitive: false,
         explanation: `【解説】
-TECH-26 の取引に絞り、どの会社IDでどれくらいの数量が動いているか合計を出します。
+TGCS-26 の取引に絞り、どの会社IDでどれくらいの数量が動いているか合計を出します。
 
-・WHERE model_number = 'TECH-26'：型番が TECH-26 の取引に絞る
+・WHERE model_number = 'TGCS-26'：型番が TGCS-26 の取引に絞る
 ・SUM(quantity) AS tech26_total_qty：会社ごとの申告数量の合計を求める
 ・GROUP BY company_id：会社IDごとにまとめる
 
-TECH-26 の数量規模を押さえたうえで、会社IDだけでは会社名までは分からないため、次のステップで他の表とつないで詳しく調べていきます。`,
+TGCS-26 の数量規模を押さえたうえで、会社IDだけでは会社名までは分からないため、次のステップで他の表とつないで詳しく調べていきます。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26 の会社ごとの申告数量の合計を出せたな。会社IDだけでは会社名までは分からないから、次は他の表とつないで確かめよう。",
+            dialogue: "上司：TGCS-26 の会社ごとの申告数量の合計を出せたな。会社IDだけでは会社名までは分からないから、次は他の表とつないで確かめよう。",
             learned: [
                 "WHERE と SUM・GROUP BY の併用：特定の型番に絞ったうえで会社ごとに合計を計算できる",
                 "SUM(列名)：グループごとの数値を合計する"
             ]
         },
-        expectedSql: "SELECT company_id, SUM(quantity) AS tech26_total_qty FROM Imports WHERE model_number = 'TECH-26' GROUP BY company_id;",
+        expectedSql: "SELECT company_id, SUM(quantity) AS tech26_total_qty FROM Imports WHERE model_number = 'TGCS-26' GROUP BY company_id;",
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "「型番が TECH-26 の取引」だけに絞ったあと、会社IDごとに申告数量を合計します。"
+                text: "「型番が TGCS-26 の取引」だけに絞ったあと、会社IDごとに申告数量を合計します。"
             },
             {
                 level: 2,
@@ -714,12 +714,12 @@ TECH-26 の数量規模を押さえたうえで、会社IDだけでは会社名�
                 text: "SELECT 表A.グループ列, SUM(表A.数値列) AS 別名 FROM 表A → WHERE 表A.カラム = '値' → GROUP BY 表A.グループ列 の形で組み立てましょう。"
             }
         ],
-        dialogue: "上司：TECH-26 の取引に絞って、会社IDごとの申告数量の合計を出してくれ。IDが分かったら、次は他の表と結びつけていくぞ。",
+        dialogue: "上司：TGCS-26 の取引に絞って、会社IDごとの申告数量の合計を出してくれ。IDが分かったら、次は他の表と結びつけていくぞ。",
         group: "🏢 第3章：疑わしい会社の集計",
         glossary: {
             title: "対象カラム・句の意味",
             html: `
-- <span class='badge'>model_number = 'TECH-26'</span> 絞り込む製品の型番<br>
+- <span class='badge'>model_number = 'TGCS-26'</span> 絞り込む製品の型番<br>
 - <span class='badge'>SUM(quantity) AS tech26_total_qty</span> 会社ごとの申告数量の合計<br>
 - <span class='badge'>GROUP BY company_id</span> 会社IDごとに集計する
             `
@@ -730,21 +730,21 @@ TECH-26 の数量規模を押さえたうえで、会社IDだけでは会社名�
     // ==========================================
     {
         id: 14,
-        title: "14. TECH-26の会社情報と輸入記録を JOIN せよ",
-        desc: "型番（model_number）が「TECH-26」の取引に絞り、Imports と Companies を company_id で JOIN して、取引ID（trade_id）・会社名（company_name）・型番（Imports.model_number）を取得せよ。",
+        title: "14. TGCS-26の会社情報と輸入記録を JOIN せよ",
+        desc: "型番（model_number）が「TGCS-26」の取引に絞り、Imports と Companies を company_id で JOIN して、取引ID（trade_id）・会社名（company_name）・型番（Imports.model_number）を取得せよ。",
         prologue: "押収した資料を調べると、輸入記録には会社ID、会社マスターには会社名や所在地が別々に保存されている。記録を単独で見るだけでは、取引を行った企業の実態までは分からない。共通するIDを手がかりに複数の表を照合し、断片的な情報を一つの証拠としてつなげよう。",
         orderSensitive: false,
         explanation: `【解説】
-まずはTECH-26の取引に絞ったうえで、2つの表を共通のID（company_id）で横につなぐ基本の JOIN から始めましょう。
+まずはTGCS-26の取引に絞ったうえで、2つの表を共通のID（company_id）で横につなぐ基本の JOIN から始めましょう。
 
 ・JOIN Companies：会社情報をつなぐ表を指定する（INNER JOIN と同じ意味です）
 ・ON Imports.company_id = Companies.company_id：同じ company_id の行どうしを合わせる目印
-・WHERE Imports.model_number = 'TECH-26'：TECH-26の取引に絞る`,
+・WHERE Imports.model_number = 'TGCS-26'：TGCS-26の取引に絞る`,
         clearFeedback: {
-            dialogue: "上司：TECH-26の輸入記録を会社マスターとつないで、取引ごとの会社名と型番を確認できたな。",
+            dialogue: "上司：TGCS-26の輸入記録を会社マスターとつないで、取引ごとの会社名と型番を確認できたな。",
             learned: [
                 "JOIN 〜 ON 〜：共通のIDが一致する行どうしを横につなぐ基本の書き方（INNER JOIN と同じ）",
-                "WHERE Imports.model_number = 'TECH-26'：対象の型番に絞り込む",
+                "WHERE Imports.model_number = 'TGCS-26'：対象の型番に絞り込む",
                 "SELECT Imports.model_number：絞り込みに使った型番も結果に表示する",
                 "テーブル名.列名：どの表の列かをはっきりさせる書き方"
             ]
@@ -756,12 +756,12 @@ TECH-26 の数量規模を押さえたうえで、会社IDだけでは会社名�
 FROM Imports
 JOIN Companies
     ON Imports.company_id = Companies.company_id
-WHERE Imports.model_number = 'TECH-26';`,
+WHERE Imports.model_number = 'TGCS-26';`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "TECH-26の取引に絞り、会社名を知るために会社マスターをつなぎます。取引ID・会社名・型番を表示しましょう。"
+                text: "TGCS-26の取引に絞り、会社名を知るために会社マスターをつなぎます。取引ID・会社名・型番を表示しましょう。"
             },
             {
                 level: 2,
@@ -774,34 +774,34 @@ WHERE Imports.model_number = 'TECH-26';`,
                 text: "FROM 表A → JOIN 表B ON 表A.共通キー = 表B.共通キー → WHERE 表A.カラム = '値' の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：TECH-26の取引がどの会社のものか、型番も表示しながらImports と Companies を JOIN して確かめよう。",
+        dialogue: "上司：TGCS-26の取引がどの会社のものか、型番も表示しながらImports と Companies を JOIN して確かめよう。",
         group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
         glossary: {
             title: "会社情報と輸入記録をつなぐ項目",
             html: `
 - <span class='badge'>Companies</span> 会社マスター（company_name）<br>
 - <span class='badge'>Imports</span> 輸入・取引記録（trade_id）<br>
-- <span class='badge'>Imports.model_number</span> 型番（TECH-26に絞り込み、結果にも表示）<br>
+- <span class='badge'>Imports.model_number</span> 型番（TGCS-26に絞り込み、結果にも表示）<br>
 - <span class='badge'>company_id</span> 2つの表をつなぐ共通の会社ID
             `
         }
     },
     {
         id: 15,
-        title: "15. TECH-26の輸入記録とコンテナ保管記録を JOIN せよ",
-        desc: "型番（model_number）が「TECH-26」の取引に絞り、Imports と Containers を trade_id で JOIN して、取引ID（trade_id）・コンテナ番号（container_number）・型番（Imports.model_number）を取得せよ。",
+        title: "15. TGCS-26の輸入記録とコンテナ保管記録を JOIN せよ",
+        desc: "型番（model_number）が「TGCS-26」の取引に絞り、Imports と Containers を trade_id で JOIN して、取引ID（trade_id）・コンテナ番号（container_number）・型番（Imports.model_number）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
-14番に続いて、TECH-26の取引に絞ったうえで Imports と Containers を共通の trade_id でつなぎます。
+14番に続いて、TGCS-26の取引に絞ったうえで Imports と Containers を共通の trade_id でつなぎます。
 
 ・JOIN Containers ON Imports.trade_id = Containers.trade_id：同じ取引IDの行どうしを合わせる
-・WHERE Imports.model_number = 'TECH-26'：TECH-26の取引に絞る
+・WHERE Imports.model_number = 'TGCS-26'：TGCS-26の取引に絞る
 ・取引とコンテナの対応関係をたどれるようにする`,
         clearFeedback: {
-            dialogue: "上司：TECH-26の輸入記録とコンテナ保管記録をつなげて、取引・コンテナ・型番を確認できたな。",
+            dialogue: "上司：TGCS-26の輸入記録とコンテナ保管記録をつなげて、取引・コンテナ・型番を確認できたな。",
             learned: [
                 "JOIN 〜 ON 〜：別の表とも共通ID（trade_id）で横につなげる",
-                "WHERE Imports.model_number = 'TECH-26'：対象の型番に絞り込む",
+                "WHERE Imports.model_number = 'TGCS-26'：対象の型番に絞り込む",
                 "SELECT Imports.model_number：絞り込みに使った型番も結果に表示する",
                 "つなぐ相手が変わっても、JOIN と ON の形は同じ"
             ]
@@ -813,12 +813,12 @@ WHERE Imports.model_number = 'TECH-26';`,
 FROM Imports
 JOIN Containers
     ON Imports.trade_id = Containers.trade_id
-WHERE Imports.model_number = 'TECH-26';`,
+WHERE Imports.model_number = 'TGCS-26';`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "TECH-26に絞り、コンテナ保管記録を結びつけて、取引ID・コンテナ番号・型番を表示しましょう。"
+                text: "TGCS-26に絞り、コンテナ保管記録を結びつけて、取引ID・コンテナ番号・型番を表示しましょう。"
             },
             {
                 level: 2,
@@ -831,33 +831,33 @@ WHERE Imports.model_number = 'TECH-26';`,
                 text: "FROM 表A → JOIN 表B ON 表A.共通キー = 表B.共通キー → WHERE 表A.カラム = '値' の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：TECH-26の貨物がどのコンテナに入っているか、型番も表示してImports と Containers をtrade_idでつないで確かめよう。",
+        dialogue: "上司：TGCS-26の貨物がどのコンテナに入っているか、型番も表示してImports と Containers をtrade_idでつないで確かめよう。",
         group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
         glossary: {
             title: "輸入記録とコンテナ保管記録をつなぐ項目",
             html: `
 - <span class='badge'>Imports</span> 輸入・取引記録（trade_id）<br>
 - <span class='badge'>Containers</span> コンテナ保管記録（container_number）<br>
-- <span class='badge'>Imports.model_number</span> 型番（TECH-26に絞り込み、結果にも表示）<br>
+- <span class='badge'>Imports.model_number</span> 型番（TGCS-26に絞り込み、結果にも表示）<br>
 - <span class='badge'>trade_id</span> 2つの表をつなぐ共通の取引ID
             `
         }
     },
     {
         id: 16,
-        title: "16. LEFT JOINでTECH-26の受入数量未記録取引を照合せよ",
-        desc: "型番（model_number）が「TECH-26」で、受入数量（received_quantity）がNULLの取引を対象に、Importsを左側にしてContainersをtrade_idでLEFT JOINし、取引ID（trade_id）・コンテナ番号（container_number）・型番（Imports.model_number）を取得せよ。",
+        title: "16. LEFT JOINでTGCS-26の受入数量未記録取引を照合せよ",
+        desc: "型番（model_number）が「TGCS-26」で、受入数量（received_quantity）がNULLの取引を対象に、Importsを左側にしてContainersをtrade_idでLEFT JOINし、取引ID（trade_id）・コンテナ番号（container_number）・型番（Imports.model_number）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
 15番のINNER JOINと比べ、Importsを左側にしてLEFT JOINします。Containers側に一致する記録がなくてもImportsの行は残ります。
 
 ・LEFT JOIN Containers ON Imports.trade_id = Containers.trade_id：左側のImportsをすべて残して保管情報をつなぐ
-・WHERE Imports.model_number = 'TECH-26'：TECH-26の取引に絞る
+・WHERE Imports.model_number = 'TGCS-26'：TGCS-26の取引に絞る
 ・AND Imports.received_quantity IS NULL：その中から受入数量が空の行を選ぶ
 
 この問題のNULLはImports.received_quantityに記録されたNULLです。LEFT JOINで生じるContainers側のNULLとは区別して考えましょう。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26のうち受入数量が未記録の取引を、型番とコンテナ番号も含めて確認できたな。",
+            dialogue: "上司：TGCS-26のうち受入数量が未記録の取引を、型番とコンテナ番号も含めて確認できたな。",
             learned: [
                 "LEFT JOIN と WHERE の組み合わせ：Importsを残したまま条件に合う行を抽出できる",
                 "AND：型番と受入数量の両方の条件を満たす行を選ぶ",
@@ -872,13 +872,13 @@ WHERE Imports.model_number = 'TECH-26';`,
 FROM Imports
 LEFT JOIN Containers
     ON Imports.trade_id = Containers.trade_id
-WHERE Imports.model_number = 'TECH-26'
+WHERE Imports.model_number = 'TGCS-26'
   AND Imports.received_quantity IS NULL;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "15番と同じくTECH-26に絞り、LEFT JOINで受入数量の記録が空になっている行を抽出します。型番も結果に含めましょう。"
+                text: "15番と同じくTGCS-26に絞り、LEFT JOINで受入数量の記録が空になっている行を抽出します。型番も結果に含めましょう。"
             },
             {
                 level: 2,
@@ -891,13 +891,13 @@ WHERE Imports.model_number = 'TECH-26'
                 text: "FROM 表A → LEFT JOIN 表B ON 表A.共通キー = 表B.共通キー → WHERE 表A.カラム = '値' AND 表A.カラム IS NULL の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：TECH-26で受入数量が NULL の取引があるな。どのコンテナにあるか、絞り込んで確かめよう。",
+        dialogue: "上司：TGCS-26で受入数量が NULL の取引があるな。どのコンテナにあるか、絞り込んで確かめよう。",
         group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
         glossary: {
             title: "未記録の受入数量とコンテナを絞り込む項目",
             html: `
 - <span class='badge'>Imports.received_quantity</span> 受入数量<br>
-- <span class='badge'>Imports.model_number</span> 型番（TECH-26に絞り込み、結果にも表示）<br>
+- <span class='badge'>Imports.model_number</span> 型番（TGCS-26に絞り込み、結果にも表示）<br>
 - <span class='badge'>IS NULL</span> 値が記録されていない状態<br>
 - <span class='badge'>Containers.container_number</span> コンテナ番号
             `
@@ -905,20 +905,20 @@ WHERE Imports.model_number = 'TECH-26'
     },
     {
         id: 17,
-        title: "17. TECH-26の未記録取引を3テーブルの JOIN で照合せよ",
-        desc: "Imports・Companies・Containers の3テーブルを JOIN し、型番（model_number）が「TECH-26」で受入数量（received_quantity）が NULL の取引について、会社名（company_name）・取引ID（trade_id）・型番（Imports.model_number）・コンテナ番号（container_number）を取得せよ。",
+        title: "17. TGCS-26の未記録取引を3テーブルの JOIN で照合せよ",
+        desc: "Imports・Companies・Containers の3テーブルを JOIN し、型番（model_number）が「TGCS-26」で受入数量（received_quantity）が NULL の取引について、会社名（company_name）・取引ID（trade_id）・型番（Imports.model_number）・コンテナ番号（container_number）を取得せよ。",
         orderSensitive: false,
         explanation: `【解説】
 16番の2テーブル結合に Companies を加え、3つの表をそれぞれの共通IDでつなぎます。Importsから取引IDと型番、Companiesから会社名、Containersからコンテナ番号を取り出します。
 
 ・JOIN Companies ON Imports.company_id = Companies.company_id：会社IDで会社名をつなぐ
 ・JOIN Containers ON Imports.trade_id = Containers.trade_id：取引IDでコンテナ番号をつなぐ
-・WHERE Imports.model_number = 'TECH-26'：TECH-26の取引に絞る
+・WHERE Imports.model_number = 'TGCS-26'：TGCS-26の取引に絞る
 ・AND Imports.received_quantity IS NULL：その中から受入数量が未記録の行に絞る
 
 受入数量が未記録の荷物が「どのコンテナにあり」「どこの会社に紐づくか」まで一気に照合できます。`,
         clearFeedback: {
-            dialogue: "上司：TECH-26で受入数量が未記録の取引について、会社・型番・コンテナまで照合できたな。",
+            dialogue: "上司：TGCS-26で受入数量が未記録の取引について、会社・型番・コンテナまで照合できたな。",
             learned: [
                 "3テーブルの JOIN：つなぐ相手ごとに正しい共通ID（company_id / trade_id）を指定する",
                 "複数結合＋WHERE・AND：複数の表をまとめて複数の条件で絞り込める",
@@ -935,13 +935,13 @@ JOIN Companies
     ON Imports.company_id = Companies.company_id
 JOIN Containers
     ON Imports.trade_id = Containers.trade_id
-WHERE Imports.model_number = 'TECH-26'
+WHERE Imports.model_number = 'TGCS-26'
   AND Imports.received_quantity IS NULL;`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "16番と同じくTECH-26かつ受入数量が未記録の取引に絞り、会社名と型番も含めて結果にまとめます。"
+                text: "16番と同じくTGCS-26かつ受入数量が未記録の取引に絞り、会社名と型番も含めて結果にまとめます。"
             },
             {
                 level: 2,
@@ -954,14 +954,14 @@ WHERE Imports.model_number = 'TECH-26'
                 text: "FROM 表A → JOIN 表B ON 表A.共通キー = 表B.共通キー → JOIN 表C ON 表A.共通キー = 表C.共通キー → WHERE 表A.カラム = '値' AND 表A.カラム IS NULL の順で組み立てましょう。"
             }
         ],
-        dialogue: "上司：TECH-26で受入数量が未記録の荷物がどこの会社の取引なのか、型番も含めて3つの表で照合しよう。",
+        dialogue: "上司：TGCS-26で受入数量が未記録の荷物がどこの会社の取引なのか、型番も含めて3つの表で照合しよう。",
         group: "🔗 第4章：つながる記録、浮かび上がる疑惑",
         glossary: {
             title: "3テーブル照合に使う項目とキー",
             html: `
 - <span class='badge'>Companies.company_name</span> 会社名（company_id で結合）<br>
 - <span class='badge'>Imports.trade_id</span> 取引ID<br>
-- <span class='badge'>Imports.model_number</span> 型番（TECH-26に絞り込み、結果にも表示）<br>
+- <span class='badge'>Imports.model_number</span> 型番（TGCS-26に絞り込み、結果にも表示）<br>
 - <span class='badge'>Containers.container_number</span> コンテナ番号（trade_id で結合）
             `
         }
@@ -1093,7 +1093,7 @@ WHERE trade_id = 'T008';`,
     {
         id: 20,
         title: "20. 重量異常と容量不足の候補をまとめて抽出せよ",
-        desc: "Imports から、TECH-26で数量不足かつ重量超過の取引、または広告容量より実容量が小さい取引を抽出せよ。",
+        desc: "Imports から、TGCS-26で数量不足かつ重量超過の取引、または広告容量より実容量が小さい取引を抽出せよ。",
         orderSensitive: false,
         explanation: `【解説】
         まずは2種類の異常候補を OR でまとめて洗い出します。
@@ -1109,13 +1109,13 @@ WHERE trade_id = 'T008';`,
         },
         expectedSql: `SELECT trade_id, model_number, quantity, received_quantity, declared_weight_kg, actual_weight_kg, advertised_capacity, actual_capacity
 FROM Imports
-WHERE (model_number = 'TECH-26' AND received_quantity < quantity AND actual_weight_kg > declared_weight_kg)
-   OR (model_number = 'TECH-26' AND actual_capacity < advertised_capacity);`,
+WHERE (model_number = 'TGCS-26' AND received_quantity < quantity AND actual_weight_kg > declared_weight_kg)
+   OR (model_number = 'TGCS-26' AND actual_capacity < advertised_capacity);`,
         hints: [
             {
                 level: 1,
                 type: "考え方",
-                text: "「TECH-26で、数が減っているのに重くなっているグループ」と「TECH-26で、容量が足りないグループ」のどちらかに当てはまるものを広く集めます。"
+                text: "「TGCS-26で、数が減っているのに重くなっているグループ」と「TGCS-26で、容量が足りないグループ」のどちらかに当てはまるものを広く集めます。"
             },
             {
                 level: 2,
@@ -1143,12 +1143,12 @@ WHERE (model_number = 'TECH-26' AND received_quantity < quantity AND actual_weig
     {
         id: 21,
         title: "21. 必須条件と選択条件を分け、数量・重量の異常を特定せよ",
-        desc: "Imports から、型番が TECH-26 かつ受入数量が NULL でない取引のうち、（受入数量が申告数量より少なく実重量が申告重量より重い、または実重量が申告重量の1.2倍より重い）取引（trade_id, company_id, quantity, received_quantity, declared_weight_kg, actual_weight_kg）を特定せよ。",
+        desc: "Imports から、型番が TGCS-26 かつ受入数量が NULL でない取引のうち、（受入数量が申告数量より少なく実重量が申告重量より重い、または実重量が申告重量の1.2倍より重い）取引（trade_id, company_id, quantity, received_quantity, declared_weight_kg, actual_weight_kg）を特定せよ。",
         orderSensitive: false,
         explanation: `【解説】
 まずは基本の「必須条件は外、選択条件（OR）は () で囲む」形で数量・重量の異常を探ります。T008 のような受入数量未記録（NULL）を除外するため、received_quantity IS NOT NULL を必須条件に入れています。
 
-・必須条件（外に出す）：model_number = 'TECH-26' かつ received_quantity IS NOT NULL
+・必須条件（外に出す）：model_number = 'TGCS-26' かつ received_quantity IS NOT NULL
 ・選択条件（() で囲む）：((received_quantity < quantity AND actual_weight_kg > declared_weight_kg) OR actual_weight_kg > declared_weight_kg * 1.2)
 
 まずは外枠と OR カッコの基本形に慣れましょう。`,
@@ -1161,7 +1161,7 @@ WHERE (model_number = 'TECH-26' AND received_quantity < quantity AND actual_weig
         },
         expectedSql: `SELECT trade_id, company_id, quantity, received_quantity, declared_weight_kg, actual_weight_kg
 FROM Imports
-WHERE model_number = 'TECH-26'
+WHERE model_number = 'TGCS-26'
   AND received_quantity IS NOT NULL
   AND (
         (received_quantity < quantity AND actual_weight_kg > declared_weight_kg)
@@ -1171,7 +1171,7 @@ WHERE model_number = 'TECH-26'
             {
                 level: 1,
                 type: "考え方",
-                text: "「TECH-26」かつ「受入数量が NULL でない」を必須条件として外に出し、重量や数量のズレに関する2つの条件を OR でまとめて絞り込みます。"
+                text: "「TGCS-26」かつ「受入数量が NULL でない」を必須条件として外に出し、重量や数量のズレに関する2つの条件を OR でまとめて絞り込みます。"
             },
             {
                 level: 2,
@@ -1190,7 +1190,7 @@ WHERE model_number = 'TECH-26'
             title: "数量・重量異常の確認項目",
             html: `
 - <span class='badge'>IS NOT NULL</span> 受入数量が記録済みの行に絞る<br>
-- <span class='badge'>必須条件</span> model_number = 'TECH-26' と IS NOT NULL は () の外<br>
+- <span class='badge'>必須条件</span> model_number = 'TGCS-26' と IS NOT NULL は () の外<br>
 - <span class='badge'>選択条件 ()</span> OR 群全体を () で囲む
             `
         }
@@ -1198,12 +1198,12 @@ WHERE model_number = 'TECH-26'
     {
         id: 22,
         title: "22. 入れ子のカッコを使い、USB容量・仕様の異常を特定せよ",
-        desc: "Imports から、型番が TECH-26 であり、かつ（実容量が広告容量より小さい、または広告容量が 256 以上かつ実容量が 64 以下）の取引（trade_id, company_id, advertised_capacity, actual_capacity）を特定せよ。",
+        desc: "Imports から、型番が TGCS-26 であり、かつ（実容量が広告容量より小さい、または広告容量が 256 以上かつ実容量が 64 以下）の取引（trade_id, company_id, advertised_capacity, actual_capacity）を特定せよ。",
         orderSensitive: false,
         explanation: `【解説】
 21番より少し踏み込み、OR でつなぐ選択条件の中に AND の塊を () で入れ子にして絞り込みます。
 
-・必須条件（外に出す）：model_number = 'TECH-26'
+・必須条件（外に出す）：model_number = 'TGCS-26'
 ・選択条件（() で囲む）：(actual_capacity < advertised_capacity OR (advertised_capacity >= 256 AND actual_capacity <= 64))
 
 外側の () で OR 全体くくり、内側の () で AND の塊を分けることで、複雑な条件も読みやすく正確に書けます。`,
@@ -1216,7 +1216,7 @@ WHERE model_number = 'TECH-26'
         },
         expectedSql: `SELECT trade_id, company_id, advertised_capacity, actual_capacity
 FROM Imports
-WHERE model_number = 'TECH-26'
+WHERE model_number = 'TGCS-26'
   AND (
         actual_capacity < advertised_capacity
         OR (advertised_capacity >= 256 AND actual_capacity <= 64)
@@ -1225,7 +1225,7 @@ WHERE model_number = 'TECH-26'
             {
                 level: 1,
                 type: "考え方",
-                text: "今回も「TECH-26」を必須条件として外に出し、容量不足に関する条件と「大容量表示なのに実容量が小さい」条件を OR でまとめます。"
+                text: "今回も「TGCS-26」を必須条件として外に出し、容量不足に関する条件と「大容量表示なのに実容量が小さい」条件を OR でまとめます。"
             },
             {
                 level: 2,
@@ -1238,7 +1238,7 @@ WHERE model_number = 'TECH-26'
                 text: "FROM 表A → WHERE 表A.カラム = '値' AND (条件A OR (条件B AND 条件C)) の形で、ORとANDを丸括弧で整理しましょう。"
             }
         ],
-        dialogue: "上司：次はUSB容量の異常だ。21番より少し条件が複雑になるが、カッコの入れ子を使って TECH-26 の容量偽装を絞り込んでくれ。",
+        dialogue: "上司：次はUSB容量の異常だ。21番より少し条件が複雑になるが、カッコの入れ子を使って TGCS-26 の容量偽装を絞り込んでくれ。",
         group: "🎯 最終章：異常の切り分けとコンテナ特定",
         glossary: {
             title: "容量異常の確認項目と入れ子カッコ",
@@ -1252,7 +1252,7 @@ WHERE model_number = 'TECH-26'
     {
         id: 23,
         title: "23. サブクエリで対象会社を絞り込み、2つの異常を統合せよ",
-        desc: "Companiesへのサブクエリでアオバ・マイクロのIDを取得して絞り込み、TECH-26の取引の中から（数量不足かつ重量超過）または（実容量が広告容量より小さい）に当てはまる取引ID（trade_id）を特定せよ。",
+        desc: "Companiesへのサブクエリでアオバ・マイクロのIDを取得して絞り込み、TGCS-26の取引の中から（数量不足かつ重量超過）または（実容量が広告容量より小さい）に当てはまる取引ID（trade_id）を特定せよ。",
         orderSensitive: false,
         explanation: `【解説】
 サブクエリ（副問い合わせ）とは、SQL文の中に () で囲んで書く、もうひとつの SELECT 文のことです。外側の SELECT の条件や計算などで使う値を、先に別の SELECT で取り出して渡したいときに使います。
@@ -1260,7 +1260,7 @@ WHERE model_number = 'TECH-26'
 今回の捜査では、アオバ・マイクロの会社IDを外側の条件で使うために、() の中の SELECT で会社IDを取り出します。
 
 ・動きの順番：まず () の中の SELECT が先に実行され、取り出された値が外側の WHERE に渡されます
-・必須条件（外に出す）：company_id = (サブクエリ) かつ model_number = 'TECH-26'
+・必須条件（外に出す）：company_id = (サブクエリ) かつ model_number = 'TGCS-26'
 ・選択条件（() で囲む）：(received_quantity < quantity AND actual_weight_kg > declared_weight_kg) OR actual_capacity < advertised_capacity
 
 まずは「条件に使う値を取り出す SELECT」を思い浮かべてから、外側の取引絞り込みとつなげてみましょう。
@@ -1276,7 +1276,7 @@ WHERE model_number = 'TECH-26'
         expectedSql: `SELECT Imports.trade_id
 FROM Imports
 WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name = 'アオバ・マイクロ')
-  AND Imports.model_number = 'TECH-26'
+  AND Imports.model_number = 'TGCS-26'
   AND (
     (Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
     OR (Imports.actual_capacity < Imports.advertised_capacity)
@@ -1304,7 +1304,7 @@ WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name 
             title: "サブクエリとカッコの基本ルール",
             html: `
 - <span class='badge'>サブクエリ (SELECT ...)</span> 外側の条件などで使う値を先に取り出して渡す、() 内の SELECT 文<br>
-- <span class='badge'>必須条件</span> 会社ID（サブクエリ）と TECH-26 は () の外に出す<br>
+- <span class='badge'>必須条件</span> 会社ID（サブクエリ）と TGCS-26 は () の外に出す<br>
 - <span class='badge'>選択条件 ()</span> 2つの異常パターンの OR 全体を () で囲む<br>
 - <span class='badge'>Imports.trade_id</span> 抽出する対象取引ID
             `
@@ -1320,7 +1320,7 @@ WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name 
 
         ・Imports に Companies を company_id で INNER JOIN
         ・Imports に Containers を trade_id で INNER JOIN
-        ・23番と同じ2つの切り口を使い、C004のTECH-26に限定
+        ・23番と同じ2つの切り口を使い、C004のTGCS-26に限定
 
         アオバ・マイクロの怪しいコンテナは、BヤードのCNT-204、CNT-205、CNT-214、CNT-215です。`,
         clearFeedback: {
@@ -1332,7 +1332,7 @@ FROM Imports
 INNER JOIN Companies ON Imports.company_id = Companies.company_id
 INNER JOIN Containers ON Imports.trade_id = Containers.trade_id
 WHERE Imports.company_id = 'C004'
-  AND Imports.model_number = 'TECH-26'
+  AND Imports.model_number = 'TGCS-26'
   AND ((Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
         OR Imports.actual_capacity < Imports.advertised_capacity);`,
         hints: [
