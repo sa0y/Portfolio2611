@@ -73,7 +73,7 @@ header { background: rgba(51, 61, 79, 0.9); border-bottom: 1px solid rgba(255,25
   backdrop-filter: blur(3px);
 }
 .center-feedback-card {
-  pointer-events: auto;
+  pointer-events: none;
   width: min(480px, 100%);
   background: #0f172a;
   color: #f8fafc;
@@ -84,6 +84,9 @@ header { background: rgba(51, 61, 79, 0.9); border-bottom: 1px solid rgba(255,25
   box-shadow: 0 28px 64px rgba(15, 23, 42, 0.45);
   transform: translateY(10px) scale(0.97);
   transition: transform 0.22s ease;
+}
+.center-feedback-layer.is-modal .center-feedback-card {
+  pointer-events: auto;
 }
 .center-feedback-layer.is-open .center-feedback-card {
   transform: translateY(0) scale(1);
