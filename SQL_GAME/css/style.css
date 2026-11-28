@@ -32,7 +32,7 @@ header { background: rgba(51, 61, 79, 0.9); border-bottom: 1px solid rgba(255,25
 .mission-item { padding: 10px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
 .mission-item:hover { border-color: var(--teal); color: var(--teal); }
 .mission-item.active { background: var(--text-heading); color: #fff; border-color: var(--text-heading); }
-.mission-item.cleared::after { content: " ✔"; color: var(--success); font-weight: bold; }
+.mission-item.cleared::after { content: " \2714"; color: var(--success); font-weight: bold; }
 
 .sql-textarea { width: 100%; background: #0f172a; color: #7ee787; border-radius: 10px; padding: 14px; font-family: monospace; font-size: 0.95rem; margin: 10px 0; resize: vertical; outline: none; border: 1px solid rgba(148, 163, 184, 0.25); transition: border-color 0.2s, box-shadow 0.2s; }
 .sql-textarea:focus { border-color: #2dd4bf; box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18); }
@@ -154,7 +154,7 @@ header { background: rgba(51, 61, 79, 0.9); border-bottom: 1px solid rgba(255,25
   color: #a7f3d0;
 }
 .center-feedback-learned-item::before {
-  content: "✓ ";
+  content: "\2714 ";
   color: #34d399;
   font-weight: 700;
 }
@@ -187,6 +187,26 @@ header { background: rgba(51, 61, 79, 0.9); border-bottom: 1px solid rgba(255,25
 .center-feedback-btn.primary:hover {
   background: #059669;
   border-color: #059669;
+}
+
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  top: -16px;
+  width: 6px;
+  height: 10px;
+  border-radius: 1px;
+  animation: confetti-fall var(--confetti-duration) linear var(--confetti-delay) forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translate3d(0, -20px, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--confetti-x), calc(100vh + 40px), 0) rotate(720deg); opacity: 0.9; }
 }
 
 .result-error-box {
