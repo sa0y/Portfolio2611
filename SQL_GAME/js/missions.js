@@ -1,10 +1,10 @@
 const missions = [
     {
         id: 0,
-        title: "プロローグ：匿名の告発と押収資料の確認",
-        desc: "2026年10月に届いた匿名メールの手がかりをもとに、押収された各テーブルの全体像と共通IDを確認せよ。",
+        title: "捜査開始：匿名の告発と資料の確認",
+        desc: "2026年11月に届いた匿名メールの手がかりをもとに、各テーブルの全体像と共通IDを確認せよ。",
         isBriefing: true,
-        dialogue: "上司：2026年10月、監査部門に匿名メールが届いた。『TGCS-26のUSBメモリの輸入取引を記録が消される前に調べてください。』とのことだ。まずは輸入データを含む資料全体を見てみよう。",
+        dialogue: "上司：2026年11月、監査部門に匿名メールが届いた。『TGCS-26のUSBメモリの輸入取引を記録が消される前に調べてください。』とのことだ。まずは輸入データを含む資料全体を見てみよう。",
         explanation: `まずは調査の土台となる各テーブルを確認しましょう。
 
 ・各タブを切り替えて、どんなテーブルと列（カラム）があるか確認します。
@@ -12,6 +12,10 @@ const missions = [
 
 確認が終わったら、「資料の確認を完了する」ボタンを押して捜査に進みます。`,
         expectedSql: "",
+        clearFeedback: {
+            dialogue: "捜査開始：資料の全体像を確認できたな。共通のIDを手がかりに、SQLで証拠を照合していこう。",
+            learned: []
+        },
         hints: [
             {
                 level: 1,
@@ -29,9 +33,9 @@ const missions = [
                 text: "表の全体像がつかめたら、下の完了ボタンを押して第1章に進みましょう。実際のSQL操作は第1章から始まります。"
             }
         ],
-        group: "🌱 プロローグ：匿名の告発",
+        group: "🌱 捜査開始：匿名の告発",
         glossary: {
-            title: "プロローグで確認する押収資料",
+            title: "捜査開始で確認する資料",
             html: `
 - <span class="badge">Companies</span> 会社マスター（company_id / company_name / address）<br>
 - <span class="badge">Imports</span> 輸入・受入数量・USB容量記録1,000件（trade_id / company_id / model_number / product_name / category / quantity / received_quantity / declared_value / declaration_date / declared_weight_kg / actual_weight_kg / advertised_capacity / actual_capacity）<br>
@@ -732,7 +736,7 @@ TGCS-26 の数量規模を押さえたうえで、会社IDだけでは会社名�
         id: 14,
         title: "14. TGCS-26の会社情報と輸入記録を JOIN せよ",
         desc: "型番（model_number）が「TGCS-26」の取引に絞り、Imports と Companies を company_id で JOIN して、取引ID（trade_id）・会社名（company_name）・型番（Imports.model_number）を取得せよ。",
-        prologue: "押収した資料を調べると、輸入記録には会社ID、会社マスターには会社名や所在地が別々に保存されている。記録を単独で見るだけでは、取引を行った企業の実態までは分からない。共通するIDを手がかりに複数の表を照合し、断片的な情報を一つの証拠としてつなげよう。",
+        prologue: "資料を調べると、輸入記録には会社ID、会社マスターには会社名や所在地が別々に保存されている。記録を単独で見るだけでは、取引を行った企業の実態までは分からない。共通するIDを手がかりに複数の表を照合し、断片的な情報を一つの証拠としてつなげよう。",
         orderSensitive: false,
         explanation: `【解説】
 まずはTGCS-26の取引に絞ったうえで、2つの表を共通のID（company_id）で横につなぐ基本の JOIN から始めましょう。
@@ -1324,7 +1328,7 @@ WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name 
 
         アオバ・マイクロの怪しいコンテナは、BヤードのCNT-204、CNT-205、CNT-214、CNT-215です。`,
         clearFeedback: {
-            dialogue: "上司：よし、怪しいコンテナを特定できた。これから押収に向かおう！\nS∀O　Thank you for playing🎮お疲れさまでした。一緒に学んでくださってありがとうございました。",
+            dialogue: "上司：よし、怪しいコンテナを特定できた。これから現場確認に向かおう！\nS∀O　Thank you for playing🎮お疲れさまでした。一緒に学んでくださってありがとうございました。",
             learned: ["複数のINNER JOIN：company_idとtrade_idで3つの表をつなぐ", "切り口①と②を統合して対象を4件に確定する"]
         },
         expectedSql: `SELECT Companies.company_name, Imports.trade_id, Containers.container_area, Containers.container_number
