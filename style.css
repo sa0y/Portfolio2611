@@ -419,6 +419,10 @@ section {
   object-position: center;
 }
 
+.notification-work-img {
+  transform: scale(1.1);
+}
+
 .game-work-img {
   object-fit: contain;
 }
