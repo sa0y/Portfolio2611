@@ -128,9 +128,13 @@ function showCenterFeedback({
     if (learnedEl) {
         if (Array.isArray(learned) && learned.length > 0) {
             learnedEl.style.display = 'flex';
-            learnedEl.innerHTML = learned
-                .map(item => `<div class="center-feedback-learned-item">${escapeHTML(item)}</div>`)
-                .join('');
+            learnedEl.replaceChildren();
+            learned.forEach(item => {
+                const learnedItem = document.createElement('div');
+                learnedItem.className = 'center-feedback-learned-item';
+                learnedItem.textContent = String(item);
+                learnedEl.appendChild(learnedItem);
+            });
         } else {
             learnedEl.style.display = 'none';
             learnedEl.innerHTML = '';
@@ -800,6 +804,31 @@ function verifyMission() {
     completeMission();
 }
 
+function launchConfetti() {
+   const existing = document.getElementById('confetti-layer');
+   if (existing) existing.remove();
+
+   const layer = document.createElement('div');
+   layer.id = 'confetti-layer';
+   layer.className = 'confetti-layer';
+   const colors = ['#34d399', '#67e8f9', '#fbbf24', '#f472b6', '#a78bfa', '#fb7185'];
+
+   for (let i = 0; i < 90; i++) {
+       const piece = document.createElement('span');
+       piece.className = 'confetti-piece';
+       piece.style.setProperty('--confetti-x', `${-50 + Math.random() * 100}vw`);
+       piece.style.setProperty('--confetti-delay', `${Math.random() * 0.8}s`);
+       piece.style.setProperty('--confetti-duration', `${2.8 + Math.random() * 1.8}s`);
+       piece.style.background = colors[i % colors.length];
+       piece.style.left = `${Math.random() * 100}%`;
+       piece.style.animationDelay = `${Math.random() * 0.8}s`;
+       layer.appendChild(piece);
+   }
+
+   document.body.appendChild(layer);
+   setTimeout(() => layer.remove(), 5200);
+}
+
 function completeMission() {
     const mission = missions[currentMissionIndex];
     if (!mission.isPractice && !mission.isBriefing && !clearedMissions.includes(currentMissionIndex)) {
@@ -808,15 +837,20 @@ function completeMission() {
         updateClearCount();
         renderSidebar();
     }
+    const allMissionsCleared = mission.id === 24 &&
+        Array.from({ length: 24 }, (_, index) => index + 1)
+            .every(id => missions.some(item => item.id === id &&
+                clearedMissions.includes(missions.indexOf(item))));
     const hasNext = currentMissionIndex + 1 < missions.length;
+    if (allMissionsCleared) launchConfetti();
     showCenterFeedback({
         tone: 'success',
-        badge: 'MISSION CLEARED',
+        badge: allMissionsCleared ? 'ALL MISSIONS CLEARED' : 'MISSION CLEARED',
         title: mission.title,
         message: mission.clearFeedback?.dialogue || 'ミッションクリア！次の調査へ進もう。',
         learned: mission.clearFeedback?.learned || [],
-        modal: hasNext,
-        duration: hasNext ? 0 : 2600,
+        modal: allMissionsCleared || hasNext,
+        duration: allMissionsCleared ? 0 : (hasNext ? 0 : 2600),
         onNext: hasNext ? () => selectMission(currentMissionIndex + 1) : null
     });
 }
