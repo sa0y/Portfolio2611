@@ -380,7 +380,7 @@ section {
 }
 
 .single-work-grid .work-thumb {
-  aspect-ratio: 16 / 5;
+  aspect-ratio: 1195 / 341;
 }
 
 .work-card {
@@ -419,12 +419,13 @@ section {
   object-position: center;
 }
 
-.notification-work-img {
+.work-img--zoom {
   transform: scale(1.1);
 }
 
 .game-work-img {
   object-fit: contain;
+  transform: scaleX(1.02);
 }
 
 .tone-1 { background: linear-gradient(135deg, #435068 0%, #52607a 100%); }
@@ -594,7 +595,7 @@ section {
 @media (max-width: 760px) {
   .works-grid { grid-template-columns: 1fr; }
   .single-work-grid { grid-template-columns: 1fr; }
-  .single-work-grid .work-thumb { aspect-ratio: 16 / 9; }
+  .single-work-grid .work-thumb { aspect-ratio: 1195 / 341; }
   .profile-box { flex-direction: column; }
   .qual-row { flex-direction: column; gap: 4px; }
   .footer-inner { grid-template-columns: 1fr; gap: 24px; }
