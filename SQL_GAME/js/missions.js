@@ -1259,15 +1259,22 @@ WHERE model_number = 'TGCS-26'
         desc: "Companiesへのサブクエリでアオバ・マイクロのIDを取得して絞り込み、TGCS-26の取引の中から（数量不足かつ重量超過）または（実容量が広告容量より小さい）に当てはまる取引ID（trade_id）を特定せよ。",
         orderSensitive: false,
         explanation: `【解説】
-サブクエリ（副問い合わせ）とは、SQL文の中に () で囲んで書く、もうひとつの SELECT 文のことです。外側の SELECT の条件や計算などで使う値を、先に別の SELECT で取り出して渡したいときに使います。
+この問題では「アオバ・マイクロの会社ID」を先に調べてから、Imports 表の取引を絞り込みます。
 
-今回の捜査では、アオバ・マイクロの会社IDを外側の条件で使うために、() の中の SELECT で会社IDを取り出します。
+1. カッコ ( ) の中でやること
+Companies 表から「アオバ・マイクロ」の company_id を1つ取り出します。
+（例：SELECT company_id FROM Companies WHERE company_name = 'アオバ・マイクロ'）
 
-・動きの順番：まず () の中の SELECT が先に実行され、取り出された値が外側の WHERE に渡されます
-・必須条件（外に出す）：company_id = (サブクエリ) かつ model_number = 'TGCS-26'
-・選択条件（() で囲む）：(received_quantity < quantity AND actual_weight_kg > declared_weight_kg) OR actual_capacity < advertised_capacity
+2. メインの Imports 表でやること
+取り出した会社IDを使って、Imports.trade_id を絞り込みます。
+・必須条件（両方あてはまる）：
+  Imports.company_id = (上のSELECT)
+  かつ Imports.model_number = 'TGCS-26'
+・異常条件（どちらか1つあてはまる）：
+  ( (数量不足 AND 重量超過) OR (実容量 < 広告容量) )
+  ※ OR の全体を ( ) で囲むのがポイントです。
 
-まずは「条件に使う値を取り出す SELECT」を思い浮かべてから、外側の取引絞り込みとつなげてみましょう。
+まずは「アオバ・マイクロの company_id を出す1文」を書いてから、メインの WHERE に組み込んでみましょう。
 参考記事： https://techplay.jp/column/1841`,
         clearFeedback: {
             dialogue: "上司：サブクエリでアオバ・マイクロに絞り込み、必須条件と選択条件を正しく組み合わせて対象取引IDを確定できたな。初めてのサブクエリ、よくやったぞ。最後はコンテナ記録と照合しよう。",
