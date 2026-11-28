@@ -420,7 +420,8 @@ section {
 }
 
 .work-img--zoom {
-  transform: scale(1.08);
+  object-position: left center;
+  transform: scaleY(1.04);
 }
 
 .game-work-img {
