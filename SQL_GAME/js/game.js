@@ -516,6 +516,18 @@ function runQuery() {
         return;
     }
 
+    const inputDiagnostic = getSqlInputDiagnostic(sql);
+    if (inputDiagnostic) {
+        showCenterFeedback({
+            tone: 'warn',
+            badge: 'SQL CHECK',
+            title: 'SQLの記述を確認してください',
+            message: inputDiagnostic,
+            duration: 2800
+        });
+        return;
+    }
+
     const startedAt = performance.now();
     const result = executeUserQuery(sql);
     const elapsedMs = Math.max(1, Math.round(performance.now() - startedAt));
@@ -528,7 +540,7 @@ function runQuery() {
             tone: 'error',
             badge: 'SQL ERROR',
             title: 'クエリの実行に失敗しました',
-            message: result.error,
+            message: getSqlExecutionFeedback(result.error),
             meta: `${elapsedMs}ms`,
             duration: 2800
         });
@@ -559,10 +571,23 @@ function runQuery() {
 
 function compareResults(user, expected, orderSensitive) {
     if (!user.columns.length && !user.values.length && expected.columns.length) {
-        return { matches: false, reason: 'rows' };
+        return { matches: false, reason: 'rows', userCount: user.values.length, expectedCount: expected.values.length };
     }
     if (JSON.stringify(user.columns) !== JSON.stringify(expected.columns)) {
-        return { matches: false, reason: 'columns' };
+        const expectedSet = new Set(expected.columns);
+        const userSet = new Set(user.columns);
+        const hasExtraColumns = user.columns.some(column => !expectedSet.has(column));
+        const hasMissingColumns = expected.columns.some(column => !userSet.has(column));
+        let reason = 'columns';
+        if (hasExtraColumns && hasMissingColumns) reason = 'columns_extra_missing';
+        else if (hasExtraColumns) reason = 'columns_extra';
+        else if (hasMissingColumns) reason = 'columns_missing';
+        return {
+            matches: false,
+            reason,
+            userColumns: user.columns,
+            expectedColumns: expected.columns
+        };
     }
 
     const userRows = user.values;
@@ -571,33 +596,128 @@ function compareResults(user, expected, orderSensitive) {
     const expectedRowKeys = expectedRows.map(row => JSON.stringify(row));
     if (!orderSensitive) {
         const matches = JSON.stringify(userRowKeys.slice().sort()) === JSON.stringify(expectedRowKeys.slice().sort());
-        return matches ? { matches: true } : { matches: false, reason: 'rows' };
+        return matches
+            ? { matches: true }
+            : { matches: false, reason: 'rows', userCount: userRows.length, expectedCount: expectedRows.length };
     }
 
     if (JSON.stringify(userRows) === JSON.stringify(expectedRows)) {
         return { matches: true };
     }
     if (JSON.stringify(userRowKeys.slice().sort()) === JSON.stringify(expectedRowKeys.slice().sort())) {
-        return { matches: false, reason: 'order' };
+        return {
+            matches: false,
+            reason: 'order',
+            userCount: userRows.length,
+            expectedCount: expectedRows.length
+        };
     }
-    return { matches: false, reason: 'rows' };
+    return { matches: false, reason: 'rows', userCount: userRows.length, expectedCount: expectedRows.length };
 }
 
 function getMismatchMessage(comparison) {
+    if (comparison.reason === 'columns_extra') {
+        return '抽出する列に余分な列が含まれている可能性があります。\n問題文で指定された列だけをSELECT句に書けているか確認しましょう。';
+    }
+    if (comparison.reason === 'columns_missing') {
+        return '抽出する列が不足しています。\n問題文で指定された列がSELECT句にすべて含まれているか確認しましょう。';
+    }
+    if (comparison.reason === 'columns_extra_missing') {
+        return '抽出する列に余分な列が含まれているか、必要な列が不足しています。\nSELECT句で列の数・名前・並びを確認しましょう。';
+    }
     if (comparison.reason === 'columns') {
-        return '抽出する列が問題文の要件と合っていないようです。SELECT句で選んだ列や、その並びをもう一度確認してみよう。';
+        return '抽出する列が問題文の要件と合っていません。\nSELECT句で列名と並び、不要な列が含まれていないか確認しましょう。';
     }
     if (comparison.reason === 'order') {
-        return 'レコードの表示順序が違うようです。ORDER BYで指定した列と、昇順・降順の指定を問題文と照らしてみよう。';
+        return 'レコードの表示順序が異なります。\nORDER BYで指定する列と、ASC・DESCの並び方を確認しましょう。';
     }
 
-    return '取得したレコードが一致しません。WHERE条件や比較値、条件の組み合わせを見直し、問題文の要件を一つずつ確認してみよう。';
+    return '取得したレコードが一致しません。\nWHERE条件、比較値、AND・ORの組み合わせ、かっこの位置を見直しましょう。条件が問題文の要件と合っているか確認してください。';
 }
 
 function checkRequiredFeatures(sql, missionNumber) {
     const required = missionFeatures[missionNumber] || [];
     const missing = required.filter(feature => !requiredSqlPatterns[feature]?.test(sql));
     return { success: missing.length === 0, missing };
+}
+
+const requiredFeatureLabels = {
+    SELECT: 'SELECT', FROM: 'FROM', WHERE: 'WHERE', EQUALS: '＝（等号）',
+    AND: 'AND', OR: 'OR', ORDER_BY: 'ORDER BY', ASC: 'ASC（昇順）', DESC: 'DESC（降順）',
+    LIMIT: 'LIMIT', PARENS: 'かっこ', INNER_JOIN: 'INNER JOIN', LEFT_JOIN: 'LEFT JOIN',
+    ON: 'ON', IS_NULL: 'IS NULL', SUBQUERY: 'サブクエリ', MULTIPLE_JOINS: '複数のJOIN',
+    GROUP_BY: 'GROUP BY', COUNT: 'COUNT', DISTINCT: 'DISTINCT', SUM: 'SUM', AVG: 'AVG',
+    ROUND: 'ROUND', CASE: 'CASE', WHEN: 'WHEN', THEN: 'THEN', ELSE: 'ELSE', END: 'END',
+    AS: 'AS', LESS_THAN: '＜（より小さい）', GREATER_THAN: '＞（より大きい）',
+    NOT_EQUAL: '＜＞または!=（等しくない）', SUBTRACTION: '引き算', DIVIDE: '割り算',
+    HAVING: 'HAVING', MULTIPLY: '掛け算', BETWEEN: 'BETWEEN', LIKE: 'LIKE'
+};
+
+function getSqlInputDiagnostic(sql) {
+    const trimmed = sql.trim();
+    if (!/^SELECT\b/i.test(trimmed)) {
+        const words = trimmed.match(/^[A-Za-z]+/)?.[0] || '';
+        if (words && levenshteinDistance(words.toUpperCase(), 'SELECT') <= 2) {
+            return `「${words}」ではなく「SELECT」のスペルを確認しましょう。`;
+        }
+        return 'SELECT文の先頭から記述してください。';
+    }
+
+    const quoteCount = (trimmed.match(/'/g) || []).length;
+    if (quoteCount % 2 !== 0) {
+        return "文字列を囲むシングルクォート（'）の位置を確認しましょう。";
+    }
+
+    let depth = 0;
+    for (const char of trimmed) {
+        if (char === '(') depth++;
+        if (char === ')') depth--;
+        if (depth < 0) {
+            return '閉じるかっこ「)」が余っているか、かっこが開いていない位置にあります。';
+        }
+    }
+    if (depth > 0) {
+        return 'かっこ「(」に対応する閉じるかっこ「)」が不足しています。かっこの位置を確認しましょう。';
+    }
+
+    const knownKeywords = ['SELECT', 'FROM', 'WHERE', 'ORDER', 'BY', 'LIMIT', 'ASC', 'DESC', 'JOIN', 'INNER', 'LEFT', 'ON', 'AND', 'OR', 'AS', 'IS', 'NULL', 'COUNT', 'DISTINCT', 'GROUP', 'HAVING', 'SUM', 'AVG', 'ROUND', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END'];
+    const words = trimmed.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g) || [];
+    for (const word of words) {
+        if (/^\d+$/.test(word) || knownKeywords.includes(word.toUpperCase())) continue;
+        for (const keyword of knownKeywords) {
+            if (levenshteinDistance(word.toUpperCase(), keyword) === 1) {
+                return `「${word}」のスペルが違う可能性があります。「${keyword}」ではないか確認しましょう。`;
+            }
+        }
+    }
+    return null;
+}
+
+function levenshteinDistance(a, b) {
+    const table = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+    for (let i = 0; i <= a.length; i++) table[0][i] = i;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            table[i][j] = b[i - 1] === a[j - 1]
+                ? table[i - 1][j - 1]
+                : Math.min(table[i - 1][j - 1] + 1, table[i][j - 1] + 1, table[i - 1][j] + 1);
+        }
+    }
+    return table[b.length][a.length];
+}
+
+function getSqlExecutionFeedback(errorMessage) {
+    const message = String(errorMessage || '');
+    if (/no such table/i.test(message)) {
+        return 'テーブル名が間違っているか、スペルが一致していません。FROM句で正しいテーブル名を確認しましょう。';
+    }
+    if (/no such column/i.test(message)) {
+        return '列名が間違っているか、スペルが一致していません。SELECT・WHERE・ORDER BYで正しい列名を確認しましょう。';
+    }
+    if (/syntax error/i.test(message) || /near/i.test(message)) {
+        return `SQL構文にエラーがあります。スペル、かっこの位置、カンマ、演算子を確認しましょう。\n詳細：${message}`;
+    }
+    return `SQLを実行できませんでした。スペル、テーブル名・列名、かっこ、演算子を確認しましょう。\n詳細：${message}`;
 }
 
 function verifyMission() {
@@ -618,13 +738,25 @@ function verifyMission() {
         });
         return;
     }
+    const inputDiagnostic = getSqlInputDiagnostic(sql);
+    if (inputDiagnostic) {
+        showCenterFeedback({
+            tone: 'warn',
+            badge: 'SQL CHECK',
+            title: 'SQLの記述を確認してください',
+            message: inputDiagnostic,
+            duration: 2800
+        });
+        return;
+    }
     const featureCheck = checkRequiredFeatures(sql, mission.id);
     if (!featureCheck.success) {
+        const missingLabels = featureCheck.missing.map(feature => requiredFeatureLabels[feature] || feature);
         showCenterFeedback({
             tone: 'warn',
             badge: 'SYNTAX CHECK',
             title: '必要なSQL構文が不足しています',
-            message: `不足している要素：${featureCheck.missing.join(', ')}`,
+            message: `不足している要素：${missingLabels.join('、')}`,
             duration: 2400
         });
         return;
@@ -635,7 +767,7 @@ function verifyMission() {
             tone: 'error',
             badge: 'SQL ERROR',
             title: 'SQLの実行エラー',
-            message: userResult.error,
+            message: getSqlExecutionFeedback(userResult.error),
             duration: 2600
         });
         return;
