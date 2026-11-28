@@ -419,9 +419,22 @@ section {
   object-position: center;
 }
 
+/* 左側に要素が寄っている画像（Notification UXなど）の左切れ防止 */
+.work-img--left {
+  object-fit: cover;
+  object-position: left center;
+}
+
 .work-img--zoom {
   object-position: left center;
   transform: scaleY(1.04);
+}
+
+.work-img--contain {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
 }
 
 .game-work-img {
