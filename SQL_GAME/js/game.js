@@ -4,6 +4,7 @@ let currentMissionIndex = parseInt(localStorage.getItem('sql_game_last_mission')
 let currentChapter = '';
 let currentHintIndex = 0;
 let centerFeedbackTimer = null;
+let lastExecutedSql = '';
 
 const chapterOrder = [...new Set(missions.map(mission => mission.group))];
 
@@ -249,6 +250,7 @@ function selectMission(index) {
         section.open = false;
     });
     hideCenterFeedback();
+    lastExecutedSql = '';
     currentMissionIndex = index;
     currentChapter = missions[index].group;
     currentHintIndex = 0;
@@ -538,6 +540,7 @@ function runQuery() {
     const table = document.getElementById('result-table');
 
     if (!result.success) {
+        lastExecutedSql = '';
         table.innerHTML = `<div class="result-error-box">${escapeHTML(result.error)}</div>`;
         document.getElementById('row-count').textContent = '0 件ヒット';
         showCenterFeedback({
@@ -551,6 +554,7 @@ function runQuery() {
         return;
     }
 
+    lastExecutedSql = normalizeSql(sql);
     document.getElementById('row-count').textContent = `${result.values.length} 件ヒット`;
     table.innerHTML = result.columns.length
         ? '<thead><tr>' + result.columns.map(column => `<th>${escapeHTML(column)}</th>`).join('') + '</tr></thead><tbody>'
@@ -742,6 +746,26 @@ function verifyMission() {
         });
         return;
     }
+    if (!lastExecutedSql) {
+        showCenterFeedback({
+            tone: 'warn',
+            badge: 'NOTICE',
+            title: '先にSQLを実行してください',
+            message: '「SQLを実行する」で証拠ログを確認してから、この結果で判定しましょう。',
+            duration: 1700
+        });
+        return;
+    }
+    if (lastExecutedSql !== sql) {
+        showCenterFeedback({
+            tone: 'warn',
+            badge: 'NOTICE',
+            title: '実行したSQLと入力が違います',
+            message: 'SQLを編集したため実行履歴が古くなっています。「SQLを実行する」で結果を更新してから判定しましょう。',
+            duration: 2200
+        });
+        return;
+    }
     const inputDiagnostic = getSqlInputDiagnostic(sql);
     if (inputDiagnostic) {
         showCenterFeedback({
@@ -856,6 +880,7 @@ function completeMission() {
 }
 
 function saveCurrentInput() {
+    lastExecutedSql = '';
     localStorage.setItem(`sql_game_query_${currentMissionIndex}`, document.getElementById('sql-input').value);
 }
 
