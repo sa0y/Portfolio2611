@@ -290,7 +290,7 @@ function selectMission(index) {
         sqlInput.style.display = 'none';
         runButton.style.display = 'none';
         verifyButton.style.display = 'inline-block';
-        verifyButton.textContent = '資料の確認を完了する';
+        verifyButton.textContent = '捜査を開始する';
         tabs.innerHTML = `
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
                 ${briefingTab('Companies', '会社情報')}
@@ -681,7 +681,7 @@ function completeMission() {
         tone: 'success',
         badge: 'MISSION CLEARED',
         title: mission.title,
-        message: mission.clearFeedback?.dialogue || '正解です！',
+        message: mission.clearFeedback?.dialogue || 'ミッションクリア！次の調査へ進もう。',
         learned: mission.clearFeedback?.learned || [],
         modal: hasNext,
         duration: hasNext ? 0 : 2600,
