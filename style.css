@@ -436,8 +436,9 @@ section {
 }
 
 .game-work-img {
-  object-fit: contain;
-  transform: scaleX(1.02);
+  object-fit: cover;
+  object-position: center;
+  transform: none;
 }
 
 .tone-1 { background: linear-gradient(135deg, #435068 0%, #52607a 100%); }
