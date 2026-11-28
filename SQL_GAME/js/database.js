@@ -60,9 +60,9 @@ function seedInitialData() {
     // declared_value, declaration_date, declared_weight_kg, actual_weight_kg,
     // advertised_capacity, actual_capacity
     const importData = [
-        ['T001', 'C001', 'TGCS-26', 'USB1TB 2-in-1', 'USBメモリ', 2000, 1985, 96000000, '2026-08-10', 120.0, 120.0, 1024, 1024],
-        ['T002', 'C002', 'TGCS-26', 'USB1TB 2-in-1', 'USBメモリ', 3000, 3000, 150000000, '2026-08-15', 180.0, 180.0, 1024, 1024],
-        ['T003', 'C003', 'MEM-512G', 'USB512GB Type-C', 'USBメモリ', 2000, 2000, 100000000, '2026-08-25', 120.0, 120.0, 512, 512],
+        ['T001', 'C001', 'TGCS-26', 'USB1TB 2-in-1', 'USBメモリ', 2000, 1985, 96000000, '2026-09-10', 120.0, 120.0, 1024, 1024],
+        ['T002', 'C002', 'TGCS-26', 'USB1TB 2-in-1', 'USBメモリ', 3000, 3000, 150000000, '2026-09-15', 180.0, 180.0, 1024, 1024],
+        ['T003', 'C003', 'MEM-512G', 'USB512GB Type-C', 'USBメモリ', 2000, 2000, 100000000, '2026-09-25', 120.0, 120.0, 512, 512],
 
         // 切り口①：数量不足 ＋ 重量オーバー（数は少ないのに重い＝何か詰まっている）
         ['T004', 'C004', 'TGCS-26', 'USB1TB 2-in-1', 'USBメモリ', 2000, 1650, 12000000, '2026-09-02', 120.0, 135.0, 1024, 1024],
@@ -143,13 +143,12 @@ function seedInitialData() {
         const qty = ((qtySeed % 4) + 1) * 1000;
         const val = qty * 50000;
 
-        // 84件周期で同じ日付・同じ会社・同じ数量が重ならないよう分散
-        const monthNum = isTech26
-            ? (((i + tech26Seq * 2) % 3) + 8)
-            : ((i % 3) + 8);
-        const dayNum = isTech26
-            ? ((((i * 11) + tech26Seq * 13) % 28) + 1)
-            : (((i * 7) % 28) + 1);
+        // 9月1日〜11月25日（86日）の範囲で取引日を分散
+        const startDate = Date.UTC(2026, 8, 1);
+        const offsetDays = (i - 20) % 86;
+        const date = new Date(startDate + offsetDays * 24 * 60 * 60 * 1000);
+        const monthNum = date.getUTCMonth() + 1;
+        const dayNum = date.getUTCDate();
         if (isTech26) tech26Seq++;
 
         const month = String(monthNum).padStart(2, '0');
