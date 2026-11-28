@@ -430,9 +430,7 @@ section {
   transform: scaleY(1.04);
 }
 
-.work-img--contain {
-  width: 100%;
-  height: 100%;
+.work-thumb.tone-2 .work-img {
   object-fit: contain;
   object-position: center;
 }
@@ -608,6 +606,9 @@ section {
 
 /* レスポンシブ対応 */
 @media (max-width: 760px) {
+  .nav-container { padding: 10px 12px; }
+  .nav-links { flex-wrap: wrap; justify-content: center; gap: 4px; }
+  .nav-link { padding: 8px; }
   .works-grid { grid-template-columns: 1fr; }
   .single-work-grid { grid-template-columns: 1fr; }
   .single-work-grid .work-thumb { aspect-ratio: 1195 / 341; }
