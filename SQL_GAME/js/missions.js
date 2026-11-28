@@ -1144,7 +1144,7 @@ WHERE (model_number = 'TGCS-26' AND received_quantity < quantity AND actual_weig
             `
         }
     },
-    {
+   {
         id: 21,
         title: "21. 必須条件と選択条件を分け、数量・重量の異常を特定せよ",
         desc: "Imports から、型番が TGCS-26 かつ受入数量が NULL でない取引のうち、（受入数量が申告数量より少なく実重量が申告重量より重い、または実重量が申告重量の1.2倍より重い）取引（trade_id, company_id, quantity, received_quantity, declared_weight_kg, actual_weight_kg）を特定せよ。",
@@ -1153,7 +1153,7 @@ WHERE (model_number = 'TGCS-26' AND received_quantity < quantity AND actual_weig
 まずは基本の「必須条件は外、選択条件（OR）は () で囲む」形で数量・重量の異常を探ります。T008 のような受入数量未記録（NULL）を除外するため、received_quantity IS NOT NULL を必須条件に入れています。
 
 ・必須条件（外に出す）：model_number = 'TGCS-26' かつ received_quantity IS NOT NULL
-・選択条件（() で囲む）：((received_quantity < quantity AND actual_weight_kg > declared_weight_kg) OR actual_weight_kg > declared_weight_kg * 1.2)
+・選択条件（() で囲む）：( (received_quantity < quantity AND actual_weight_kg > declared_weight_kg) OR actual_weight_kg > declared_weight_kg * 1.2  )
 
 まずは外枠と OR カッコの基本形に慣れましょう。`,
         clearFeedback: {
@@ -1163,14 +1163,18 @@ WHERE (model_number = 'TGCS-26' AND received_quantity < quantity AND actual_weig
                 "IS NOT NULL：未記録（NULL）のデータをあらかじめ除外する"
             ]
         },
-        expectedSql: `SELECT trade_id, company_id, quantity, received_quantity, declared_weight_kg, actual_weight_kg
+        expectedSql: `SELECT
+    trade_id,
+    company_id,
+    quantity,
+    received_quantity,
+    declared_weight_kg,
+    actual_weight_kg
 FROM Imports
 WHERE model_number = 'TGCS-26'
   AND received_quantity IS NOT NULL
-  AND (
-        (received_quantity < quantity AND actual_weight_kg > declared_weight_kg)
-        OR actual_weight_kg > declared_weight_kg * 1.2
-  );`,
+  AND ( (received_quantity < quantity AND actual_weight_kg > declared_weight_kg)
+      OR actual_weight_kg > declared_weight_kg * 1.2  );`,
         hints: [
             {
                 level: 1,
@@ -1185,7 +1189,7 @@ WHERE model_number = 'TGCS-26'
             {
                 level: 3,
                 type: "組み立て方",
-                text: "FROM 表A → WHERE 表A.カラム = '値' AND 表A.カラム IS NOT NULL AND ((条件A AND 条件B) OR 条件C) の形で組み立てましょう。"
+                text: "FROM 表A → WHERE 表A.カラム = '値' AND 表A.カラム IS NOT NULL AND ( (条件A AND 条件B) OR 条件C  ) の形で組み立てましょう。"
             }
         ],
         dialogue: "上司：数量が減っているのに実重量が重い取引だ。別の品物を一緒に詰め込んで紛れ込ませている疑いがある——まずはこの線から絞り込もう。",
@@ -1208,7 +1212,7 @@ WHERE model_number = 'TGCS-26'
 21番より少し踏み込み、OR でつなぐ選択条件の中に AND の塊を () で入れ子にして絞り込みます。
 
 ・必須条件（外に出す）：model_number = 'TGCS-26'
-・選択条件（() で囲む）：(actual_capacity < advertised_capacity OR (advertised_capacity >= 256 AND actual_capacity <= 64))
+・選択条件（() で囲む）：( actual_capacity < advertised_capacity OR (advertised_capacity >= 256 AND actual_capacity <= 64)  )
 
 外側の () で OR 全体くくり、内側の () で AND の塊を分けることで、複雑な条件も読みやすく正確に書けます。`,
         clearFeedback: {
@@ -1218,13 +1222,15 @@ WHERE model_number = 'TGCS-26'
                 "段階的な条件設計：単純な比較と複合条件を OR でつなぐ"
             ]
         },
-        expectedSql: `SELECT trade_id, company_id, advertised_capacity, actual_capacity
+        expectedSql: `SELECT
+    trade_id,
+    company_id,
+    advertised_capacity,
+    actual_capacity
 FROM Imports
 WHERE model_number = 'TGCS-26'
-  AND (
-        actual_capacity < advertised_capacity
-        OR (advertised_capacity >= 256 AND actual_capacity <= 64)
-  );`,
+  AND ( actual_capacity < advertised_capacity
+      OR (advertised_capacity >= 256 AND actual_capacity <= 64)  );`,
         hints: [
             {
                 level: 1,
@@ -1239,7 +1245,7 @@ WHERE model_number = 'TGCS-26'
             {
                 level: 3,
                 type: "組み立て方",
-                text: "FROM 表A → WHERE 表A.カラム = '値' AND (条件A OR (条件B AND 条件C)) の形で、ORとANDを丸括弧で整理しましょう。"
+                text: "FROM 表A → WHERE 表A.カラム = '値' AND ( 条件A OR (条件B AND 条件C)  ) の形で、ORとANDを丸括弧で整理しましょう。"
             }
         ],
         dialogue: "上司：次はUSB容量の異常だ。21番より少し条件が複雑になるが、カッコの入れ子を使って TGCS-26 の容量偽装を絞り込んでくれ。",
@@ -1271,7 +1277,7 @@ Companies 表から「アオバ・マイクロ」の company_id を1つ取り出
   Imports.company_id = (上のSELECT)
   かつ Imports.model_number = 'TGCS-26'
 ・異常条件（どちらか1つあてはまる）：
-  ( (数量不足 AND 重量超過) OR (実容量 < 広告容量) )
+  ( (数量不足 AND 重量超過) OR (実容量 < 広告容量)  )
   ※ OR の全体を ( ) で囲むのがポイントです。
 
 まずは「アオバ・マイクロの company_id を出す1文」を書いてから、メインの WHERE に組み込んでみましょう。
@@ -1284,14 +1290,13 @@ Companies 表から「アオバ・マイクロ」の company_id を1つ取り出
                 "必須条件と選択条件の統合：2つの調査結果の条件を () と OR で1つにまとめる"
             ]
         },
-        expectedSql: `SELECT Imports.trade_id
+        expectedSql: `SELECT
+    Imports.trade_id
 FROM Imports
 WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name = 'アオバ・マイクロ')
   AND Imports.model_number = 'TGCS-26'
-  AND (
-    (Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
-    OR (Imports.actual_capacity < Imports.advertised_capacity)
-  );`,
+  AND ( (Imports.received_quantity < Imports.quantity AND Imports.actual_weight_kg > Imports.declared_weight_kg)
+      OR (Imports.actual_capacity < Imports.advertised_capacity)  );`,
         hints: [
             {
                 level: 1,
@@ -1306,7 +1311,7 @@ WHERE Imports.company_id = (SELECT company_id FROM Companies WHERE company_name 
             {
                 level: 3,
                 type: "組み立て方",
-                text: "FROM 表A → WHERE 表A.カラム = (SELECT 表B.カラム FROM 表B WHERE 表B.カラム = '値') AND 表A.カラム = '値' AND (条件A OR 条件B) の形で組み立てましょう。まずは () の中の SELECT を先に作ると整理しやすいです。"
+                text: "FROM 表A → WHERE 表A.カラム = (SELECT 表B.カラム FROM 表B WHERE 表B.カラム = '値') AND 表A.カラム = '値' AND ( 条件A OR 条件B  ) の形で組み立てましょう。まずは () の中の SELECT を先に作ると整理しやすいです。"
             }
         ],
         dialogue: "上司：『容量偽装』と『数不足＋重量超過』。中身のスペックをごまかす手口と、別のモノを紛れ込ませる手口——2つの異常を1つにまとめて対象取引を確定しよう。",
