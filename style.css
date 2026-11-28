@@ -433,8 +433,8 @@ section {
 .work-img--contain {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: left center;
+  object-fit: contain;
+  object-position: center;
 }
 
 .game-work-img {
@@ -444,6 +444,7 @@ section {
 
 .tone-1 { background: linear-gradient(135deg, #435068 0%, #52607a 100%); }
 .tone-2 { background: linear-gradient(135deg, #3d4a60 0%, #4a5872 100%); }
+.work-thumb.tone-2 { background: #141926; }
 .tone-3 { background: linear-gradient(135deg, #48566f 0%, #576684 100%); }
 
 .work-card-copy {
